@@ -1,0 +1,1 @@
+ALTER TABLE "user_posts" ADD COLUMN "private" boolean DEFAULT true;

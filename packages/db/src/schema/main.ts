@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, check } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, check, boolean } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { user } from "./auth";
 
@@ -14,6 +14,7 @@ export const userPosts = pgTable(
     textData: text("text_data"),
     imageUrl: text("image_url"),
     videoUrl: text("video_url"),
+    private: boolean("private").default(true),
   },
   (table) => [
     check("type_check", sql`${table.type} IN ('photos', 'text', 'video')`),
