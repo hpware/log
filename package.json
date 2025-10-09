@@ -17,7 +17,7 @@
   "scripts": {
     "dev": "bun run --filter '*' dev",
     "build": "bun run --filter '*' build",
-    "start": "bun run --filter '*' start",
+    "start": "bun run db:migrate && bun run --filter '*' start",
     "check-types": "bun run --filter '*' check-types",
     "dev:native": "bun run --filter native dev",
     "dev:web": "bun run --filter web dev",
@@ -30,6 +30,7 @@
   "packageManager": "bun@1.2.22",
   "dependencies": {
     "dotenv": "^17.2.2",
+    "pg": "^8.16.3",
     "zod": "^4.1.11"
   },
   "devDependencies": {

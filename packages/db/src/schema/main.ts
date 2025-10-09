@@ -1,4 +1,11 @@
-import { pgTable, text, timestamp, check, boolean } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  check,
+  boolean,
+  jsonb,
+} from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { user } from "./auth";
 
@@ -15,6 +22,7 @@ export const userPosts = pgTable(
     imageUrl: text("image_url"),
     videoUrl: text("video_url"),
     private: boolean("private").default(true),
+    tags: jsonb("tags"),
   },
   (table) => [
     check("type_check", sql`${table.type} IN ('photos', 'text', 'video')`),
@@ -28,5 +36,9 @@ export const userPosts = pgTable(
     ),
   ],
 );
+
+export const tags = pgTable("tags", {
+  tagId: text("tag_id").primaryKey(),
+});
 
 //export const postTrackCount

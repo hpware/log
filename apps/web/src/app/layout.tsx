@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "devlogs_hosting",
-  description: "devlogs_hosting",
+  title: "Default Title",
+  description: "The home of devlogs, vlogs, plogs, and text-logs.",
 };
 
 export default function RootLayout({
