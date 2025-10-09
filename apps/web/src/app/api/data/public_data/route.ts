@@ -18,9 +18,9 @@ export const GET = async (request: NextRequest) => {
       .limit(50)
       .offset(Number(offset));
     console.log(dbResult);
-    return Response.json({ result: dbResult });
+    return Response.json({ success: true, msg: "", result: dbResult });
   } catch (e: any) {
     console.error(e);
-    return Error("whoops");
+    return Response.json({ success: false, msg: e.message, result: [] });
   }
 };
