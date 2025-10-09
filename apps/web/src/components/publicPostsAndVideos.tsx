@@ -3,12 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import Spinner from "@/components/spinner";
+import { main_schema } from "../../../../packages/db/src/index";
 
 export function PublicPostsAndVideos() {
   const [currentOffset, setCurrentOffset] = useState(0);
+  const [reloadPost, setReloadPost] = useState(false);
   const [logData, setLogData] = useState([]);
   const { isPending, error, data } = useQuery({
-    queryKey: ["postContents"],
+    queryKey: ["postContents", reloadPost],
     queryFn: () =>
       fetch(`/api/data/public_data?offset=${currentOffset}`).then((res) =>
         res.json(),
@@ -24,24 +26,47 @@ export function PublicPostsAndVideos() {
 
   return (
     <div>
-      {logData ? (
+      {logData.length !== 0 ? (
         <>
-          <div>{JSON.stringify(logData)}</div>
+          <div className="scroll-smooth">{JSON.stringify(logData)}</div>
         </>
       ) : (
-        <span>An error has occurred: {data.msg}</span>
+        !isPending && (
+          <div>
+            <span>This is empty :(</span>
+            <Button
+              onClick={() => {
+                setReloadPost((prev) => !prev);
+              }}
+            >
+              Try again
+            </Button>
+          </div>
+        )
       )}
       {error ? (
         <div>
           <span>Error fetching new posts: {error.message}</span>
-          <Button>Try again</Button>
+          <Button
+            onClick={() => {
+              setReloadPost((prev) => !prev);
+            }}
+          >
+            Try again
+          </Button>
         </div>
       ) : (
         data &&
         !data.success && (
           <div>
             <span>Error fetching new posts: {data.msg}</span>
-            <Button>Try again</Button>
+            <Button
+              onClick={() => {
+                setReloadPost((prev) => !prev);
+              }}
+            >
+              Try again
+            </Button>
           </div>
         )
       )}

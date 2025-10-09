@@ -9,24 +9,6 @@ export default function Home() {
   return (
     <>
       <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
-      <PublicPostsAndVideos />
     </>
   );
 }
