@@ -3,9 +3,13 @@ import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 
 export default function Dashboard({
-	session,
+  session,
 }: {
-	session: typeof authClient.$Infer.Session;
+  session: typeof authClient.$Infer.Session;
 }) {
-	return <></>;
+  return (
+    <>
+      <span>Oh hi this is testing!</span>
+    </>
+  );
 }

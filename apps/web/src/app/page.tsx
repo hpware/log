@@ -7,8 +7,8 @@ export const metadata: Metadata = {
 };
 export default function Home() {
   return (
-    <>
+    <section className="scroll-smooth">
       <PublicPostsAndVideos />
-    </>
+    </section>
   );
 }

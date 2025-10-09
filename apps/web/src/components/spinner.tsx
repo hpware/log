@@ -9,7 +9,7 @@ export default function Spinner({
     <div>
       <svg
         aria-hidden="true"
-        className={`w-${size || "8"} h-${size || "8"} text-gray-200 animate-spin dark:text-gray-600 fill-blue-600 fasterSpinner ${className}`}
+        className={`w-${size || "8"} h-${size || "8"} text-gray-200 animate-spin dark:text-gray-600 fill-blue-600 dark:fill-blue-200 fasterSpinner ${className}`}
         viewBox="0 0 100 101"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

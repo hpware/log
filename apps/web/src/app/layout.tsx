@@ -31,8 +31,11 @@ export default function RootLayout({
       >
         <Providers>
           <div className="grid grid-rows-[auto_1fr] h-svh">
-            <Navigation />
-            <main className="mt-12 pt-1">{children}</main>
+            <header>
+              <Navigation />
+            </header>
+            <main className="mt-12 pt-5 min-h-screen">{children}</main>
+            <footer></footer>
           </div>
         </Providers>
       </body>

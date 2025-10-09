@@ -8,7 +8,7 @@ import { main_schema } from "../../../../packages/db/src/index";
 export function PublicPostsAndVideos() {
   const [currentOffset, setCurrentOffset] = useState(0);
   const [reloadPost, setReloadPost] = useState(false);
-  const [logData, setLogData] = useState([]);
+  const [logData, setLogData] = useState<(typeof main_schema.userPosts)[]>([]);
   const { isPending, error, data } = useQuery({
     queryKey: ["postContents", reloadPost],
     queryFn: () =>
@@ -17,19 +17,17 @@ export function PublicPostsAndVideos() {
       ),
   });
   if (!isPending && !error && data.sucess) {
-    if (logData.length === 0) {
+    if (logData.length !== 0) {
+      setLogData([...logData, data.result]);
+    } else {
       setLogData(data.result);
-    } //else {
-    // setLogData([...logData, data.result]);
-    //}
+    }
   }
 
   return (
     <div>
       {logData.length !== 0 ? (
-        <>
-          <div className="scroll-smooth">{JSON.stringify(logData)}</div>
-        </>
+        <div>{JSON.stringify(logData)}</div>
       ) : (
         !isPending && (
           <div>
@@ -71,7 +69,9 @@ export function PublicPostsAndVideos() {
         )
       )}
       {isPending && (
-        <Spinner className="justify-center align-center text-center align-middle flex self-center" />
+        <div className="justify-center align-center text-center align-middle flex self-center">
+          <Spinner className="justify-center align-center text-center align-middle flex self-center" />
+        </div>
       )}
     </div>
   );
