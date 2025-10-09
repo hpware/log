@@ -1,32 +1,51 @@
 "use client";
-
 import { useQuery } from "@tanstack/react-query";
-import generateItemId from "@/components/generateItemId";
-import { useState } from "react";
 import { Button } from "./ui/button";
+import { useState } from "react";
+import Spinner from "@/components/spinner";
 
 export function PublicPostsAndVideos() {
-  const [itemId, setItemId] = useState("");
+  const [currentOffset, setCurrentOffset] = useState(0);
+  const [logData, setLogData] = useState([]);
   const { isPending, error, data } = useQuery({
     queryKey: ["postContents"],
     queryFn: () =>
-      fetch("/api/data/public_data?offset=0").then((res) => res.json()),
+      fetch(`/api/data/public_data?offset=${currentOffset}`).then((res) =>
+        res.json(),
+      ),
   });
+  if (!isPending && !error && data.sucess) {
+    if (logData.length === 0) {
+      setLogData(data.result);
+    } //else {
+    // setLogData([...logData, data.result]);
+    //}
+  }
 
   return (
     <div>
-      {!error
-        ? isPending
-          ? "Loading..."
-          : JSON.stringify(data)
-        : `An error has occurred: ${error.message}`}
-
-      <div className="flex flex-col">
-        <Button onClick={() => setItemId(generateItemId())}>
-          Generate New Item Id
-        </Button>
-        <span>{itemId}</span>
-      </div>
+      {logData ? (
+        <>
+          <div>{JSON.stringify(logData)}</div>
+        </>
+      ) : (
+        <span>An error has occurred: {data.msg}</span>
+      )}
+      {error && (
+        <div>
+          <span>Error fetching new posts: {error.message}</span>
+          <Button>Try again</Button>
+        </div>
+      )}
+      {data && !data.success && (
+        <div>
+          <span>Error fetching new posts: {data.msg}</span>
+          <Button>Try again</Button>
+        </div>
+      )}
+      {isPending && (
+        <Spinner className="justify-center align-center text-center align-middle flex self-center" />
+      )}
     </div>
   );
 }
