@@ -31,17 +31,19 @@ export function PublicPostsAndVideos() {
       ) : (
         <span>An error has occurred: {data.msg}</span>
       )}
-      {error && (
+      {error ? (
         <div>
           <span>Error fetching new posts: {error.message}</span>
           <Button>Try again</Button>
         </div>
-      )}
-      {data && !data.success && (
-        <div>
-          <span>Error fetching new posts: {data.msg}</span>
-          <Button>Try again</Button>
-        </div>
+      ) : (
+        data &&
+        !data.success && (
+          <div>
+            <span>Error fetching new posts: {data.msg}</span>
+            <Button>Try again</Button>
+          </div>
+        )
       )}
       {isPending && (
         <Spinner className="justify-center align-center text-center align-middle flex self-center" />

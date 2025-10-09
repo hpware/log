@@ -130,6 +130,13 @@ body {
     animation-duration: 0.5s !important;
 }
 
+.geist-mono {
+    font-family: var(--font-geist-mono);
+}
+.geint-sans {
+    font-family: var(--font-geist-sans);
+}
+
 @layer base {
     * {
         @apply border-border outline-ring/50;
