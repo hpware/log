@@ -33,6 +33,7 @@ export function PublicPostsAndVideos() {
           <div>
             <span>This is empty :(</span>
             <Button
+              variant="outline"
               onClick={() => {
                 setReloadPost((prev) => !prev);
               }}
@@ -46,6 +47,7 @@ export function PublicPostsAndVideos() {
         <div>
           <span>Error fetching new posts: {error.message}</span>
           <Button
+            variant="outline"
             onClick={() => {
               setReloadPost((prev) => !prev);
             }}
@@ -59,6 +61,7 @@ export function PublicPostsAndVideos() {
           <div>
             <span>Error fetching new posts: {data.msg}</span>
             <Button
+              variant="outline"
               onClick={() => {
                 setReloadPost((prev) => !prev);
               }}

@@ -1,8 +1,21 @@
 "use client";
 import Link from "next/link";
-import { ModeToggle } from "./mode-toggle";
-import UserMenu from "./user-menu";
 import { useEffect, useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { authClient } from "@/lib/auth-client";
+import { Button } from "./ui/button";
+import { Skeleton } from "./ui/skeleton";
+import { useRouter } from "next/navigation";
+import * as React from "react";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 export default function Navigation() {
   const links = [{ to: "/", label: "another path" }] as const;
   const [scrolled, setScrolled] = useState(false);
@@ -37,11 +50,84 @@ export default function Navigation() {
             })}
           </nav>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 my-0 py-0">
           <ModeToggle />
           <UserMenu />
         </div>
       </div>
     </div>
+  );
+}
+
+function UserMenu() {
+  const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
+
+  if (isPending) {
+    return <Skeleton className="h-9 w-24" />;
+  }
+
+  if (!session) {
+    return (
+      <Button variant="outline" asChild>
+        <Link href="/login">Sign In</Link>
+      </Button>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">{session.user.name}</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="bg-card">
+        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <button
+            className="w-full bl-1"
+            onClick={() => {
+              authClient.signOut({
+                fetchOptions: {
+                  onSuccess: () => {
+                    router.push("/");
+                  },
+                },
+              });
+            }}
+          >
+            Sign Out
+          </button>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function ModeToggle() {
+  const { setTheme } = useTheme();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon">
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setTheme("light")}>
+          Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>
+          Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("system")}>
+          System
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
