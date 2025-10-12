@@ -11,14 +11,14 @@ export const GET = async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const offset = searchParams.get("offset");
     if (offset === null) {
-      throw new Error("NO_PARAMS_TO_USE");
+      throw new Error("ERR_NO_PARAMS_TO_USE");
     }
 
     if (!/^\d+$/.test(offset)) {
-      throw new Error("OFFSET_PARAM_NOT_A_NUMBER");
+      throw new Error("ERR_OFFSET_PARAM_NOT_A_NUMBER");
     }
     if (!Number.isSafeInteger(Number(offset))) {
-      throw new Error("OFFSET_PARAM_NOT_A_SAFE_INTEGER");
+      throw new Error("ERR_OFFSET_PARAM_NOT_A_SAFE_INTEGER");
     }
 
     const dbResult = await db
@@ -37,6 +37,12 @@ export const GET = async (request: NextRequest) => {
     });
   } catch (e: any) {
     console.error(e);
-    return Response.json({ success: false, msg: e.message, result: [] });
+    return Response.json(
+      { success: false, msg: e.message, result: [] },
+      {
+        status: 500,
+        statusText: e.message,
+      },
+    );
   }
 };
