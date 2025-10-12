@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev --turbopack --port=3001",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "appi": "sfw bun install"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.908.0",

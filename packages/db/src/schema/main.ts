@@ -5,6 +5,7 @@ import {
   check,
   boolean,
   jsonb,
+  integer,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { user } from "./auth";
@@ -36,6 +37,14 @@ export const userPosts = pgTable(
     ),
   ],
 );
+
+export const kvData = pgTable("kv_data", {
+  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  key: text("key").notNull().unique(),
+  value: jsonb("value").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 export const tags = pgTable("tags", {
   tagId: text("tag_id").primaryKey(),

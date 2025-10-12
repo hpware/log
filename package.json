@@ -15,6 +15,7 @@
     }
   },
   "scripts": {
+    "appi": "bun run --filter @devlogs_hosting/apps/web appi",
     "dev": "bun run --filter '*' dev",
     "build": "bun run --filter '*' build",
     "start": "bun run db:migrate && bun run --filter '*' start",
