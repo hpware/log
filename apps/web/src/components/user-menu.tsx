@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "./ui/button";
-import { Skeleton } from "./ui/skeleton";
+import { Spinner } from "./ui/spinner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -17,7 +17,7 @@ export default function UserMenu() {
   const { data: session, isPending } = authClient.useSession();
 
   if (isPending) {
-    return <Skeleton className="h-9 w-24" />;
+    return <Spinner />;
   }
 
   if (!session) {
@@ -36,7 +36,6 @@ export default function UserMenu() {
       <DropdownMenuContent className="bg-card">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>{session.user.email}</DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Button
             variant="destructive"

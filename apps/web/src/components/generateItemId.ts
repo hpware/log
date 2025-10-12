@@ -1,6 +1,6 @@
 const characters =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-export default function generateRandomString() {
+export default function generateItemId() {
   let slug = "";
   const length = 20;
   for (let times = 0; times < length; times++) {
