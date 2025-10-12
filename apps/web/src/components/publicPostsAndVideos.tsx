@@ -6,6 +6,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { main_schema } from "../../../../packages/db/src/index";
 import Link from "next/link";
 import Image from "next/image";
+import { Badge } from "./ui/badge";
+import { ExternalLink } from "lucide-react";
 
 type Post = typeof main_schema.userPosts.$inferSelect;
 
@@ -37,11 +39,24 @@ export function PublicPostsAndVideos() {
       {status === "success" && (
         <div className="grid">
           {data.pages[0].result.map((i: Post) => (
-            <Link
-              href={`/item/${i.postId}`}
-              className="border shadow text-wrap"
-            >
+            <div className="border shadow text-wrap flex flex-col">
+              <div className="flex flex-row">
+                {(i.tags as string[]).map((it: string) => (
+                  <Link
+                    key={it}
+                    href={`/user/${i.byUser}?filter=by_tag&tag=${it}`}
+                  >
+                    <Badge variant="default">{it}</Badge>
+                  </Link>
+                ))}
+              </div>
+              <Link href={`/user/${i.byUser}`}>
+                <div></div>
+              </Link>
               <span className="break-all">{i.textData}</span>
+              <Link href={`/item/${i.postId}`}>
+                <ExternalLink></ExternalLink>
+              </Link>
               {i.type === "image" ? (
                 <Image
                   src={String(i.imageUrl)}
@@ -50,7 +65,7 @@ export function PublicPostsAndVideos() {
               ) : (
                 i.type === "video" && <video src={String(i.videoUrl)} />
               )}
-            </Link>
+            </div>
           ))}
         </div>
       )}
