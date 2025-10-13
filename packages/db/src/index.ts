@@ -12,6 +12,7 @@ export async function up() {
     .values([
       { key: "title", value: "" },
       { key: "description", value: "Welcome to your instence of hpware/log!" },
+      { key: "owner", value: "Server owner" },
     ])
     .onConflictDoNothing();
 }

@@ -7,7 +7,7 @@ import { main_schema } from "../../../../packages/db/src/index";
 import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "./ui/badge";
-import { ExternalLink } from "lucide-react";
+import { CircleUserIcon, ExternalLink } from "lucide-react";
 
 type Post = typeof main_schema.userPosts.$inferSelect;
 
@@ -39,7 +39,10 @@ export function PublicPostsAndVideos() {
       {status === "success" && (
         <div className="grid">
           {data.pages[0].result.map((i: Post) => (
-            <div className="border shadow text-wrap flex flex-col">
+            <div
+              className="border shadow text-wrap flex flex-col rounded"
+              key={i.postId}
+            >
               <div className="flex flex-row">
                 {(i.tags as string[]).map((it: string) => (
                   <Link
@@ -51,7 +54,7 @@ export function PublicPostsAndVideos() {
                 ))}
               </div>
               <Link href={`/user/${i.byUser}`}>
-                <div></div>
+                <CircleUserIcon />
               </Link>
               <span className="break-all">{i.textData}</span>
               <Link href={`/item/${i.postId}`}>
