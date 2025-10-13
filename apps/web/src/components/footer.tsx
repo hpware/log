@@ -1,3 +1,4 @@
+"use server";
 import { db, main_schema, dorm } from "../../../../packages/db/src";
 
 export default async function Footer() {
