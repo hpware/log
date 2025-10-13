@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export async function generateMetadata(): Promise<Metadata> {
+/**export async function generateMetadata(): Promise<Metadata> {
   try {
     const titleResult = await db
       .select()
@@ -41,6 +41,11 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `Home`,
     };
   }
+} */
+
+export const metadata: Metadata = {
+  title: "Home",
+  description: "The home of "
 }
 
 export default function RootLayout({

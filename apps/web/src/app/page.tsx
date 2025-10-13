@@ -2,6 +2,7 @@ import { PublicPostsAndVideos } from "@/components/publicPostsAndVideos";
 import type { Metadata } from "next";
 import { db, main_schema, dorm } from "../../../../packages/db/src";
 
+/*
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const titleResult = await db
@@ -28,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   }
 }
-
+ */
 export default async function Home() {
   return (
     <section className="scroll-smooth">
