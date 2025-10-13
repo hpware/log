@@ -28,7 +28,10 @@ export const userPosts = pgTable(
   },
   (table) => [
     check("type_check", sql`${table.type} IN ('photos', 'text', 'video')`),
-    check("checkcorrectstatus", sql`${table.status} IN ('draft', 'private', 'public', 'unlisted')`
+    check(
+      "checkcorrectstatus",
+      sql`${table.status} IN ('draft', 'private', 'public', 'unlisted')`,
+    ),
     check(
       "image_url_check",
       sql`${table.type} != 'photos' OR ${table.imageUrl} IS NOT NULL`,
