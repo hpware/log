@@ -1,3 +1,4 @@
+"use server";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../index.css";
@@ -45,8 +46,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Home",
-  description: "The home of "
-}
+  description: "The home of ",
+};
 
 export default function RootLayout({
   children,
