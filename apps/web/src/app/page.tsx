@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
       .select()
       .from(main_schema.kvData)
       .where(dorm.eq(main_schema.kvData.key, "description"));
-
+i
     const title = titleResult[0]?.value ?? "";
     const description = `${descResult[0]?.value ?? ""}`;
 
