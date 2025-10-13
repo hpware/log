@@ -1,0 +1,2 @@
+ALTER TABLE "user_posts" ADD COLUMN "status" text DEFAULT 'draft' NOT NULL;--> statement-breakpoint
+ALTER TABLE "user_posts" ADD CONSTRAINT "checkcorrectstatus" CHECK ("user_posts"."status" IN ('draft', 'private', 'public', 'unlisted'));
