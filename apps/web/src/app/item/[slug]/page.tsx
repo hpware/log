@@ -53,7 +53,7 @@ export async function generateMetadata({
     .where(dorm.eq(main_schema.userPosts.postId, resolvedParams.slug));
   if (content.length === 0) {
     return {
-      title: "Unknown",
+      title: "Undefined",
     };
   }
   const getUserInfo = await db

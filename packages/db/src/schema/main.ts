@@ -50,9 +50,4 @@ export const kvData = pgTable("kv_data", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
-
-export const tags = pgTable("tags", {
-  tagId: text("tag_id").primaryKey(),
-});
-
 //export const postTrackCount

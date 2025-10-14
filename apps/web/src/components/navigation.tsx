@@ -15,10 +15,10 @@ import { Skeleton } from "./ui/skeleton";
 import { Spinner } from "./ui/spinner";
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { Moon, Sun } from "lucide-react";
+import { Moon, SearchIcon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 export default function Navigation() {
-  const links = [{ to: "/", label: "another path" }] as const;
+  const links = [{ to: "/", label: "asd" }] as const;
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function Navigation() {
   return (
     <div>
       <div
-        className={`${scrolled ? "mt-2 py-2 rounded-xl" : "py-2 mt-1 rounded-xs"} z-50 w-[calc(100%-10px)] mx-1 border-1 fixed inset-x-0 text-center bg-white dark:bg-black flex flex-row items-center justify-between px-2 transition-all duration-300`}
+        className={`${scrolled ? "mt-2 py-2 rounded-xl backdrop-blur-xl bg-gray-50/600" : "py-2 mt-1 rounded-xs bg-white dark:bg-black"} z-50 w-[calc(100%-10px)] mx-1 border-1 fixed inset-x-0 text-center flex flex-row items-center justify-between px-2 transition-all duration-300`}
       >
         <div className="flex gap-2 text-lg">
           <Link
@@ -52,6 +52,11 @@ export default function Navigation() {
           </nav>
         </div>
         <div className="flex items-center gap-2 my-0 py-0">
+          <Link href="/search">
+            <Button variant="outline">
+              <SearchIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+            </Button>
+          </Link>
           <ModeToggle />
           <UserMenu />
         </div>
