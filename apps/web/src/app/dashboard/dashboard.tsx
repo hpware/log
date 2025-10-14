@@ -87,7 +87,30 @@ export default function Dashboard({
         className="border w-1/2 h-12"
       />
       {currentOption !== "text" && (
-        <div className="border-2 border-gray-400" ref={fileUploadingDivBox}>
+        <div
+          className="border-2 border-gray-400"
+          ref={fileUploadingDivBox}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.add("border-blue-500", "bg-gray-50");
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.remove("border-blue-500", "bg-gray-50");
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.currentTarget.classList.remove("border-blue-500", "bg-gray-50");
+            if (e.dataTransfer.files.length > 0 && fileUploadBox.current) {
+              const file = e.dataTransfer.files[0];
+              fileUploadBox.current.files = e.dataTransfer.files;
+              console.log("Dropped file:", file.name);
+            }
+          }}
+        >
           <input type="file" ref={fileUploadBox}></input>
           <FileUp />
           <span>Upload your file here</span>
@@ -101,6 +124,15 @@ export default function Dashboard({
       <button onClick={handleSend} disabled={sendDataToServer.isPending}>
         {sendDataToServer.isPending ? "Sending..." : "Send it!"}
       </button>{" "}
+      <div>
+        <h3>Set KV</h3>
+        <span>
+          Key: <input type="text" />
+        </span>
+        <span>
+          Value: <input type="text" />
+        </span>
+      </div>
     </div>
   );
 }

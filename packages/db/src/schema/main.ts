@@ -22,9 +22,9 @@ export const userPosts = pgTable(
     textData: text("text_data"),
     imageUrl: text("image_url"),
     videoUrl: text("video_url"),
-    private: boolean("private").default(true),
     status: text("status").notNull().default("draft"),
     tags: jsonb("tags").default([]),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => [
     check("type_check", sql`${table.type} IN ('photos', 'text', 'video')`),

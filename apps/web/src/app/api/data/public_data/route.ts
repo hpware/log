@@ -24,7 +24,7 @@ export const GET = async (request: NextRequest) => {
     const dbResult = await db
       .select()
       .from(main_schema.userPosts)
-      .where(dorm.eq(main_schema.userPosts.private, false))
+      .where(dorm.eq(main_schema.userPosts.status, "public"))
       .orderBy(dorm.asc(main_schema.userPosts.createdAt))
       .limit(100)
       .offset(Number(offset));
@@ -41,7 +41,6 @@ export const GET = async (request: NextRequest) => {
       { success: false, msg: e.message, result: [] },
       {
         status: 500,
-        statusText: e.message,
       },
     );
   }
