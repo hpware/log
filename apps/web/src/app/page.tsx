@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export const dynamic = "dynamic";
+export const dynamic = "auto";
 
 export default async function Home() {
   return (
