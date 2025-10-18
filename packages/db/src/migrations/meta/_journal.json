@@ -50,6 +50,13 @@
       "when": 1760411654027,
       "tag": "0006_secret_silk_fever",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1760798574517,
+      "tag": "0007_create-default-kv-values",
+      "breakpoints": true
     }
   ]
 }

@@ -10,6 +10,8 @@ import { auth } from "@devlogs_hosting/auth";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 type Post = typeof main_schema.userPosts.$inferSelect;
 
 export default async function Page(props: {

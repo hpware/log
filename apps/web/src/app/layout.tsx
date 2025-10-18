@@ -16,40 +16,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-/**export async function generateMetadata(): Promise<Metadata> {
-  try {
-    const titleResult = await db
-      .select()
-      .from(main_schema.kvData)
-      .where(dorm.eq(main_schema.kvData.key, "title"));
-
-    const descResult = await db
-      .select()
-      .from(main_schema.kvData)
-      .where(dorm.eq(main_schema.kvData.key, "description"));
-
-    const title = `${titleResult[0]?.value ?? ""}`;
-    const description = `${descResult[0]?.value ?? ""}`;
-
-    return {
-      title,
-      description,
-    };
-  } catch (e) {
-    console.error(e);
-    return {
-      title: `Home`,
-    };
-  }
-} */
-
-export const metadata: Metadata = {
-  title: "Home",
-  description: "The home of ",
-};
-
-export const dynamic = "force-dynamic";
-
 export default function RootLayout({
   children,
 }: Readonly<{

@@ -2,7 +2,6 @@ import { PublicPostsAndVideos } from "@/components/publicPostsAndVideos";
 import type { Metadata } from "next";
 import { db, main_schema, dorm } from "../../../../packages/db/src";
 
-/*
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const titleResult = await db
@@ -14,12 +13,12 @@ export async function generateMetadata(): Promise<Metadata> {
       .select()
       .from(main_schema.kvData)
       .where(dorm.eq(main_schema.kvData.key, "description"));
-i
+
     const title = titleResult[0]?.value ?? "";
     const description = `${descResult[0]?.value ?? ""}`;
 
     return {
-      title: `Home ${title}`,
+      title: `Home | ${title}`,
       description,
     };
   } catch (e) {
@@ -29,7 +28,9 @@ i
     };
   }
 }
- */
+
+export const dynamic = "dynamic";
+
 export default async function Home() {
   return (
     <section className="scroll-smooth">
