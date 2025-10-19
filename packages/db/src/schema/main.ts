@@ -6,6 +6,7 @@ import {
   boolean,
   jsonb,
   integer,
+  index,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { user } from "./auth";
@@ -39,6 +40,10 @@ export const userPosts = pgTable(
     check(
       "video_url_check",
       sql`${table.type} != 'video' OR ${table.videoUrl} IS NOT NULL`,
+    ),
+    index("title_search_index").using(
+      "gin",
+      sql`to_tsvector('english', ${table.textData})`,
     ),
   ],
 );

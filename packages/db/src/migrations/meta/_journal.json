@@ -57,6 +57,13 @@
       "when": 1760798574517,
       "tag": "0007_create-default-kv-values",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1760881107593,
+      "tag": "0008_flippant_black_panther",
+      "breakpoints": true
     }
   ]
 }

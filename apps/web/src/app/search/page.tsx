@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useState } from "react";
 import type { Metadata } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, TimerIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -80,6 +80,14 @@ function SearchFunction() {
           }}
           placeholder="Type anything..."
         ></textarea>
+        {data && !error && !isPending && (
+          <div>
+            <div className="flex flex-row">
+              <TimerIcon className="p-1" />
+              <span>{Number(data.queryTime).toPrecision(3)}ms</span>
+            </div>
+          </div>
+        )}
       </div>
       <div className="mt-2">
         {JSON.stringify(data)}{" "}
