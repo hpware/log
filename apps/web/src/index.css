@@ -143,6 +143,10 @@ body {
     font-family: var(--font-geist-sans);
 }
 
+.archivo-black {
+    font-family: var(--font-archivo-black);
+}
+
 @layer base {
     * {
         @apply border-border outline-ring/50;

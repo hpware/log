@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  //Roboto_Condensed,
+  Archivo_Black,
+} from "next/font/google";
 import "../index.css";
 import Providers from "@/components/providers";
 import Navigation from "@/components/navigation";
@@ -16,6 +21,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+/*const robotoCondensed = Roboto_Condensed({
+  variable: "--font-roboto-condensed",
+  subsets: ["latin"],
+}); */
+
+const archivoBlack = Archivo_Black({
+  variable: "--font-archivo-black",
+  subsets: ["latin"],
+  weight: "400",
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -24,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${archivoBlack.variable} antialiased`}
       >
         <Providers>
           <div className="grid grid-rows-[auto_1fr] h-svh">

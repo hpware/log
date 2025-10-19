@@ -78,6 +78,7 @@ function SearchFunction() {
               e.preventDefault();
             }
           }}
+          autoFocus={searchParams.get("focus") === "1"}
           placeholder="Type anything..."
         ></textarea>
         {data && !error && !isPending && (
