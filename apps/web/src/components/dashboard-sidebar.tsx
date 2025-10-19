@@ -35,7 +35,7 @@ const items = [
 const setting_items = [
   {
     title: "Set Site Settings",
-    url: "/dashboard/settings/site",
+    url: "site",
     icon: PanelTopIcon,
   },
 ];
@@ -70,7 +70,7 @@ export default function DashboardSidebar() {
               {setting_items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link href={item.url}>
+                    <Link href={`/dashboard/settings#${item.url}`}>
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>

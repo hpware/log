@@ -20,14 +20,6 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session) {
-    return {
-      title: "Unknown",
-    };
-  }
   const kvTitle = await db
     .select()
     .from(main_schema.kvData)
@@ -37,7 +29,7 @@ export async function generateMetadata({
     .from(main_schema.kvData)
     .where(dorm.eq(main_schema.kvData.key, "description"));
   return {
-    title: `${session.user.name} | ${kvTitle.length !== 0 ? kvTitle[0].value : ""}`,
+    title: `Admin Panel | ${kvTitle.length !== 0 ? kvTitle[0].value : ""}`,
   };
 }
 export default async function RootLayout({
