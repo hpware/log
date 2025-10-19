@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Providers from "@/components/providers";
 import Navigation from "@/components/navigation";
 import { db, main_schema, dorm } from "../../../../../packages/db/src";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import DashboardSidebar from "@/components/dashboard-sidebar";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -16,8 +18,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="grid grid-rows-[auto_1fr] h-svh">
-      <main className="mt-12 pt-5 min-h-screen">{children}</main>
-    </div>
+    <SidebarProvider>
+      <DashboardSidebar />
+      <main>
+        <SidebarTrigger />
+        {children}
+      </main>
+    </SidebarProvider>
   );
 }

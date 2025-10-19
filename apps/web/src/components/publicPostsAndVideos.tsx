@@ -43,7 +43,7 @@ export function PublicPostsAndVideos() {
               className="border shadow text-wrap flex flex-col rounded"
               key={i.postId}
             >
-              <div className="flex flex-row">
+              <div className="flex flex-row gap-1">
                 {(i.tags as string[]).map((it: string) => (
                   <Link
                     key={it}
