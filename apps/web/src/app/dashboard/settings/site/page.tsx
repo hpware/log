@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Dashboard from "./dashboard";
 import { headers } from "next/headers";
 import { auth } from "@devlogs_hosting/auth";
 import { authClient } from "@/lib/auth-client";
@@ -12,11 +11,11 @@ export default async function DashboardPage() {
   if (!session?.user) {
     redirect("/login");
   }
+
   return (
     <div>
       <h1>Dashboard</h1>
       <p>Welcome {session.user.name}</p>
-      <Dashboard session={session} />
     </div>
   );
 }
