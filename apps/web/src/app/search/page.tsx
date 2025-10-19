@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import type { Metadata } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -7,6 +5,7 @@ import { SearchIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
+export const dynamic = "auto";
 
 export default function Page() {
   const [searchBox, setSearchBox] = useState("");
