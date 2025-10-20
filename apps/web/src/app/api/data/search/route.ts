@@ -16,9 +16,13 @@ export const GET = async (request: NextRequest) => {
     }
     const searchData = await db.execute(
       dorm.sql`
-      SELECT *
-      FROM documents
-      WHERE to_tsvector('english', content) @@ plainto_tsquery('english', ${query})
+        SELECT *,
+               ts_rank(to_tsvector('english', text_data),
+                       plainto_tsquery('english', ${query})) AS rank
+        FROM user_posts
+        WHERE to_tsvector('english', text_data)
+              @@ plainto_tsquery('english', ${query})
+        ORDER BY rank DESC;
     `,
     );
     const endPerf = performance.now();
@@ -29,6 +33,7 @@ export const GET = async (request: NextRequest) => {
       queryTime: endPerf - startPerf,
     });
   } catch (e: any) {
+    console.error(e);
     const endPerf = performance.now();
     return NextResponse.json({
       success: false,
