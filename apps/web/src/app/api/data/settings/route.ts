@@ -24,7 +24,9 @@ export const POST = async (request: NextRequest) => {
         },
       );
     }
+    // settings tab
     if (tabAction === "settings") {
+      // changes to the site title system
       if (
         body.action === "site_title_description" &&
         body.title &&
@@ -62,7 +64,10 @@ export const POST = async (request: NextRequest) => {
           );
         }
       }
+      if (body.action === "d") {
+      }
     }
+    // last
     return Response.json(
       {
         success: false,

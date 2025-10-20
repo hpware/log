@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SaveIcon } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export function ChangeSiteSettings({
   serverTitleData,
@@ -18,13 +19,20 @@ export function ChangeSiteSettings({
 
   const sendData = useMutation({
     mutationFn: async (sendData2: any) => {
-      return await fetch("/api/data/settings?tab=settings", {
+      const query = await fetch("/api/data/settings?tab=settings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(sendData2),
       });
+      const res = await query.json();
+      if (res.success) {
+        toast.success("Settings Updated!");
+      } else {
+        toast.error(`Save failed: ${res.msg}`);
+      }
+      return;
     },
   });
 
@@ -75,6 +83,10 @@ export function ChangeSiteSettings({
             <Button
               variant="outline"
               className="transition-all duration-300 cursor-pointer"
+              disabled={
+                siteSettings.title.length === 0 ||
+                siteSettings.description.length === 0
+              }
               onClick={() =>
                 sendData.mutate({
                   action: "site_title_description",
