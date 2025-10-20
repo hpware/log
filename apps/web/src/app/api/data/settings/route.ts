@@ -64,7 +64,11 @@ export const POST = async (request: NextRequest) => {
           );
         }
       }
-      if (body.action === "d") {
+      if (body.action === "change_umami") {
+      }
+      if (body.action === "change_rybbit") {
+      }
+      if (body.action === "change_custom_scripts") {
       }
     }
     // last
