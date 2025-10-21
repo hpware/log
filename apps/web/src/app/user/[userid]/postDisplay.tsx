@@ -13,6 +13,7 @@ export default function DisplayPosts({
   isSameUser: boolean;
 }) {
   const searchParams = useSearchParams();
+  const filters = searchParams.get("filters");
   return (
     <div>
       <span>{JSON.stringify(isSameUser)}</span>
