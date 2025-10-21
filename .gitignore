@@ -48,3 +48,6 @@ coverage
 .cache
 tmp
 temp
+
+# throw away Better-Auth generated schema
+auth-schema.ts

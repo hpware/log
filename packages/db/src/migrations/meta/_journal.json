@@ -64,6 +64,13 @@
       "when": 1760881107593,
       "tag": "0008_flippant_black_panther",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1761016471614,
+      "tag": "0009_empty_scarlet_spider",
+      "breakpoints": true
     }
   ]
 }

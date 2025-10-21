@@ -11,6 +11,7 @@ import { headers } from "next/headers";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { MailCheckIcon, MailQuestionIcon } from "lucide-react";
+import DisplayPosts from "./postDisplay";
 
 type User = typeof auth_schema.user.$inferSelect;
 
@@ -30,6 +31,7 @@ export default async function Page(props: {
   if (content.length === 0) {
     notFound();
   }
+  const isSameUser = sessionUserId === userid ? true : false;
 
   return (
     <div>
@@ -60,6 +62,7 @@ export default async function Page(props: {
             )}
           </div>
         </div>
+        <DisplayPosts user={content[0]} isSameUser={isSameUser} />
       </div>
     </div>
   );
