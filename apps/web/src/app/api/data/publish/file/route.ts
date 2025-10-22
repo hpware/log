@@ -45,10 +45,11 @@ export const POST = async (request: NextRequest) => {
       },
     });
     await upload.done();
+    return Response.json({ success: true, msg: "", uploadUrl: "asdasd" });
   } catch (e: any) {
     console.error(e);
     return Response.json(
-      { success: false, msg: e.message, result: [] },
+      { success: false, msg: e.message, uploadUrl: "" },
       {
         status: 500,
         statusText: e.message,

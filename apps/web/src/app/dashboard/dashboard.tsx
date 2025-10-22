@@ -26,16 +26,32 @@ export default function Dashboard({
       text?: string;
       file?: File | null;
     }) => {
+      let uploadUrl = "";
       if (data.type !== "text") {
         const fd = new FormData();
         if (data.file) fd.append("file", data.file);
-        const res = await fetch("/api/publish/file", {
+        const req = await fetch("/api/data/publish/file", {
           method: "POST",
           body: fd,
         });
-        if (!res.ok) throw new Error("Failed to upload file");
-        return res.json();
+        if (!req.ok) throw new Error("Failed to upload file");
+        const res = await req.json();
+        if (res.success) {
+          uploadUrl = res.uploadUrl;
+        }
       }
+      const req = await fetch("/api/data/publish", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: data.type,
+          text: data.text || "",
+          imageUrl: uploadUrl,
+          status: "public",
+        }),
+      });
     },
   });
 
@@ -61,7 +77,7 @@ export default function Dashboard({
     const file = fileUploadBox.current?.files?.[0];
     sendDataToServer.mutate({
       type: currentOption,
-      text: "textValue",
+      text: textBoxData || "",
       file,
     });
   };
@@ -124,15 +140,6 @@ export default function Dashboard({
       <button onClick={handleSend} disabled={sendDataToServer.isPending}>
         {sendDataToServer.isPending ? "Sending..." : "Send it!"}
       </button>{" "}
-      <div>
-        <h3>Set KV</h3>
-        <span>
-          Key: <input type="text" />
-        </span>
-        <span>
-          Value: <input type="text" />
-        </span>
-      </div>
     </div>
   );
 }

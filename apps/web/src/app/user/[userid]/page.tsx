@@ -10,7 +10,7 @@ import { auth } from "@devlogs_hosting/auth";
 import { headers } from "next/headers";
 import Image from "next/image";
 import type { Metadata } from "next";
-import { MailCheckIcon, MailQuestionIcon } from "lucide-react";
+import { ClockIcon, MailCheckIcon, MailQuestionIcon } from "lucide-react";
 import DisplayPosts from "./postDisplay";
 
 type User = typeof auth_schema.user.$inferSelect;
@@ -51,13 +51,24 @@ export default async function Page(props: {
           />
           <div className="flex flex-col pl-2 pt-5">
             <span className="text-2xl">{content[0].name}</span>
-            {content[0].emailVerified ? (
+            <div className="flex flex-row gap-2 text-sm">
               <span className="flex flex-row gap-2 text-sm">
-                <MailCheckIcon className="w-5 h-5" /> Email Verified
+                <ClockIcon className="w-5 h-5" /> Created at{" "}
+                {String(new Date(content[0].createdAt).toLocaleDateString())}
               </span>
-            ) : (
+              {content[0].emailVerified ? (
+                <span className="flex flex-row gap-2 text-sm">
+                  <MailCheckIcon className="w-5 h-5" /> Email Verified
+                </span>
+              ) : (
+                <span className="flex flex-row gap-2 text-sm">
+                  <MailQuestionIcon className="w-5 h-5" /> Email Not Verified
+                </span>
+              )}
+            </div>
+            {content[0].banned && (
               <span className="flex flex-row gap-2 text-sm">
-                <MailQuestionIcon className="w-5 h-5" /> Email Not Verified
+                User Banned with reason: {content[0].banReason}
               </span>
             )}
           </div>
