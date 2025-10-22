@@ -8,7 +8,7 @@ import {
   auth_schema,
 } from "../../../../../packages/db/src";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import DashboardSidebar from "@/components/dashboard-sidebar";
+import DashboardSidebar from "./sidebar";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@devlogs_hosting/auth";
@@ -46,7 +46,7 @@ export default async function RootLayout({
   }
   return (
     <SidebarProvider>
-      <DashboardSidebar />
+      <DashboardSidebar session={session} />
       <main>
         <SidebarTrigger />
         {children}

@@ -1,12 +1,10 @@
 "use client";
 import {
-  Calendar,
   Home,
-  Inbox,
   LogOutIcon,
   PanelTopIcon,
-  Search,
-  Settings,
+  PlusCircleIcon,
+  SquareChartGantt,
 } from "lucide-react";
 import Link from "next/link";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -32,6 +30,20 @@ const items = [
     icon: Home,
   },
 ];
+
+const postManagementItems = [
+  {
+    title: "Create",
+    url: "create",
+    icon: PlusCircleIcon,
+  },
+  {
+    title: "Manage",
+    url: "manage",
+    icon: SquareChartGantt,
+  },
+];
+
 const setting_items = [
   {
     title: "Set Site Settings",
@@ -40,7 +52,11 @@ const setting_items = [
   },
 ];
 
-export default function DashboardSidebar() {
+export default function DashboardSidebar({
+  session,
+}: {
+  session: typeof authClient.$Infer.Session;
+}) {
   const router = useRouter();
   return (
     <Sidebar className="mt-12">
@@ -54,6 +70,23 @@ export default function DashboardSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Logs</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {postManagementItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a href={String(`/dashboard/posts/${item.url}`)}>
                       <item.icon />
                       <span>{item.title}</span>
                     </a>

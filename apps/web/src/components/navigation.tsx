@@ -18,7 +18,7 @@ import * as React from "react";
 import { Moon, SearchIcon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 export default function Navigation() {
-  const links = [{ to: "/", label: "asd" }] as const;
+  const links = [{ to: "/dashboard", label: "Dashboard" }] as const;
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {

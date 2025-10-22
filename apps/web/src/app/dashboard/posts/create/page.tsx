@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@devlogs_hosting/auth";
+import Client from "./client";
 
 export default async function Page() {
   const session = await auth.api.getSession({
@@ -10,10 +11,5 @@ export default async function Page() {
   if (!session?.user) {
     redirect("/login");
   }
-  return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Welcome {session.user.name}</p>
-    </div>
-  );
+  return <Client session={session} />;
 }
