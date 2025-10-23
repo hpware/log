@@ -15,9 +15,18 @@ export function PublicPostsAndVideos() {
   const [currentOffset, setCurrentOffset] = useState(0);
   const [reloadPost, setReloadPost] = useState(false);
   const [logData, setLogData] = useState<Post[]>([]);
+  const logUserInfo: {
+    id: string | null;
+    name: string | null;
+    image: string | null;
+    banned: boolean;
+  }[] = [];
+  const checkedUserInfo: string[] = [];
   const fetchData = async ({ pageParam }: { pageParam: any }) => {
-    const res = await fetch("/api/data/public_data?offset=" + pageParam);
-    return res.json();
+    const req = await fetch("/api/data/public_data?offset=" + pageParam);
+    const res = await req.json();
+    findUserInfo(res);
+    return res;
   };
 
   const {
@@ -34,6 +43,16 @@ export function PublicPostsAndVideos() {
     initialPageParam: 0,
     getNextPageParam: (lastPage, pages) => lastPage.nextOffset,
   });
+  const findUserInfo = (allData: Post[]) => {
+    allData.forEach(async (item, index) => {
+      if (!checkedUserInfo.includes(item.byUser)) {
+        const req = await fetch(`/api/data/get_user_basic_info/${item.byUser}`);
+        const res = await req.json();
+        checkedUserInfo.push(item.byUser);
+        logUserInfo.push(res);
+      }
+    });
+  };
   return (
     <div>
       {status === "success" && (
