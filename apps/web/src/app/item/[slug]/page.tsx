@@ -77,7 +77,7 @@ export default async function Page(props: {
         </div>
         <div className="flex flex-row">
           <Link
-            className="flex flex-row gap-1 transition-all duration-300 hover:text-gray-200/80"
+            className="flex flex-row gap-1 transition-all duration-300 hover:text-gray-600/80 dark:hover:text-gray-200/80"
             href={`/user/${getUserInfo[0].id}`}
           >
             <Image

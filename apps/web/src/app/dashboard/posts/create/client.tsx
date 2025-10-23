@@ -3,11 +3,16 @@ import { Button } from "@/components/ui/button";
 import type { RefObject } from "react";
 import { authClient } from "@/lib/auth-client";
 import { useMutation } from "@tanstack/react-query";
-import { FileUp } from "lucide-react";
+import { FileUp, XCircleIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 export default function Dashboard({
   session,
@@ -161,9 +166,14 @@ export default function Dashboard({
         </span>
         <div className="flex flex-row gap-1 flex-wrap">
           {tagData.tags.map((it: string) => (
-            <Badge variant="default" key={it}>
-              {it}
-            </Badge>
+            <button key={it}>
+              <Badge
+                variant="default"
+                className="hover:bg-red-500 hover:text-white hover:line-through justify-center text-center transition-all duration-300"
+              >
+                {it}
+              </Badge>
+            </button>
           ))}
         </div>
         <textarea

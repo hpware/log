@@ -60,14 +60,13 @@ export function PublicPostsAndVideos() {
             `/api/data/get_user_basic_info/${item.byUser}`,
           );
           const res = await req.json();
-          console.log(res);
           if (!res.success) {
             throw new Error("ERR_FAIL");
             return;
           }
           setLogUserInfo((prev) => [...prev, res.content]);
-          checkedUserInfo.push(item.byUser);
           console.log(logUserInfo);
+          checkedUserInfo.push(item.byUser);
         } catch (error: any) {
           console.error(`Failed to fetch user ${item.byUser}:`, error);
           toast.error(`Failed to fetch user details: ${error.message}`);
@@ -153,7 +152,6 @@ function UserData({
     banned: boolean;
   }[];
 }) {
-  console.log(logUserInfo.length);
   const user = logUserInfo.find((it) => it.id === userId);
   if (!user) {
     return (
