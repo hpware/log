@@ -29,6 +29,7 @@ export default function Dashboard({
     tags: [],
     inputBox: "",
   });
+  const [isPending, setIsPending] = useState(false);
   const fileUploadBox = useRef<HTMLInputElement | null>(null);
   const fileUploadingDivBox = useRef<HTMLInputElement | null>(null);
   const sendDataToServer = useMutation({
@@ -37,32 +38,55 @@ export default function Dashboard({
       text?: string;
       file?: File | null;
     }) => {
-      let uploadUrl = "";
-      if (data.type !== "text") {
-        const fd = new FormData();
-        if (data.file) fd.append("file", data.file);
-        const req = await fetch("/api/data/publish/file", {
-          method: "POST",
-          body: fd,
-        });
-        if (!req.ok) throw new Error("Failed to upload file");
-        const res = await req.json();
-        if (res.success) {
-          uploadUrl = res.uploadUrl;
-        }
-      }
-      const req = await fetch("/api/data/publish", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      toast.promise(
+        async () => {
+          setIsPending(true);
+          let uploadUrl = "";
+          if (data.type !== "text") {
+            const fd = new FormData();
+            if (data.file) fd.append("file", data.file);
+            const req = await fetch("/api/data/publish/file", {
+              method: "POST",
+              body: fd,
+            });
+            if (!req.ok) throw new Error("Failed to upload file");
+            const res = await req.json();
+            if (res.success) {
+              uploadUrl = res.uploadUrl;
+            }
+          }
+          const req = await fetch("/api/data/publish", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              type: data.type,
+              text: data.text || "",
+              imageUrl: uploadUrl,
+              status: "public",
+            }),
+          });
+          const res = await req.json();
+          if (!res.success) {
+            setIsPending(false);
+            console.error(`ERR_SERVER_RESPOSE: ${res.msg}`);
+            throw new Error(`${res.msg}`);
+          }
+          setCurrentOption("text");
+          setTagData({
+            tags: [],
+            inputBox: "",
+          });
+          setTextBoxData("");
+          setIsPending(false);
         },
-        body: JSON.stringify({
-          type: data.type,
-          text: data.text || "",
-          imageUrl: uploadUrl,
-          status: "public",
-        }),
-      });
+        {
+          loading: "Sending...",
+          success: "Saved!",
+          error: (error) => `Error saving your post. ERR: ${error}`,
+        },
+      );
     },
   });
 
@@ -160,8 +184,8 @@ export default function Dashboard({
           />
         </TabsContent>
       </Tabs>
-      <button onClick={handleSend} disabled={sendDataToServer.isPending}>
-        {sendDataToServer.isPending ? "Sending..." : "Send it!"}
+      <button onClick={handleSend} disabled={isPending}>
+        Send it!
       </button>
     </div>
   );
