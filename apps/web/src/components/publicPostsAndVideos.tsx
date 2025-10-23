@@ -8,6 +8,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "./ui/badge";
 import { CircleUserIcon, ExternalLink } from "lucide-react";
+import { truncate } from "fs/promises";
+import { toast } from "sonner";
 
 type Post = typeof main_schema.userPosts.$inferSelect;
 
@@ -15,12 +17,14 @@ export function PublicPostsAndVideos() {
   const [currentOffset, setCurrentOffset] = useState(0);
   const [reloadPost, setReloadPost] = useState(false);
   const [logData, setLogData] = useState<Post[]>([]);
-  const logUserInfo: {
-    id: string | null;
-    name: string | null;
-    image: string | null;
-    banned: boolean;
-  }[] = [];
+  const [logUserInfo, setLogUserInfo] = useState<
+    {
+      id: string | null;
+      name: string | null;
+      image: string | null;
+      banned: boolean;
+    }[]
+  >([]);
   const checkedUserInfo: string[] = [];
   const fetchData = async ({ pageParam }: { pageParam: any }) => {
     const req = await fetch("/api/data/public_data?offset=" + pageParam);
@@ -43,15 +47,33 @@ export function PublicPostsAndVideos() {
     initialPageParam: 0,
     getNextPageParam: (lastPage, pages) => lastPage.nextOffset,
   });
-  const findUserInfo = (allData: Post[]) => {
-    allData.forEach(async (item, index) => {
+  const findUserInfo = async (allData: {
+    msg: String;
+    nextOffset: Number;
+    result: Post[];
+    success: true;
+  }) => {
+    for (const item of allData.result) {
       if (!checkedUserInfo.includes(item.byUser)) {
-        const req = await fetch(`/api/data/get_user_basic_info/${item.byUser}`);
-        const res = await req.json();
-        checkedUserInfo.push(item.byUser);
-        logUserInfo.push(res);
+        try {
+          const req = await fetch(
+            `/api/data/get_user_basic_info/${item.byUser}`,
+          );
+          const res = await req.json();
+          console.log(res);
+          if (!res.success) {
+            throw new Error("ERR_FAIL");
+            return;
+          }
+          setLogUserInfo((prev) => [...prev, res.content]);
+          checkedUserInfo.push(item.byUser);
+          console.log(logUserInfo);
+        } catch (error: any) {
+          console.error(`Failed to fetch user ${item.byUser}:`, error);
+          toast.error(`Failed to fetch user details: ${error.message}`);
+        }
       }
-    });
+    }
   };
   return (
     <div>
@@ -73,11 +95,15 @@ export function PublicPostsAndVideos() {
                 ))}
               </div>
               <Link href={`/user/${i.byUser}`}>
-                <CircleUserIcon />
+                <UserData
+                  userId={i.byUser}
+                  logUserInfo={logUserInfo}
+                  key={`${i.byUser}-${logUserInfo.length}`}
+                />
               </Link>
               <span className="break-all">{i.textData}</span>
               <Link href={`/item/${i.postId}`}>
-                <ExternalLink></ExternalLink>
+                <ExternalLink />
               </Link>
               {i.type === "image" ? (
                 <Image
@@ -111,6 +137,43 @@ export function PublicPostsAndVideos() {
           <span>Loading...</span>
         </div>
       )}
+    </div>
+  );
+}
+
+function UserData({
+  userId,
+  logUserInfo,
+}: {
+  userId: string;
+  logUserInfo: {
+    id: string | null;
+    name: string | null;
+    image: string | null;
+    banned: boolean;
+  }[];
+}) {
+  console.log(logUserInfo.length);
+  const user = logUserInfo.find((it) => it.id === userId);
+  if (!user) {
+    return (
+      <div className="flex flex-row gap-1">
+        <Spinner className="justify-center align-center text-center align-middle flex self-center w-6 h-6 p-1" />
+        <span>Loading...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-row gap-1">
+      <Image
+        src={user.image || "/user/default_pfp.png"}
+        alt={`${user.name || "User"}'s profile picture`}
+        width={35}
+        height={35}
+        className="rounded-full w-6 h-6"
+      />
+      <span>{user.name || "Unknown user"}</span>
     </div>
   );
 }
