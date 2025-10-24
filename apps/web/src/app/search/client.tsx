@@ -1,5 +1,6 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
+import { PublicPostsAndVideos } from "@/components/publicPostsAndVideos";
 import type { Metadata } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SearchIcon, TimerIcon } from "lucide-react";
@@ -76,7 +77,16 @@ export default function SearchFunction() {
         )}
       </div>
       <div className="mt-2">
-        {searchBox.length > 0 && JSON.stringify(displayingData)}{" "}
+        {displayingData !== undefined && searchBox.length > 0 && (
+          <div>
+            {JSON.stringify(displayingData)}
+            <PublicPostsAndVideos
+              mode="search"
+              passedData={displayingData.data.rows}
+              key={Number(displayingData.queryTime).toPrecision(10)}
+            />
+          </div>
+        )}
         {status === "error" && searchBox.length > 0 ? (
           <div>
             <span>Error fetching search: {error.message}</span>

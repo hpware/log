@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   return (
     <section className="scroll-smooth">
-      <PublicPostsAndVideos />
+      <PublicPostsAndVideos mode="index" passedData={[]} />
     </section>
   );
 }

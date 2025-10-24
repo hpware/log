@@ -13,7 +13,13 @@ import { toast } from "sonner";
 
 type Post = typeof main_schema.userPosts.$inferSelect;
 
-export function PublicPostsAndVideos() {
+export function PublicPostsAndVideos({
+  mode,
+  passedData,
+}: {
+  mode: "index" | "search";
+  passedData: Post[];
+}) {
   const [currentOffset, setCurrentOffset] = useState(0);
   const [reloadPost, setReloadPost] = useState(false);
   const [logData, setLogData] = useState<Post[]>([]);
@@ -27,10 +33,16 @@ export function PublicPostsAndVideos() {
   >([]);
   const checkedUserInfo: string[] = [];
   const fetchData = async ({ pageParam }: { pageParam: any }) => {
-    const req = await fetch("/api/data/public_data?offset=" + pageParam);
-    const res = await req.json();
-    findUserInfo(res);
-    return res;
+    if (mode === "index") {
+      const req = await fetch("/api/data/public_data?offset=" + pageParam);
+      const res = await req.json();
+      findUserInfo(res);
+      return res;
+    } else {
+      return {
+        offset: 0,
+      };
+    }
   };
 
   const {
@@ -76,9 +88,9 @@ export function PublicPostsAndVideos() {
   };
   return (
     <div>
-      {status === "success" && (
-        <div className="grid">
-          {data.pages[0].result.map((i: Post) => (
+      {mode === "search" ? (
+        <div>
+          {passedData.map((i: Post) => (
             <div
               className="border shadow text-wrap flex flex-col rounded"
               key={i.postId}
@@ -115,32 +127,77 @@ export function PublicPostsAndVideos() {
             </div>
           ))}
         </div>
-      )}
+      ) : (
+        mode === "index" && (
+          <div>
+            {status === "success" && (
+              <div className="grid">
+                {data.pages[0].result.map((i: Post) => (
+                  <div
+                    className="border shadow text-wrap flex flex-col rounded"
+                    key={i.postId}
+                  >
+                    <div className="flex flex-row gap-1">
+                      {(i.tags as string[]).map((it: string) => (
+                        <Link
+                          key={it}
+                          href={`/user/${i.byUser}?filter=by_tag&tag=${it}`}
+                        >
+                          <Badge variant="default">{it}</Badge>
+                        </Link>
+                      ))}
+                    </div>
+                    <Link href={`/user/${i.byUser}`}>
+                      <UserData
+                        userId={i.byUser}
+                        logUserInfo={logUserInfo}
+                        key={`${i.byUser}-${logUserInfo.length}`}
+                      />
+                    </Link>
+                    <span className="break-all">{i.textData}</span>
+                    <Link href={`/item/${i.postId}`}>
+                      <ExternalLink />
+                    </Link>
+                    {i.type === "image" ? (
+                      <Image
+                        src={String(i.imageUrl)}
+                        alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
+                      />
+                    ) : (
+                      i.type === "video" && <video src={String(i.videoUrl)} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
-      {status === "error" ? (
-        <div>
-          <span>Error fetching new posts: {error.message}</span>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setReloadPost((prev) => !prev);
-            }}
-          >
-            Try again
-          </Button>
-        </div>
-      ) : null}
-      {status === "pending" && (
-        <div className="justify-center align-center text-center align-middle flex self-center gap-1">
-          <Spinner className="justify-center align-center text-center align-middle flex self-center" />
-          <span>Loading...</span>
-        </div>
+            {status === "error" ? (
+              <div>
+                <span>Error fetching new posts: {error.message}</span>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setReloadPost((prev) => !prev);
+                  }}
+                >
+                  Try again
+                </Button>
+              </div>
+            ) : null}
+            {status === "pending" && (
+              <div className="justify-center align-center text-center align-middle flex self-center gap-1">
+                <Spinner className="justify-center align-center text-center align-middle flex self-center" />
+                <span>Loading...</span>
+              </div>
+            )}
+          </div>
+        )
       )}
     </div>
   );
 }
 
-function UserData({
+export function UserData({
   userId,
   logUserInfo,
 }: {

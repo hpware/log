@@ -19,10 +19,10 @@ export const GET = async (request: NextRequest) => {
         SELECT *,
                ts_rank(to_tsvector('english', text_data),
                        plainto_tsquery('english', ${query})) AS rank
-        FROM user_posts
-        WHERE to_tsvector('english', text_data)
-              @@ plainto_tsquery('english', ${query})
-        ORDER BY rank DESC;
+                       FROM user_posts
+                       WHERE to_tsvector('english', text_data)
+                             @@ plainto_tsquery('english', ${query})
+                       ORDER BY rank DESC;
     `,
     );
     const endPerf = performance.now();
