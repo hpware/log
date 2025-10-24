@@ -25,7 +25,7 @@ export const GET = async (request: NextRequest) => {
       .select()
       .from(main_schema.userPosts)
       .where(dorm.eq(main_schema.userPosts.status, "public"))
-      .orderBy(dorm.asc(main_schema.userPosts.createdAt))
+      .orderBy(dorm.desc(main_schema.userPosts.createdAt))
       .limit(100)
       .offset(Number(offset));
     console.log(dbResult);

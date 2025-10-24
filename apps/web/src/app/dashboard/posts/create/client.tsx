@@ -70,6 +70,7 @@ export default function Dashboard({
               text: data.text || "",
               imageUrl: uploadUrl,
               status: "public",
+              ...(tagData.tags?.length > 0 && { tags: tagData.tags }),
             }),
           });
           const res = await req.json();
@@ -123,11 +124,17 @@ export default function Dashboard({
       file,
     });
   };
+  const deleteTag = (tag: string) => {
+    setTagData({
+      inputBox: tagData.inputBox,
+      tags: tagData.tags.filter((i) => i !== tag),
+    });
+  };
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full">
       <Tabs
         defaultValue="text"
-        className="pl-2"
+        className="pl-2 w-full"
         onValueChange={(vl) => {
           setCurrentOption(vl as "text" | "photo" | "video");
         }}
@@ -142,6 +149,7 @@ export default function Dashboard({
           <input
             type="text"
             value={tagData.inputBox}
+            maxLength={20}
             onChange={(e) => {
               setTagData({ tags: tagData.tags, inputBox: e.target.value });
             }}
@@ -166,7 +174,7 @@ export default function Dashboard({
         </span>
         <div className="flex flex-row gap-1 flex-wrap">
           {tagData.tags.map((it: string) => (
-            <button key={it}>
+            <button key={it} onClick={() => deleteTag(it)}>
               <Badge
                 variant="default"
                 className="hover:bg-red-500 hover:text-white hover:line-through justify-center text-center transition-all duration-300"
@@ -179,7 +187,7 @@ export default function Dashboard({
         <textarea
           value={textBoxData}
           onChange={(v) => setTextBoxData(v.target.value)}
-          className="border w-1/2 h-12"
+          className="border w-full h-12 resize-none rounded"
         />
         <TabsContent value="photo">
           <UploadComponent

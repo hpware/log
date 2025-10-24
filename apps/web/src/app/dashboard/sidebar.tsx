@@ -21,6 +21,7 @@ import {
 import { auth } from "@devlogs_hosting/auth";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import type { Route } from "next";
 
 // Menu items.
 const items = [
@@ -69,10 +70,10 @@ export default function DashboardSidebar({
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <Link href={item.url as Route}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -86,10 +87,10 @@ export default function DashboardSidebar({
               {postManagementItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={String(`/dashboard/posts/${item.url}`)}>
+                    <Link href={`/dashboard/posts/${item.url}` as Route}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
