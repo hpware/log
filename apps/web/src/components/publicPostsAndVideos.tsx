@@ -93,12 +93,12 @@ export function PublicPostsAndVideos({
           {passedData.map((i: Post) => (
             <div
               className="border shadow text-wrap flex flex-col rounded"
-              key={i.postId}
+              key={crypto.randomUUID()}
             >
               <div className="flex flex-row gap-1">
                 {(i.tags as string[]).map((it: string) => (
                   <Link
-                    key={it}
+                    key={crypto.randomUUID()}
                     href={`/user/${i.byUser}?filter=by_tag&tag=${it}`}
                   >
                     <Badge variant="default">{it}</Badge>
@@ -135,12 +135,12 @@ export function PublicPostsAndVideos({
                 {data.pages[0].result.map((i: Post) => (
                   <div
                     className="border shadow text-wrap flex flex-col rounded"
-                    key={i.postId}
+                    key={crypto.randomUUID()}
                   >
                     <div className="flex flex-row gap-1">
                       {(i.tags as string[]).map((it: string) => (
                         <Link
-                          key={it}
+                          key={crypto.randomUUID()}
                           href={`/user/${i.byUser}?filter=by_tag&tag=${it}`}
                         >
                           <Badge variant="default">{it}</Badge>
