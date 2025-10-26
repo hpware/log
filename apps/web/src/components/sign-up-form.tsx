@@ -26,8 +26,8 @@ export default function SignUpForm({
       // Check if this is the first user
       const { data: users } = await authClient.admin.listUsers({
         query: {
-          limit: 1
-        }
+          limit: 1,
+        },
       });
 
       const { data: newUser, error } = await authClient.admin.createUser({
@@ -44,7 +44,6 @@ export default function SignUpForm({
         router.push("/dashboard");
         toast.success("Sign up successful");
       }
-    };
     },
     validators: {
       onSubmit: z.object({
