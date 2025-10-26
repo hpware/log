@@ -17,10 +17,12 @@ export function PublicPostsAndVideos({
   mode,
   passedData,
   userInfo,
+  filters,
 }: {
   mode: "index" | "search" | "profile";
   passedData: Post[];
   userInfo?: string;
+  filters?: FilterFormat[];
 }) {
   const [currentOffset, setCurrentOffset] = useState(0);
   const [reloadPost, setReloadPost] = useState(false);
@@ -46,11 +48,16 @@ export function PublicPostsAndVideos({
           offset: 0,
         };
       }
+      let finalFilter = "";
+      if (filters !== undefined) {
+        finalFilter = `&filters=${JSON.stringify(filters)}`;
+      }
       const req = await fetch(
         "/api/data/public_data?offset=" +
           pageParam +
           "&user=" +
-          String(userInfo),
+          String(userInfo) +
+          String(finalFilter),
       );
       const res = await req.json();
       findUserInfo(res);
@@ -248,4 +255,8 @@ export function UserData({
       <span>{user.name || "Unknown user"}</span>
     </div>
   );
+}
+export interface FilterFormat {
+  by: "tag";
+  filter: string;
 }

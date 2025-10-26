@@ -3,7 +3,6 @@ import {
   text,
   timestamp,
   check,
-  boolean,
   jsonb,
   integer,
   index,
