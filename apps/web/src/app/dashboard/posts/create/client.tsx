@@ -243,6 +243,7 @@ export default function Dashboard({
           mode="search"
           passedData={previewData}
           key={crypto.randomUUID()}
+          noDisplay={["link"]}
         />
       </div>
     </div>

@@ -18,11 +18,13 @@ export function PublicPostsAndVideos({
   passedData,
   userInfo,
   filters,
+  noDisplay,
 }: {
   mode: "index" | "search" | "profile";
   passedData: Post[];
   userInfo?: string;
   filters?: FilterFormat[];
+  noDisplay?: ("profile" | "link")[];
 }) {
   const [currentOffset, setCurrentOffset] = useState(0);
   const [reloadPost, setReloadPost] = useState(false);
@@ -129,17 +131,21 @@ export function PublicPostsAndVideos({
                   </Link>
                 ))}
               </div>
-              <Link href={`/user/${i.byUser}`}>
-                <UserData
-                  userId={i.byUser}
-                  logUserInfo={logUserInfo}
-                  key={`${i.byUser}-${logUserInfo.length}`}
-                />
-              </Link>
+              {!noDisplay?.includes("profile") && (
+                <Link href={`/user/${i.byUser}`}>
+                  <UserData
+                    userId={i.byUser}
+                    logUserInfo={logUserInfo}
+                    key={`${i.byUser}-${logUserInfo.length}`}
+                  />
+                </Link>
+              )}
               <span className="break-all">{i.textData}</span>
-              <Link href={`/item/${i.postId}`}>
-                <ExternalLink />
-              </Link>
+              {!noDisplay?.includes("link") && (
+                <Link href={`/item/${i.postId}`}>
+                  <ExternalLink />
+                </Link>
+              )}
               {i.type === "image" ? (
                 <Image
                   src={String(i.imageUrl)}
