@@ -16,9 +16,11 @@ type Post = typeof main_schema.userPosts.$inferSelect;
 export function PublicPostsAndVideos({
   mode,
   passedData,
+  userInfo,
 }: {
-  mode: "index" | "search";
+  mode: "index" | "search" | "profile";
   passedData: Post[];
+  userInfo?: string;
 }) {
   const [currentOffset, setCurrentOffset] = useState(0);
   const [reloadPost, setReloadPost] = useState(false);
@@ -35,6 +37,21 @@ export function PublicPostsAndVideos({
   const fetchData = async ({ pageParam }: { pageParam: any }) => {
     if (mode === "index") {
       const req = await fetch("/api/data/public_data?offset=" + pageParam);
+      const res = await req.json();
+      findUserInfo(res);
+      return res;
+    } else if (mode === "profile") {
+      if (userInfo === undefined) {
+        return {
+          offset: 0,
+        };
+      }
+      const req = await fetch(
+        "/api/data/public_data?offset=" +
+          pageParam +
+          "&user=" +
+          String(userInfo),
+      );
       const res = await req.json();
       findUserInfo(res);
       return res;
@@ -128,7 +145,7 @@ export function PublicPostsAndVideos({
           ))}
         </div>
       ) : (
-        mode === "index" && (
+        (mode === "index" || mode === "profile") && (
           <div>
             {status === "success" && (
               <div className="grid">

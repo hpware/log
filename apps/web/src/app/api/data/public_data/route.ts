@@ -10,6 +10,7 @@ export const GET = async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const offset = searchParams.get("offset");
+    const pullFromUserId = searchParams.get("user");
     if (offset === null) {
       throw new Error("ERR_NO_PARAMS_TO_USE");
     }
@@ -20,15 +21,23 @@ export const GET = async (request: NextRequest) => {
     if (!Number.isSafeInteger(Number(offset))) {
       throw new Error("ERR_OFFSET_PARAM_NOT_A_SAFE_INTEGER");
     }
-
+    let query;
+    if (pullFromUserId === null) {
+      // Get all public posts
+      query = dorm.eq(main_schema.userPosts.status, "public");
+    } else {
+      query = dorm.and(
+        dorm.eq(main_schema.userPosts.status, "public"),
+        dorm.eq(main_schema.userPosts.byUser, pullFromUserId),
+      );
+    }
     const dbResult = await db
       .select()
       .from(main_schema.userPosts)
-      .where(dorm.eq(main_schema.userPosts.status, "public"))
+      .where(query)
       .orderBy(dorm.desc(main_schema.userPosts.createdAt))
       .limit(100)
       .offset(Number(offset));
-    console.log(dbResult);
     return Response.json({
       success: true,
       msg: "",
