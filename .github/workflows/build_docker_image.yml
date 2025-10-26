@@ -1,4 +1,4 @@
-name: Build and Push Latest Image
+name: Build and Push Latest Image (to ghcr.io)
 
 on:
   push:
@@ -13,6 +13,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    environment: prod
     permissions:
       contents: read
       packages: write
