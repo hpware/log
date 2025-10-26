@@ -14,6 +14,7 @@ export default async function Page() {
     <div>
       <h1>Dashboard</h1>
       <p>Welcome {session.user.name}</p>
+      <span className="break-all">{JSON.stringify(session)}</span>
     </div>
   );
 }

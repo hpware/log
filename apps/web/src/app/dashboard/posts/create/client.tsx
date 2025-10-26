@@ -144,6 +144,14 @@ export default function Dashboard({
           <TabsTrigger value="photo">Photo</TabsTrigger>
           <TabsTrigger value="video">Video</TabsTrigger>
         </TabsList>
+        <Tabs defaultValue="draft" className="">
+          <TabsList>
+            <TabsTrigger value="draft">Draft</TabsTrigger>
+            <TabsTrigger value="private">Private</TabsTrigger>
+            <TabsTrigger value="unlisted">Link-only</TabsTrigger>
+            <TabsTrigger value="public">Public</TabsTrigger>
+          </TabsList>
+        </Tabs>
         <span>
           tags:
           <input
@@ -154,9 +162,9 @@ export default function Dashboard({
               setTagData({ tags: tagData.tags, inputBox: e.target.value });
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === "Enter" || e.key === "Space") {
                 e.preventDefault();
-                if (tagData.inputBox.length === 0) {
+                if (tagData.inputBox.replaceAll(" ", "").length === 0) {
                   toast.error("This cannot be empty");
                   return;
                 }
@@ -165,7 +173,7 @@ export default function Dashboard({
                   return;
                 }
                 setTagData({
-                  tags: [...tagData.tags, tagData.inputBox],
+                  tags: [...tagData.tags, tagData.inputBox.replaceAll(" ", "")],
                   inputBox: "",
                 });
               }

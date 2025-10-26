@@ -18,6 +18,9 @@ export default async function DashboardPage() {
   if (!session?.user) {
     redirect("/login");
   }
+  if (session.user.role !== "admin") {
+    redirect("/dashboard");
+  }
   const kvTitle = await db
     .select()
     .from(main_schema.kvData)

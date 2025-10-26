@@ -23,22 +23,28 @@ export default function SignUpForm({
       name: "",
     },
     onSubmit: async ({ value }) => {
-      await authClient.signUp.email(
-        {
-          email: value.email,
-          password: value.password,
-          name: value.name,
-        },
-        {
-          onSuccess: () => {
-            router.push("/dashboard");
-            toast.success("Sign up successful");
-          },
-          onError: (error) => {
-            toast.error(error.error.message || error.error.statusText);
-          },
-        },
-      );
+      // Check if this is the first user
+      const { data: users } = await authClient.admin.listUsers({
+        query: {
+          limit: 1
+        }
+      });
+
+      const { data: newUser, error } = await authClient.admin.createUser({
+        email: value.email,
+        password: value.password,
+        name: value.name,
+        role: users?.users?.length === 0 ? "admin" : "user",
+        data: { image: "/user/default_pfp.png" },
+      });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        router.push("/dashboard");
+        toast.success("Sign up successful");
+      }
+    };
     },
     validators: {
       onSubmit: z.object({
