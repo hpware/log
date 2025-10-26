@@ -50,7 +50,7 @@ export default function DisplayPosts({
         mode="profile"
         passedData={[]}
         userInfo={user.id}
-        filters={parsedResult}
+        filters={parsedResult || []}
       />
     </div>
   );
