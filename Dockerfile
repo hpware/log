@@ -4,7 +4,13 @@ WORKDIR /app
 COPY package.json bun.lock* ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/*/package.json ./packages/*/
-RUN bun install --frozen-lockfile
+RUN bun install
+WORKDIR /app/apps/web
+RUN bun install
+WORKDIR /app/packages/db
+RUN bun install
+WORKDIR /app/packages/auth
+RUN bun install
 # build
 COPY . .
 WORKDIR /app
