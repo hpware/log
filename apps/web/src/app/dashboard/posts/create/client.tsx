@@ -7,12 +7,16 @@ import { FileUp, XCircleIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { main_schema } from "../../../../../../../packages/db/src";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import { PublicPostsAndVideos } from "@/components/publicPostsAndVideos";
+
+type Post = typeof main_schema.userPosts.$inferSelect;
 
 export default function Dashboard({
   session,
@@ -35,6 +39,7 @@ export default function Dashboard({
     inputBox: "",
   });
   const [isPending, setIsPending] = useState(false);
+  const [previewData, setPreviewData] = useState<Post[]>([]);
   const fileUploadBox = useRef<HTMLInputElement | null>(null);
   const fileUploadingDivBox = useRef<HTMLInputElement | null>(null);
   const sendDataToServer = useMutation({
@@ -106,7 +111,7 @@ export default function Dashboard({
         failed: true,
         msg: "No files uploaded.",
       });
-      toast.error(handleStatus.msg);
+      toast.error("No files uploaded.");
       return;
     }
     if (currentOption === "text" && !textBoxData) {
@@ -114,7 +119,7 @@ export default function Dashboard({
         failed: true,
         msg: "No text provided.",
       });
-      toast.error(handleStatus.msg);
+      toast.error("No text provided.");
       return;
     }
     const file = fileUploadBox.current?.files?.[0];
@@ -129,6 +134,22 @@ export default function Dashboard({
       inputBox: tagData.inputBox,
       tags: tagData.tags.filter((i) => i !== tag),
     });
+  };
+  const setPreviewDataFunction = () => {
+    setPreviewData([
+      {
+        postId: "never-gonna-give-you-up-never-gonna-let-you-down",
+        type: currentOption,
+        createdAt: new Date(0),
+        updatedAt: new Date(0),
+        byUser: session.user.id,
+        textData: textBoxData,
+        imageUrl: "",
+        videoUrl: "",
+        status: "draft",
+        tags: tagData.tags,
+      },
+    ]);
   };
   return (
     <div className="flex flex-col w-full">
@@ -210,9 +231,20 @@ export default function Dashboard({
           />
         </TabsContent>
       </Tabs>
-      <button onClick={handleSend} disabled={isPending}>
-        Send it!
-      </button>
+      <div className="gap-1 flex flex-row ml-1">
+        <Button onClick={handleSend} disabled={isPending}>
+          Send it!
+        </Button>
+        <Button onClick={setPreviewDataFunction}>View Preview</Button>
+      </div>
+      <div>
+        <span className="ml-5 mt-3 text-xl font-bold">Preview</span>
+        <PublicPostsAndVideos
+          mode="search"
+          passedData={previewData}
+          key={crypto.randomUUID()}
+        />
+      </div>
     </div>
   );
 }
