@@ -242,8 +242,8 @@ export default function Dashboard({
         <PublicPostsAndVideos
           mode="search"
           passedData={previewData}
-          key={crypto.randomUUID()}
-          noDisplay={["link"]}
+          key={`${previewData.length}-${crypto.randomUUID()}`}
+          noDisplay={["link", "profileLink"]}
         />
       </div>
     </div>

@@ -24,7 +24,7 @@ export function PublicPostsAndVideos({
   passedData: Post[];
   userInfo?: string;
   filters?: FilterFormat[];
-  noDisplay?: ("profile" | "link")[];
+  noDisplay?: ("profile" | "link" | "profileLink")[];
 }) {
   const [currentOffset, setCurrentOffset] = useState(0);
   const [reloadPost, setReloadPost] = useState(false);
@@ -132,7 +132,13 @@ export function PublicPostsAndVideos({
                 ))}
               </div>
               {!noDisplay?.includes("profile") && (
-                <Link href={`/user/${i.byUser}`}>
+                <Link
+                  href={
+                    !noDisplay?.includes("profileLink")
+                      ? `/user/${i.byUser}`
+                      : "/dashboard"
+                  }
+                >
                   <UserData
                     userId={i.byUser}
                     logUserInfo={logUserInfo}
