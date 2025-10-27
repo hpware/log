@@ -166,7 +166,7 @@ export function PublicPostsAndVideos({
       ) : (
         (mode === "index" || mode === "profile") && (
           <div>
-            {status === "success" && data.pages?.[0]?.result && (
+            {status === "success" && data.pages?.[0]?.result !== undefined && (
               <div className="grid">
                 {data.pages[0].result.map((i: Post) => (
                   <div
