@@ -166,9 +166,9 @@ export function PublicPostsAndVideos({
       ) : (
         (mode === "index" || mode === "profile") && (
           <div>
-            {status === "success" && (
+            {status === "success" && data.pages?.[0]?.result !== undefined && (
               <div className="grid">
-                {data.pages[0].result.map((i: Post) => (
+                {(data.pages?.[0]?.result || []).map((i: Post) => (
                   <div
                     className="border shadow text-wrap flex flex-col rounded"
                     key={crypto.randomUUID()}
