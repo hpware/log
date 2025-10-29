@@ -55,15 +55,25 @@ export default function Dashboard({
           if (data.type !== "text") {
             const fd = new FormData();
             if (data.file) fd.append("file", data.file);
+
             const req = await fetch("/api/data/publish/file", {
               method: "POST",
               body: fd,
             });
-            if (!req.ok) throw new Error("Failed to upload file");
-            const res = await req.json();
-            if (res.success) {
-              uploadUrl = res.uploadUrl;
+
+            if (!req.ok) {
+              const errorRes = await req.json().catch(() => ({}));
+              throw new Error(
+                errorRes.msg || `Upload failed with status ${req.status}`,
+              );
             }
+
+            const res = await req.json();
+            if (!res.success) {
+              throw new Error(res.msg || "Upload failed");
+            }
+
+            uploadUrl = res.uploadUrl;
           }
           const req = await fetch("/api/data/publish", {
             method: "POST",
@@ -106,6 +116,7 @@ export default function Dashboard({
       failed: false,
       msg: "",
     });
+
     if (currentOption !== "text" && !fileUploadBox.current?.files?.[0]) {
       setHandleStatus({
         failed: true,
@@ -113,6 +124,40 @@ export default function Dashboard({
       });
       toast.error("No files uploaded.");
       return;
+    }
+
+    // Validate file type and size on client side
+    if (currentOption !== "text" && fileUploadBox.current?.files?.[0]) {
+      const file = fileUploadBox.current.files[0];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "video/mp4",
+        "video/webm",
+        "video/quicktime",
+      ];
+
+      if (!allowedTypes.includes(file.type)) {
+        setHandleStatus({
+          failed: true,
+          msg: "File type not allowed. Please upload images (JPEG, PNG, GIF, WebP) or videos (MP4, WebM, MOV).",
+        });
+        toast.error("File type not allowed.");
+        return;
+      }
+
+      // Check file size (50MB default)
+      const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+      if (file.size > maxSize) {
+        setHandleStatus({
+          failed: true,
+          msg: "File size too large. Maximum allowed size is 50MB.",
+        });
+        toast.error("File size too large.");
+        return;
+      }
     }
     if (currentOption === "text" && !textBoxData) {
       setHandleStatus({

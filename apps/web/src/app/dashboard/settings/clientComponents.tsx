@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { SaveIcon } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export function ChangeSiteSettings({
   serverTitleData,
@@ -98,6 +100,38 @@ export function ChangeSiteSettings({
               <SaveIcon /> Save
             </Button>
           </div>
+        </div>
+      </div>
+      <div className="ml-8 mt-3 flex flex-row gap-4">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="home-page-enable"
+            defaultChecked={true}
+            onCheckedChange={(checked) => {
+              console.log(checked);
+            }}
+          />
+          <Label htmlFor="home-page-enable">Enable home page</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="registration-enable"
+            defaultChecked={true}
+            onCheckedChange={(checked) => {
+              console.log(checked);
+            }}
+          />
+          <Label htmlFor="registration-enable">Enable registration</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="robots-enable"
+            defaultChecked={true}
+            onCheckedChange={(checked) => {
+              console.log(checked);
+            }}
+          />
+          <Label htmlFor="robots-enable">Enable robots.txt</Label>
         </div>
       </div>
     </>
