@@ -7,7 +7,12 @@ import { main_schema } from "../../../../packages/db/src/index";
 import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "./ui/badge";
-import { CircleUserIcon, ExternalLink } from "lucide-react";
+import {
+  CircleUserIcon,
+  ExternalLink,
+  MegaphoneOffIcon,
+  ShieldMinusIcon,
+} from "lucide-react";
 import { truncate } from "fs/promises";
 import { toast } from "sonner";
 
@@ -166,6 +171,15 @@ export function PublicPostsAndVideos({
       ) : (
         (mode === "index" || mode === "profile") && (
           <div>
+            {data?.pages?.[0]?.featDisabled && (
+              <div className="flex flex-col gap-1 absolute inset-0 justify-center text-center">
+                <ShieldMinusIcon className="w-12 h-12 mx-auto mb-3" />
+                <span>
+                  The home page function is currently disabled by the instance
+                  owner.
+                </span>
+              </div>
+            )}
             {status === "success" && data.pages?.[0]?.result !== undefined && (
               <div className="grid">
                 {(data.pages?.[0]?.result || []).map((i: Post) => (

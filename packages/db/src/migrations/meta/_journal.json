@@ -71,6 +71,13 @@
       "when": 1761016471614,
       "tag": "0009_empty_scarlet_spider",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1761743768295,
+      "tag": "0010_certain_mandarin",
+      "breakpoints": true
     }
   ]
 }

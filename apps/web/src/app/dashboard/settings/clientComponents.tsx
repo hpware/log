@@ -10,14 +10,22 @@ import { Label } from "@/components/ui/label";
 export function ChangeSiteSettings({
   serverTitleData,
   serverDescriptionData,
+  checkEnabledStatus,
 }: {
   serverTitleData: string;
   serverDescriptionData: string;
+  checkEnabledStatus: {
+    homePage: boolean;
+    registration: boolean;
+    robotsTxt: boolean;
+  };
 }) {
   const [siteSettings, setSiteSettings] = useState({
     title: serverTitleData || "",
     description: serverDescriptionData || "",
   });
+
+  const [statusSystemPull, setStatusSystemPull] = useState(checkEnabledStatus);
 
   const sendData = useMutation({
     mutationFn: async (sendData2: any) => {
@@ -106,9 +114,17 @@ export function ChangeSiteSettings({
         <div className="flex items-center space-x-2">
           <Switch
             id="home-page-enable"
-            defaultChecked={true}
+            defaultChecked={statusSystemPull.homePage}
             onCheckedChange={(checked) => {
-              console.log(checked);
+              setStatusSystemPull({
+                homePage: checked,
+                registration: statusSystemPull.registration,
+                robotsTxt: statusSystemPull.robotsTxt,
+              });
+              sendData.mutate({
+                action: "change_home_page_register_robotstxt_toggles",
+                data: statusSystemPull,
+              });
             }}
           />
           <Label htmlFor="home-page-enable">Enable home page</Label>
@@ -116,9 +132,17 @@ export function ChangeSiteSettings({
         <div className="flex items-center space-x-2">
           <Switch
             id="registration-enable"
-            defaultChecked={true}
+            defaultChecked={statusSystemPull.registration}
             onCheckedChange={(checked) => {
-              console.log(checked);
+              setStatusSystemPull({
+                homePage: statusSystemPull.homePage,
+                registration: checked,
+                robotsTxt: statusSystemPull.robotsTxt,
+              });
+              sendData.mutate({
+                action: "change_home_page_register_robotstxt_toggles",
+                data: statusSystemPull,
+              });
             }}
           />
           <Label htmlFor="registration-enable">Enable registration</Label>
@@ -126,14 +150,34 @@ export function ChangeSiteSettings({
         <div className="flex items-center space-x-2">
           <Switch
             id="robots-enable"
-            defaultChecked={true}
+            defaultChecked={statusSystemPull.robotsTxt}
             onCheckedChange={(checked) => {
-              console.log(checked);
+              setStatusSystemPull({
+                homePage: statusSystemPull.homePage,
+                registration: statusSystemPull.registration,
+                robotsTxt: checked,
+              });
+              sendData.mutate({
+                action: "change_home_page_register_robotstxt_toggles",
+                data: statusSystemPull,
+              });
             }}
           />
           <Label htmlFor="robots-enable">Enable robots.txt</Label>
         </div>
       </div>
     </>
+  );
+}
+
+export function ChangeRobotsTxt({
+  currentRobotsTxt,
+}: {
+  currentRobotsTxt: {}; // temp
+}) {
+  return (
+    <div>
+      <div></div>
+    </div>
   );
 }

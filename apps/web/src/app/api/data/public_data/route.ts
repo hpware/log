@@ -21,10 +21,25 @@ export const GET = async (request: NextRequest) => {
     if (!Number.isSafeInteger(Number(offset))) {
       throw new Error("ERR_OFFSET_PARAM_NOT_A_SAFE_INTEGER");
     }
+
     let query;
     if (pullFromUserId === null) {
       // Get all public posts
       query = dorm.eq(main_schema.userPosts.status, "public");
+      const homePageStatus = await db
+        .select()
+        .from(main_schema.kvData)
+        .where(dorm.eq(main_schema.kvData.key, "homePageStatus"));
+
+      if (String(homePageStatus[0].value) !== "false") {
+        return Response.json({
+          success: true,
+          msg: "",
+          result: [],
+          nextOffset: Number(offset) + 50,
+          featDisabled: true,
+        });
+      }
     } else {
       query = dorm.and(
         dorm.eq(main_schema.userPosts.status, "public"),
@@ -43,6 +58,7 @@ export const GET = async (request: NextRequest) => {
       msg: "",
       result: dbResult,
       nextOffset: Number(offset) + 50,
+      featDisabled: false,
     });
   } catch (e: any) {
     console.error(e);
