@@ -117,6 +117,40 @@ export const POST = async (request: NextRequest) => {
           );
         }
       }
+      if (body.action === "site_robots_txt_json") {
+        try {
+          if (!body.data || typeof body.data !== "object") {
+            throw new Error("ERR_INVALID_BODY_DATA_OBJ");
+          }
+
+          await db
+            .update(main_schema.kvData)
+            .set({ value: body.data })
+            .where(dorm.eq(main_schema.kvData.key, "robotsTxtList"));
+
+          return Response.json(
+            {
+              success: true,
+              status: 200,
+              msg: "",
+            },
+            {
+              status: 200,
+            },
+          );
+        } catch (e: any) {
+          return Response.json(
+            {
+              success: false,
+              status: 500,
+              msg: e.message,
+            },
+            {
+              status: 500,
+            },
+          );
+        }
+      }
       if (body.action === "change_umami") {
       }
       if (body.action === "change_rybbit") {

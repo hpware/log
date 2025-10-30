@@ -45,6 +45,11 @@ export default async function DashboardPage() {
     .from(main_schema.kvData)
     .where(dorm.eq(main_schema.kvData.key, "robotsTxtStatus"));
 
+  const getRobotsTxtList = await db
+    .select()
+    .from(main_schema.kvData)
+    .where(dorm.eq(main_schema.kvData.key, "robotsTxtList"));
+
   console.log({
     homePage: cesHomePage[0]?.value,
     registration: cesRegistration[0]?.value,
@@ -52,7 +57,7 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="ml-4">
+    <div className="ml-4 space-y-4">
       <Cc.ChangeSiteSettings
         serverTitleData={String(kvTitle[0]?.value || "")}
         serverDescriptionData={String(kvDescription[0]?.value || "")}
@@ -62,6 +67,7 @@ export default async function DashboardPage() {
           robotsTxt: String(cesRobotsTxt[0]?.value) !== "false",
         }}
       />
+      <Cc.ChangeRobotsTxt currentRobotsTxt={getRobotsTxtList[0]} />
     </div>
   );
 }
