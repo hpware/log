@@ -3,6 +3,8 @@ import { db, dorm, main_schema } from "../../../../../packages/db/src";
 
 type RobotsParsedJson = Record<string, { allow: string[]; disallow: string[] }>;
 
+export const dynamic = "force-dynamic";
+
 export const GET = async (request: NextRequest) => {
   const homePageStatus = await db
     .select()
