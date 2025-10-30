@@ -6,6 +6,8 @@ import {
   main_schema,
 } from "../../../../../../../packages/db/src";
 
+type RobotsParsedJson = Record<string, { allow: string[]; disallow: string[] }>;
+
 export const POST = async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);

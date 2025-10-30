@@ -10,7 +10,9 @@ import { main_schema } from "../../../../../../packages/db/src";
 import Link from "next/link";
 import robotsTxtParseToJson from "@/components/robotsTxtParser";
 
+// types
 type KeyValue = typeof main_schema.kvData.$inferSelect;
+type RobotsParsedJson = Record<string, { allow: string[]; disallow: string[] }>;
 
 export function ChangeSiteSettings({
   serverTitleData,
@@ -182,6 +184,8 @@ export function ChangeRobotsTxt({
   currentRobotsTxt: KeyValue;
 }) {
   const [remoteListURL, setRemoteListURL] = useState("");
+  const [saveListUrl, setSaveListUrl] = useState<RobotsParsedJson>({});
+  const [importCopyList, setImportCopyList] = useState("");
   const sendData = useMutation({
     mutationFn: async (sendData2: any) => {
       const query = await fetch("/api/data/settings?tab=settings", {
@@ -213,7 +217,7 @@ export function ChangeRobotsTxt({
       const req = await fetch(remoteListURL);
       const res = await req.text();
       const parsedResult = robotsTxtParseToJson(res);
-
+      setSaveListUrl({ ...saveListUrl, ...parsedResult });
       setRemoteListURL("");
     } catch (e: any) {
       console.error(e);
@@ -240,7 +244,25 @@ export function ChangeRobotsTxt({
                 }
               }}
             />
-            <Button onClick={getRobotsTxtAndConvert}>Submit</Button>
+            <Button onClick={getRobotsTxtAndConvert}>Get</Button>
+          </div>
+          <div className="flex flex-col md:flex-row justify-center w-full gap-2 mt-2">
+            <span className="my-auto">Import list (copy): </span>
+            <textarea
+              className="p-1 border border-gray-300 dark:border-gray-700 rounded bg-gray-200 dark:bg-gray-950"
+              value={importCopyList}
+              onChange={(e) => setImportCopyList(e.target.value)}
+            />
+            <Button
+              onClick={() => {
+                const parsedResult = robotsTxtParseToJson(importCopyList);
+                setSaveListUrl({ ...saveListUrl, ...parsedResult });
+                setImportCopyList("");
+              }}
+              className="my-auto"
+            >
+              Get
+            </Button>
           </div>
           <div className="flex flex-row justify-between">
             <span className="mx-auto mt-1 justify-center align-middle w-full text-center text-blue-600 hover:text-blue-600/80 dark:text-blue-400 dark:hover:text-blue-400/80 transition-all duration-300">
@@ -249,11 +271,37 @@ export function ChangeRobotsTxt({
               </Link>
             </span>
           </div>
-          <div className="flex flex-row justify-between">
-            {`            sendData.mutate({
-  action: "site_robots_txt_json",
-  data: parsedResult,
-});`}
+          {(
+            Object.entries(saveListUrl) as [
+              string,
+              { allow: string[]; disallow: string[] },
+            ][]
+          ).map(([agent, rules]) => (
+            <div key={agent}>
+              <hr />
+              <h3>{agent === "*" ? "[WILDCARD]" : agent}</h3>
+              <p>
+                <strong>Allow:</strong>{" "}
+                {rules.allow.length ? rules.allow.join(", ") : "(none)"}
+              </p>
+              <p>
+                <strong>Disallow:</strong>{" "}
+                {rules.disallow.length ? rules.disallow.join(", ") : "(none)"}
+              </p>
+            </div>
+          ))}
+          <div className="flex flex-col md:flex-row justify-between">
+            <span></span>
+            <Button
+              onClick={() =>
+                sendData.mutate({
+                  action: "site_robots_txt_json",
+                  data: saveListUrl,
+                })
+              }
+            >
+              Submit
+            </Button>
           </div>
         </div>
       </div>
