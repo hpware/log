@@ -165,9 +165,8 @@ export function ChangeSiteSettings({
                 robotsTxt: checked,
               });
               sendData.mutate({
-                action: "site_title_description",
-                title: siteSettings.title,
-                description: siteSettings.description,
+                action: "change_home_page_register_robotstxt_toggles",
+                data: statusSystemPull,
               });
             }}
           />
