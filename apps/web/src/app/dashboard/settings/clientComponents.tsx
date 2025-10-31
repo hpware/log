@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SaveIcon } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
@@ -17,22 +17,64 @@ type RobotsParsedJson = Record<string, { allow: string[]; disallow: string[] }>;
 export function ChangeSiteSettings({
   serverTitleData,
   serverDescriptionData,
-  checkEnabledStatus,
 }: {
   serverTitleData: string;
   serverDescriptionData: string;
-  checkEnabledStatus: {
-    homePage: boolean;
-    registration: boolean;
-    robotsTxt: boolean;
-  };
 }) {
   const [siteSettings, setSiteSettings] = useState({
     title: serverTitleData || "",
     description: serverDescriptionData || "",
   });
 
-  const [statusSystemPull, setStatusSystemPull] = useState(checkEnabledStatus);
+  const [statusSystemPull, setStatusSystemPull] = useState<{
+    homePage: boolean;
+    registration: boolean;
+    robotsTxt: boolean;
+    sysFailed: boolean;
+  }>({
+    homePage: false,
+    registration: false,
+    robotsTxt: false,
+    sysFailed: true,
+  });
+
+  const getToggleData = useMutation({
+    mutationFn: async () => {
+      try {
+        const req = await fetch("/api/data/settings?tab=settings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "appilcation/json",
+          },
+          body: JSON.stringify({
+            action: "obtain_toggle_data_for_robotsTxt_and_others",
+          }),
+        });
+        const res = await req.json();
+        if (res.success != true) {
+          throw new Error(res.msg);
+        }
+        setStatusSystemPull({
+          homePage: res.data.homePage,
+          registration: res.data.registration,
+          robotsTxt: res.data.robotsTxt,
+          sysFailed: false,
+        });
+        return;
+      } catch (e: any) {
+        setStatusSystemPull({
+          homePage: statusSystemPull.homePage,
+          registration: statusSystemPull.registration,
+          robotsTxt: statusSystemPull.robotsTxt,
+          sysFailed: true,
+        });
+        console.error(e);
+        toast.error(`Fetch Failed: ${e.message}`);
+      }
+    },
+  });
+
+  useEffect(() => getToggleData.mutate(), []);
 
   const sendData = useMutation({
     mutationFn: async (sendData2: any) => {
@@ -123,16 +165,20 @@ export function ChangeSiteSettings({
             id="home-page-enable"
             defaultChecked={statusSystemPull.homePage}
             onCheckedChange={(checked) => {
+              console.log(`Home Page: ${checked}`);
               setStatusSystemPull({
                 homePage: checked,
                 registration: statusSystemPull.registration,
                 robotsTxt: statusSystemPull.robotsTxt,
+                sysFailed: statusSystemPull.sysFailed,
               });
               sendData.mutate({
                 action: "change_home_page_register_robotstxt_toggles",
                 data: statusSystemPull,
               });
+              getToggleData.mutate();
             }}
+            disabled={statusSystemPull.sysFailed}
           />
           <Label htmlFor="home-page-enable">Enable home page</Label>
         </div>
@@ -141,16 +187,20 @@ export function ChangeSiteSettings({
             id="registration-enable"
             defaultChecked={statusSystemPull.registration}
             onCheckedChange={(checked) => {
+              console.log(`Reg: ${checked}`);
               setStatusSystemPull({
                 homePage: statusSystemPull.homePage,
                 registration: checked,
                 robotsTxt: statusSystemPull.robotsTxt,
+                sysFailed: statusSystemPull.sysFailed,
               });
               sendData.mutate({
                 action: "change_home_page_register_robotstxt_toggles",
                 data: statusSystemPull,
               });
+              getToggleData.mutate();
             }}
+            disabled={statusSystemPull.sysFailed}
           />
           <Label htmlFor="registration-enable">Enable registration</Label>
         </div>
@@ -159,16 +209,20 @@ export function ChangeSiteSettings({
             id="robots-enable"
             defaultChecked={statusSystemPull.robotsTxt}
             onCheckedChange={(checked) => {
+              console.log(`Robots: ${checked}`);
               setStatusSystemPull({
                 homePage: statusSystemPull.homePage,
                 registration: statusSystemPull.registration,
                 robotsTxt: checked,
+                sysFailed: statusSystemPull.sysFailed,
               });
               sendData.mutate({
                 action: "change_home_page_register_robotstxt_toggles",
                 data: statusSystemPull,
               });
+              getToggleData.mutate();
             }}
+            disabled={statusSystemPull.sysFailed}
           />
           <Label htmlFor="robots-enable">Enable robots.txt</Label>
         </div>

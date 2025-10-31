@@ -31,41 +31,16 @@ export default async function DashboardPage() {
     .from(main_schema.kvData)
     .where(dorm.eq(main_schema.kvData.key, "description"));
 
-  // get checkEnabledStatuses
-  const cesHomePage = await db
-    .select()
-    .from(main_schema.kvData)
-    .where(dorm.eq(main_schema.kvData.key, "homePageStatus"));
-  const cesRegistration = await db
-    .select()
-    .from(main_schema.kvData)
-    .where(dorm.eq(main_schema.kvData.key, "registrationStatus"));
-  const cesRobotsTxt = await db
-    .select()
-    .from(main_schema.kvData)
-    .where(dorm.eq(main_schema.kvData.key, "robotsTxtStatus"));
-
   const getRobotsTxtList = await db
     .select()
     .from(main_schema.kvData)
     .where(dorm.eq(main_schema.kvData.key, "robotsTxtList"));
-
-  console.log({
-    homePage: cesHomePage[0]?.value,
-    registration: cesRegistration[0]?.value,
-    robotsTxt: cesRobotsTxt[0]?.value,
-  });
 
   return (
     <div className="ml-4 space-y-4">
       <Cc.ChangeSiteSettings
         serverTitleData={String(kvTitle[0]?.value || "")}
         serverDescriptionData={String(kvDescription[0]?.value || "")}
-        checkEnabledStatus={{
-          homePage: String(cesHomePage[0]?.value) !== "false",
-          registration: String(cesRegistration[0]?.value) !== "false",
-          robotsTxt: String(cesRobotsTxt[0]?.value) !== "false",
-        }}
       />
       <Cc.ChangeRobotsTxt currentRobotsTxt={getRobotsTxtList[0]} />
     </div>

@@ -66,6 +66,56 @@ export const POST = async (request: NextRequest) => {
           );
         }
       }
+      if (body.action === "obtain_toggle_data_for_robotsTxt_and_others") {
+        try {
+          // get checkEnabledStatuses
+          const homePage = (
+            await db
+              .select()
+              .from(main_schema.kvData)
+              .where(dorm.eq(main_schema.kvData.key, "homePageStatus"))
+          )[0].value;
+          const registration = (
+            await db
+              .select()
+              .from(main_schema.kvData)
+              .where(dorm.eq(main_schema.kvData.key, "registrationStatus"))
+          )[0].value;
+          const robotsTxt = (
+            await db
+              .select()
+              .from(main_schema.kvData)
+              .where(dorm.eq(main_schema.kvData.key, "robotsTxtStatus"))
+          )[0].value;
+          return Response.json(
+            {
+              success: true,
+              status: 200,
+              msg: "",
+              data: {
+                homePage,
+                registration,
+                robotsTxt,
+              },
+            },
+            {
+              status: 200,
+            },
+          );
+        } catch (e: any) {
+          return Response.json(
+            {
+              success: false,
+              status: 500,
+              msg: e.message,
+              data: {},
+            },
+            {
+              status: 500,
+            },
+          );
+        }
+      }
       if (body.action === "change_home_page_register_robotstxt_toggles") {
         try {
           if (!body.data || typeof body.data !== "object") {
