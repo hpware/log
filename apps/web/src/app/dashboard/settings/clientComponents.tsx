@@ -163,7 +163,7 @@ export function ChangeSiteSettings({
         <div className="flex items-center space-x-2">
           <Switch
             id="home-page-enable"
-            defaultChecked={statusSystemPull.homePage}
+            checked={statusSystemPull.homePage}
             onCheckedChange={(checked) => {
               console.log(`Home Page: ${checked}`);
               setStatusSystemPull({
@@ -174,7 +174,11 @@ export function ChangeSiteSettings({
               });
               sendData.mutate({
                 action: "change_home_page_register_robotstxt_toggles",
-                data: statusSystemPull,
+                data: {
+                  homePage: checked,
+                  registration: statusSystemPull.registration,
+                  robotsTxt: statusSystemPull.robotsTxt,
+                },
               });
               getToggleData.mutate();
             }}
@@ -185,7 +189,7 @@ export function ChangeSiteSettings({
         <div className="flex items-center space-x-2">
           <Switch
             id="registration-enable"
-            defaultChecked={statusSystemPull.registration}
+            checked={statusSystemPull.registration}
             onCheckedChange={(checked) => {
               console.log(`Reg: ${checked}`);
               setStatusSystemPull({
@@ -196,7 +200,11 @@ export function ChangeSiteSettings({
               });
               sendData.mutate({
                 action: "change_home_page_register_robotstxt_toggles",
-                data: statusSystemPull,
+                data: {
+                  homePage: statusSystemPull.homePage,
+                  registration: checked,
+                  robotsTxt: statusSystemPull.robotsTxt,
+                },
               });
               getToggleData.mutate();
             }}
@@ -207,7 +215,7 @@ export function ChangeSiteSettings({
         <div className="flex items-center space-x-2">
           <Switch
             id="robots-enable"
-            defaultChecked={statusSystemPull.robotsTxt}
+            checked={statusSystemPull.robotsTxt}
             onCheckedChange={(checked) => {
               console.log(`Robots: ${checked}`);
               setStatusSystemPull({
@@ -218,7 +226,11 @@ export function ChangeSiteSettings({
               });
               sendData.mutate({
                 action: "change_home_page_register_robotstxt_toggles",
-                data: statusSystemPull,
+                data: {
+                  homePage: statusSystemPull.homePage,
+                  registration: statusSystemPull.registration,
+                  robotsTxt: checked,
+                },
               });
               getToggleData.mutate();
             }}
