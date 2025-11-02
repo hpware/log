@@ -5,11 +5,22 @@ import {
   auth_schema,
   main_schema,
 } from "../../../../../../../packages/db/src";
+import { headers } from "next/headers";
+import { auth } from "@devlogs_hosting/auth";
 
 type RobotsParsedJson = Record<string, { allow: string[]; disallow: string[] }>;
 
 export const POST = async (request: NextRequest) => {
   try {
+    const header = await headers();
+    const session = await auth.api.getSession({ headers: header });
+    if (!session) {
+      return Response.json(
+        { success: false, msg: "Authentication required", uploadUrl: "" },
+        { status: 401 },
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const tabAction = searchParams.get("tab");
     const body = await request.json();
@@ -196,6 +207,38 @@ export const POST = async (request: NextRequest) => {
               success: false,
               status: 500,
               msg: e.message,
+            },
+            {
+              status: 500,
+            },
+          );
+        }
+      }
+      if (body.action === "pullCurrentRobotsTxt") {
+        try {
+          const currentList = await db
+            .select()
+            .from(main_schema.kvData)
+            .where(dorm.eq(main_schema.kvData.key, "robotsTxtList"));
+
+          return Response.json(
+            {
+              success: true,
+              status: 200,
+              msg: "",
+              data: currentList[0].value,
+            },
+            {
+              status: 200,
+            },
+          );
+        } catch (e: any) {
+          return Response.json(
+            {
+              success: false,
+              status: 500,
+              msg: e.message,
+              data: {},
             },
             {
               status: 500,

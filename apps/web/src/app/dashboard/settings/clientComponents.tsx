@@ -251,6 +251,24 @@ export function ChangeRobotsTxt({
   const [remoteListURL, setRemoteListURL] = useState("");
   const [saveListUrl, setSaveListUrl] = useState<RobotsParsedJson>({});
   const [importCopyList, setImportCopyList] = useState("");
+  const getCurrentRobotsTxt = useMutation({
+    mutationFn: async () => {
+      const req = await fetch("/api/data/settings?tab=settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "pullCurrentRobotsTxt",
+        }),
+      });
+      const res = await req.json();
+      setSaveListUrl(res.data);
+    },
+  });
+  useEffect(() => {
+    getCurrentRobotsTxt.mutate();
+  }, []);
   const sendData = useMutation({
     mutationFn: async (sendData2: any) => {
       const query = await fetch("/api/data/settings?tab=settings", {
