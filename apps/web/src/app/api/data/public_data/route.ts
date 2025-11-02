@@ -31,7 +31,7 @@ export const GET = async (request: NextRequest) => {
         .from(main_schema.kvData)
         .where(dorm.eq(main_schema.kvData.key, "homePageStatus"));
 
-      if (String(homePageStatus[0].value) !== "false") {
+      if (String(homePageStatus[0].value) === "false") {
         return Response.json({
           success: true,
           msg: "",

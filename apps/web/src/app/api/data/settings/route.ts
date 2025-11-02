@@ -16,11 +16,16 @@ export const POST = async (request: NextRequest) => {
     const session = await auth.api.getSession({ headers: header });
     if (!session) {
       return Response.json(
-        { success: false, msg: "Authentication required", uploadUrl: "" },
+        { success: false, msg: "ERR_USR_INVALID_SESSION", uploadUrl: "" },
         { status: 401 },
       );
     }
-
+    if (session.user.role !== "admin") {
+      return Response.json(
+        { success: false, msg: "ERR_USR_INVALID_PERMS", uploadUrl: "" },
+        { status: 401 },
+      );
+    }
     const { searchParams } = new URL(request.url);
     const tabAction = searchParams.get("tab");
     const body = await request.json();
