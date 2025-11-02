@@ -22,4 +22,52 @@ export const auth = betterAuth({
       httpOnly: true,
     },
   },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user, ctx) => {
+          // Check if context is available
+          if (!ctx?.internalAdapter) {
+            // Fallback: assign default role if no context
+            return {
+              data: {
+                ...user,
+                role: "user",
+              },
+            };
+          }
+          try {
+            // Check if this is the first user using internalAdapter
+            const existingUsers = await ctx.internalAdapter.findMany({
+              model: "user",
+              limit: 1,
+            });
+            // If no users exist, make this user an admin
+            if (existingUsers.length === 0) {
+              return {
+                data: {
+                  ...user,
+                  role: "admin",
+                },
+              };
+            }
+            return {
+              data: {
+                ...user,
+                role: "user",
+              },
+            };
+          } catch (error) {
+            // Fallback on error
+            return {
+              data: {
+                ...user,
+                role: "user",
+              },
+            };
+          }
+        },
+      },
+    },
+  },
 });
