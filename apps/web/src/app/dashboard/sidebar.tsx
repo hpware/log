@@ -5,6 +5,7 @@ import {
   PanelTopIcon,
   PlusCircleIcon,
   SquareChartGantt,
+  UsersIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -48,8 +49,13 @@ const postManagementItems = [
 const setting_items = [
   {
     title: "Set Site Settings",
-    url: "site",
+    url: "/dashboard/settings#site",
     icon: PanelTopIcon,
+  },
+  {
+    title: "Manage All Users",
+    url: "/dashboard/user/manage_all",
+    icon: UsersIcon,
   },
 ];
 
@@ -99,13 +105,13 @@ export default function DashboardSidebar({
         </SidebarGroup>
         {session.user.role === "admin" && (
           <SidebarGroup>
-            <SidebarGroupLabel>Settings</SidebarGroupLabel>
+            <SidebarGroupLabel>Admin</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {setting_items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <Link href={`/dashboard/settings#${item.url}`}>
+                      <Link href={`${item.url}` as Route}>
                         <item.icon />
                         <span>{item.title}</span>
                       </Link>

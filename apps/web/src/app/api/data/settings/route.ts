@@ -252,6 +252,7 @@ export const POST = async (request: NextRequest) => {
       }
       if (body.action === "change_custom_scripts") {
       }
+    } else if (tabAction === "users") {
     }
     // last
     return Response.json(
