@@ -40,5 +40,9 @@ export default function Client() {
     getNextPageParam: (lastPage, pages) => lastPage.nextOffset,
   });
 
-  return <div>{JSON.stringify(data)}</div>;
+  return (
+    <div>
+      <Table columns={[]} data={[]} />
+    </div>
+  );
 }

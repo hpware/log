@@ -356,90 +356,74 @@ export function ChangeRobotsTxt({
               </Link>
             </span>
           </div>
-
-          <DataTable
-            columns={[
-              {
-                accessorKey: "agent",
-                header: () => (
-                  <div className="flex items-center gap-2">Name</div>
-                ),
-                cell: ({ row }) => (
-                  <div className="flex items-center gap-2">
-                    {row.original.agent === "*"
-                      ? "[WILDCARD]"
-                      : row.original.agent}
-                  </div>
-                ),
-              },
-              {
-                accessorKey: "allow",
-                header: () => (
-                  <div className="flex items-center gap-2">Allow</div>
-                ),
-                cell: ({ row }) => (
-                  <div className="space-x-2 flex flex-col gap-1">
-                    {row.original.allow.map((i: string) => (
-                      <Badge variant="default" key={i}>
-                        {i}
-                      </Badge>
-                    ))}
-                  </div>
-                ),
-              },
-              {
-                accessorKey: "disallow",
-                header: () => (
-                  <div className="flex items-center gap-2">Not Allowed</div>
-                ),
-                cell: ({ row }) => (
-                  <div className="space-x-2 flex flex-col gap-1">
-                    {row.original.allow.map((i: string) => (
-                      <Badge variant="default">{i}</Badge>
-                    ))}
-                  </div>
-                ),
-              },
-            ]}
-            data={Object.entries(saveListUrl).map(([agent, rules]) => ({
-              agent,
-              allow: rules.allow,
-              disallow: rules.disallow,
-            }))}
-          />
-          {JSON.stringify(
-            (
-              Object.entries(saveListUrl) as [
-                string,
-                { allow: string[]; disallow: string[] },
-              ][]
-            ).map(([agent, rules]) => {
-              return {
-                name: agent,
+          <div className="max-w-[calc(100vw-50px)]">
+            <DataTable
+              columns={[
+                {
+                  accessorKey: "agent",
+                  header: () => (
+                    <div className="flex items-center gap-2">Name</div>
+                  ),
+                  cell: ({ row }) => (
+                    <div className="flex items-center gap-2">
+                      {row.original.agent === "*"
+                        ? "[WILDCARD]"
+                        : row.original.agent}
+                    </div>
+                  ),
+                },
+                {
+                  accessorKey: "allow",
+                  header: () => (
+                    <div className="flex items-center gap-2">Allow</div>
+                  ),
+                  cell: ({ row }) => (
+                    <div className="space-x-2 flex flex-col gap-1">
+                      {row.original.allow.map((i: string) => (
+                        <button onClick={() => /*todo: remove robots.txt */ {}}>
+                          <Badge
+                            variant="default"
+                            key={crypto.randomUUID()}
+                            className="hover:bg-red-500 hover:text-white hover:line-through justify-center text-center transition-all duration-300"
+                          >
+                            {i}
+                          </Badge>
+                        </button>
+                      ))}
+                      {!row.original.allow && <span>N/A</span>}
+                    </div>
+                  ),
+                },
+                {
+                  accessorKey: "disallow",
+                  header: () => (
+                    <div className="flex items-center gap-2">Not Allowed</div>
+                  ),
+                  cell: ({ row }) => (
+                    <div className="space-x-2 flex flex-col gap-1">
+                      {row.original.disallow.map((i: string) => (
+                        <button onClick={() => /*todo: remove robots.txt */ {}}>
+                          <Badge
+                            variant="default"
+                            key={crypto.randomUUID()}
+                            className="hover:bg-red-500 hover:text-white hover:line-through justify-center text-center transition-all duration-300"
+                          >
+                            {i}
+                          </Badge>
+                        </button>
+                      ))}
+                      {!row.original.disallow && <span>N/A</span>}
+                    </div>
+                  ),
+                },
+              ]}
+              data={Object.entries(saveListUrl).map(([agent, rules]) => ({
+                agent,
                 allow: rules.allow,
                 disallow: rules.disallow,
-              };
-            }),
-          )}
-          {(
-            Object.entries(saveListUrl) as [
-              string,
-              { allow: string[]; disallow: string[] },
-            ][]
-          ).map(([agent, rules]) => (
-            <div key={agent}>
-              <hr />
-              <h3>{agent === "*" ? "[WILDCARD]" : agent}</h3>
-              <p>
-                <strong>Allow:</strong>{" "}
-                {rules.allow.length ? rules.allow.join(", ") : "(none)"}
-              </p>
-              <p>
-                <strong>Disallow:</strong>{" "}
-                {rules.disallow.length ? rules.disallow.join(", ") : "(none)"}
-              </p>
-            </div>
-          ))}
+              }))}
+            />
+          </div>
           <div className="flex flex-col md:flex-row justify-between">
             <span></span>
             <Button
