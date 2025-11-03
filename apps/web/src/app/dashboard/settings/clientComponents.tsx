@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { SaveIcon } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
@@ -8,7 +8,9 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { main_schema } from "../../../../../../packages/db/src";
 import Link from "next/link";
+import DataTable from "@/components/table";
 import robotsTxtParseToJson from "@/components/robotsTxtParser";
+import { Badge } from "@/components/ui/badge";
 
 // types
 type KeyValue = typeof main_schema.kvData.$inferSelect;
@@ -354,6 +356,71 @@ export function ChangeRobotsTxt({
               </Link>
             </span>
           </div>
+
+          <DataTable
+            columns={[
+              {
+                accessorKey: "agent",
+                header: () => (
+                  <div className="flex items-center gap-2">Name</div>
+                ),
+                cell: ({ row }) => (
+                  <div className="flex items-center gap-2">
+                    {row.original.agent === "*"
+                      ? "[WILDCARD]"
+                      : row.original.agent}
+                  </div>
+                ),
+              },
+              {
+                accessorKey: "allow",
+                header: () => (
+                  <div className="flex items-center gap-2">Allow</div>
+                ),
+                cell: ({ row }) => (
+                  <div className="space-x-2 flex flex-col gap-1">
+                    {row.original.allow.map((i: string) => (
+                      <Badge variant="default" key={i}>
+                        {i}
+                      </Badge>
+                    ))}
+                  </div>
+                ),
+              },
+              {
+                accessorKey: "disallow",
+                header: () => (
+                  <div className="flex items-center gap-2">Not Allowed</div>
+                ),
+                cell: ({ row }) => (
+                  <div className="space-x-2 flex flex-col gap-1">
+                    {row.original.allow.map((i: string) => (
+                      <Badge variant="default">{i}</Badge>
+                    ))}
+                  </div>
+                ),
+              },
+            ]}
+            data={Object.entries(saveListUrl).map(([agent, rules]) => ({
+              agent,
+              allow: rules.allow,
+              disallow: rules.disallow,
+            }))}
+          />
+          {JSON.stringify(
+            (
+              Object.entries(saveListUrl) as [
+                string,
+                { allow: string[]; disallow: string[] },
+              ][]
+            ).map(([agent, rules]) => {
+              return {
+                name: agent,
+                allow: rules.allow,
+                disallow: rules.disallow,
+              };
+            }),
+          )}
           {(
             Object.entries(saveListUrl) as [
               string,

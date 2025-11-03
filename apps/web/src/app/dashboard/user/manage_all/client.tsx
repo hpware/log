@@ -190,7 +190,6 @@ export function Client() {
           data={flattenedData}
         />
       )}
-      {JSON.stringify(flattenedData)}
     </div>
   );
 }
