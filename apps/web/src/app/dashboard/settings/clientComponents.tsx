@@ -253,6 +253,26 @@ export function ChangeRobotsTxt({
   const [remoteListURL, setRemoteListURL] = useState("");
   const [saveListUrl, setSaveListUrl] = useState<RobotsParsedJson>({});
   const [importCopyList, setImportCopyList] = useState("");
+
+  const removeRobotEntry = (agentToRemove: string) => {
+    const updatedSaveListUrl = { ...saveListUrl };
+    delete updatedSaveListUrl[agentToRemove];
+    setSaveListUrl(updatedSaveListUrl);
+  };
+
+  const removeBadge = (
+    agent: string,
+    ruleType: "allow" | "disallow",
+    ruleToRemove: string,
+  ) => {
+    const updatedSaveListUrl = { ...saveListUrl };
+    if (updatedSaveListUrl[agent]) {
+      updatedSaveListUrl[agent][ruleType] = updatedSaveListUrl[agent][
+        ruleType
+      ].filter((rule) => rule !== ruleToRemove);
+    }
+    setSaveListUrl(updatedSaveListUrl);
+  };
   const getCurrentRobotsTxt = useMutation({
     mutationFn: async () => {
       const req = await fetch("/api/data/settings?tab=settings", {
@@ -380,10 +400,14 @@ export function ChangeRobotsTxt({
                   cell: ({ row }) => (
                     <div className="space-x-2 flex flex-col gap-1">
                       {row.original.allow.map((i: string) => (
-                        <button onClick={() => /*todo: remove robots.txt */ {}}>
+                        <button
+                          key={crypto.randomUUID()}
+                          onClick={() =>
+                            removeBadge(row.original.agent, "allow", i)
+                          }
+                        >
                           <Badge
                             variant="default"
-                            key={crypto.randomUUID()}
                             className="hover:bg-red-500 hover:text-white hover:line-through justify-center text-center transition-all duration-300"
                           >
                             {i}
@@ -402,10 +426,14 @@ export function ChangeRobotsTxt({
                   cell: ({ row }) => (
                     <div className="space-x-2 flex flex-col gap-1">
                       {row.original.disallow.map((i: string) => (
-                        <button onClick={() => /*todo: remove robots.txt */ {}}>
+                        <button
+                          key={crypto.randomUUID()}
+                          onClick={() =>
+                            removeBadge(row.original.agent, "disallow", i)
+                          }
+                        >
                           <Badge
                             variant="default"
-                            key={crypto.randomUUID()}
                             className="hover:bg-red-500 hover:text-white hover:line-through justify-center text-center transition-all duration-300"
                           >
                             {i}
@@ -413,6 +441,24 @@ export function ChangeRobotsTxt({
                         </button>
                       ))}
                       {!row.original.disallow && <span>N/A</span>}
+                    </div>
+                  ),
+                },
+                {
+                  id: "actions",
+                  header: () => (
+                    <div className="flex items-center gap-2">Actions</div>
+                  ),
+                  cell: ({ row }) => (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="cursor-pointer"
+                        onClick={() => removeRobotEntry(row.original.agent)}
+                      >
+                        Remove
+                      </Button>
                     </div>
                   ),
                 },
