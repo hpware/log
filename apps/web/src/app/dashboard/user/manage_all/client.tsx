@@ -170,6 +170,8 @@ export function Client() {
                         user: row.original.id,
                       });
                     }}
+                    variant="destructive"
+                    className="cursor-pointer transition-all duration-300 hover:bg-red-600/70 dark:hover:bg-red-300/70"
                   >
                     Ban User
                   </Button>
@@ -180,6 +182,8 @@ export function Client() {
                         user: row.original.id,
                       });
                     }}
+                    variant="destructive"
+                    className="cursor-pointer transition-all duration-300 hover:bg-red-600/70 dark:hover:bg-red-300/70"
                   >
                     Delete User
                   </Button>
