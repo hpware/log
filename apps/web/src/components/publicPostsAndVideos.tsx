@@ -181,10 +181,10 @@ export function PublicPostsAndVideos({
               </div>
             )}
             {status === "success" && data.pages?.[0]?.result !== undefined && (
-              <div className="grid">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {(data.pages?.[0]?.result || []).map((i: Post) => (
                   <div
-                    className="border shadow text-wrap flex flex-col rounded"
+                    className="border shadow text-wrap flex flex-col rounded m-1 dark:border-gray-100/50 p-2"
                     key={crypto.randomUUID()}
                   >
                     <div className="flex flex-row gap-1">
