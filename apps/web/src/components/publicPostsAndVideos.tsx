@@ -76,27 +76,8 @@ export function PublicPostsAndVideos({
     }
   };
 
-  const {
-    data,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetching,
-    isFetchingNextPage,
-    status,
-  } = useInfiniteQuery({
-    queryKey: ["content"],
-    queryFn: fetchData,
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, pages) => lastPage.nextOffset,
-  });
-  const findUserInfo = async (allData: {
-    msg: String;
-    nextOffset: Number;
-    result: Post[];
-    success: true;
-  }) => {
-    for (const item of allData.result) {
+  const pullUserInfo = async (data: Post[]) => {
+    for (const item of data) {
       if (!checkedUserInfo.includes(item.byUser)) {
         try {
           const req = await fetch(
@@ -117,57 +98,89 @@ export function PublicPostsAndVideos({
       }
     }
   };
+
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    status,
+  } = useInfiniteQuery({
+    queryKey: ["content"],
+    queryFn: fetchData,
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, pages) => lastPage.nextOffset,
+  });
+  const findUserInfo = async (allData: {
+    msg: String;
+    nextOffset: Number;
+    result: Post[];
+    success: true;
+  }) => {
+    await pullUserInfo(allData.result);
+  };
+
+  useEffect(() => {
+    if (mode === "search" && passedData.length !== 0) {
+      pullUserInfo(passedData);
+    }
+  }, [passedData]);
+
   return (
     <div>
       {mode === "search" ? (
-        <div>
-          {passedData.map((i: Post) => (
-            <div
-              className="border shadow text-wrap flex flex-col rounded"
-              key={crypto.randomUUID()}
-            >
-              <div className="flex flex-row gap-1">
-                {(i.tags as string[]).map((it: string) => (
+        <>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+            {passedData.map((i: Post) => (
+              <div
+                className="border shadow text-wrap flex flex-col rounded"
+                key={crypto.randomUUID()}
+              >
+                <div className="flex flex-row gap-1">
+                  {(i.tags as string[]).map((it: string) => (
+                    <Link
+                      key={crypto.randomUUID()}
+                      href={`/user/${i.byUser}?filter=by_tag&tag=${it}`}
+                    >
+                      <Badge variant="default">{it}</Badge>
+                    </Link>
+                  ))}
+                </div>
+                {!noDisplay?.includes("profile") && (
                   <Link
-                    key={crypto.randomUUID()}
-                    href={`/user/${i.byUser}?filter=by_tag&tag=${it}`}
+                    href={
+                      !noDisplay?.includes("profileLink")
+                        ? `/user/${i.byUser}`
+                        : "/dashboard"
+                    }
                   >
-                    <Badge variant="default">{it}</Badge>
+                    <UserData
+                      userId={i.byUser}
+                      logUserInfo={logUserInfo}
+                      key={`${i.byUser}-${logUserInfo.length}`}
+                    />
                   </Link>
-                ))}
-              </div>
-              {!noDisplay?.includes("profile") && (
-                <Link
-                  href={
-                    !noDisplay?.includes("profileLink")
-                      ? `/user/${i.byUser}`
-                      : "/dashboard"
-                  }
-                >
-                  <UserData
-                    userId={i.byUser}
-                    logUserInfo={logUserInfo}
-                    key={`${i.byUser}-${logUserInfo.length}`}
+                )}
+                <span className="break-all">{i.textData}</span>
+                {!noDisplay?.includes("link") && (
+                  <Link href={`/item/${i.postId}`}>
+                    <ExternalLink />
+                  </Link>
+                )}
+                {i.type === "image" ? (
+                  <Image
+                    src={String(i.imageUrl)}
+                    alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
                   />
-                </Link>
-              )}
-              <span className="break-all">{i.textData}</span>
-              {!noDisplay?.includes("link") && (
-                <Link href={`/item/${i.postId}`}>
-                  <ExternalLink />
-                </Link>
-              )}
-              {i.type === "image" ? (
-                <Image
-                  src={String(i.imageUrl)}
-                  alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
-                />
-              ) : (
-                i.type === "video" && <video src={String(i.videoUrl)} />
-              )}
-            </div>
-          ))}
-        </div>
+                ) : (
+                  i.type === "video" && <video src={String(i.videoUrl)} />
+                )}
+              </div>
+            ))}
+          </div>
+        </>
       ) : (
         (mode === "index" || mode === "profile") && (
           <div>
@@ -181,7 +194,7 @@ export function PublicPostsAndVideos({
               </div>
             )}
             {status === "success" && data.pages?.[0]?.result !== undefined && (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
                 {(data.pages?.[0]?.result || []).map((i: Post) => (
                   <div
                     className="border shadow text-wrap flex flex-col rounded m-1 dark:border-gray-100/50 p-2"

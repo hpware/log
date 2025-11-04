@@ -79,7 +79,6 @@ export default function SearchFunction() {
       <div className="mt-2">
         {displayingData !== undefined && searchBox.length > 0 && (
           <div>
-            {JSON.stringify(displayingData)}
             <PublicPostsAndVideos
               mode="search"
               passedData={displayingData.data.rows}
