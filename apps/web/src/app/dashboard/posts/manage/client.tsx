@@ -7,11 +7,43 @@ import Table from "@/components/table";
 import { toast } from "sonner";
 import { ImageIcon, TextInitialIcon, VideoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { Route } from "next";
+import Link from "next/link";
 
 export default function Client() {
   const submitToServer = useMutation({
-    mutationFn: async (data: any) => {
-      return;
+    mutationFn: async () => {
+      try {
+        const req = await fetch("/api/data/settings?tab=post_manage", {
+          method: "POST",
+          headers: {
+            "Content-Type": "appilcation/json",
+          },
+          body: JSON.stringify({
+            action: "obtain_toggle_data_for_robotsTxt_and_others",
+          }),
+        });
+        const res = await req.json();
+        if (res.success != true) {
+          throw new Error(res.msg);
+        }
+        setStatusSystemPull({
+          homePage: res.data.homePage,
+          registration: res.data.registration,
+          robotsTxt: res.data.robotsTxt,
+          sysFailed: false,
+        });
+        return;
+      } catch (e: any) {
+        setStatusSystemPull({
+          homePage: statusSystemPull.homePage,
+          registration: statusSystemPull.registration,
+          robotsTxt: statusSystemPull.robotsTxt,
+          sysFailed: true,
+        });
+        console.error(e);
+        toast.error(`Fetch Failed: ${e.message}`);
+      }
     },
   });
 
@@ -95,17 +127,26 @@ export default function Client() {
             accessorKey: "postId",
             header: () => <></>,
             cell: ({ row }) => {
+              const id = row.getValue("postId");
               return (
                 <div className="flex items-center gap-2">
-                  <Button
-                    className="cursor-pointer transition-all duration-300 hover:bg-black/70 dark:hover:bg-gray-200/70"
-                    variant="default"
-                  >
-                    Edit
-                  </Button>
+                  <Link href={`/dashboard/posts/edit/${id}` as Route}>
+                    <Button
+                      className="cursor-pointer transition-all duration-300 hover:bg-black/70 dark:hover:bg-gray-200/70"
+                      variant="default"
+                    >
+                      Edit
+                    </Button>
+                  </Link>
                   <Button
                     variant="destructive"
                     className="cursor-pointer transition-all duration-300 hover:bg-red-600/70 dark:hover:bg-red-300/70"
+                    onClick={() =>
+                      submitToServer.mutate({
+                        action: "",
+                        id,
+                      })
+                    }
                   >
                     Delete
                   </Button>
@@ -116,9 +157,6 @@ export default function Client() {
         ]}
         data={memoedData || []}
       />
-      <span className="break-all">
-        {JSON.stringify(data?.pages[0].result[0])}
-      </span>
     </div>
   );
 }
