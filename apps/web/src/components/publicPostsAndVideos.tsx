@@ -110,7 +110,7 @@ export function PublicPostsAndVideos({
     isFetchingNextPage,
     status,
   } = useInfiniteQuery({
-    queryKey: ["content"],
+    queryKey: ["content", mode, userInfo, filters],
     queryFn: fetchData,
     initialPageParam: 0,
     getNextPageParam: (lastPage, pages) => lastPage.nextOffset,
