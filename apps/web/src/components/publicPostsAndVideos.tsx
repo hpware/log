@@ -117,8 +117,8 @@ export function PublicPostsAndVideos({
     
   });
   const findUserInfo = async (allData: {
-    msg: String;
-    nextOffset: Number;
+    msg: string;
+    nextOffset: number;
     result: Post[];
     success: true;
   }) => {
