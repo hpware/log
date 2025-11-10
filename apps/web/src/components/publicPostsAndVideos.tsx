@@ -12,6 +12,8 @@ import {
   ExternalLink,
   MegaphoneOffIcon,
   ShieldMinusIcon,
+  ImageOff,
+  VideoOff,
 } from "lucide-react";
 import { truncate } from "fs/promises";
 import { toast } from "sonner";
@@ -132,7 +134,7 @@ export function PublicPostsAndVideos({
     <div>
       {mode === "search" ? (
         <>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {passedData.map((i: Post) => (
               <div
                 className="border shadow text-wrap flex flex-col rounded"
@@ -164,18 +166,56 @@ export function PublicPostsAndVideos({
                   </Link>
                 )}
                 <span className="break-all">{i.textData}</span>
+                {i.type === "photos" ? (
+                  <>
+                    <img
+                      src={String(i.imageUrl)}
+                      className="rounded m-1 border"
+                      alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        const fallback =
+                          e.currentTarget.parentElement?.querySelector(
+                            ".image-fallback",
+                          ) as HTMLElement;
+                        if (fallback) fallback.style.display = "flex";
+                      }}
+                    />
+                    <div className="image-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
+                      <ImageOff className="w-8 h-8 mb-2" />
+                      <p className="text-sm text-center">
+                        Sorry, we can't display this image right now
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  i.type === "video" && (
+                    <>
+                      <video
+                        src={String(i.videoUrl)}
+                        controls
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const fallback =
+                            e.currentTarget.parentElement?.querySelector(
+                              ".video-fallback",
+                            ) as HTMLElement;
+                          if (fallback) fallback.style.display = "flex";
+                        }}
+                      />
+                      <div className="video-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
+                        <VideoOff className="w-8 h-8 mb-2" />
+                        <p className="text-sm text-center">
+                          Sorry, we can't play this video right now
+                        </p>
+                      </div>
+                    </>
+                  )
+                )}
                 {!noDisplay?.includes("link") && (
                   <Link href={`/item/${i.postId}`}>
                     <ExternalLink />
                   </Link>
-                )}
-                {i.type === "image" ? (
-                  <Image
-                    src={String(i.imageUrl)}
-                    alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
-                  />
-                ) : (
-                  i.type === "video" && <video src={String(i.videoUrl)} />
                 )}
               </div>
             ))}
@@ -218,17 +258,55 @@ export function PublicPostsAndVideos({
                       />
                     </Link>
                     <span className="break-all">{i.textData}</span>
+                    {i.type === "photos" ? (
+                      <>
+                        <img
+                          src={String(i.imageUrl)}
+                          className="rounded m-1 border"
+                          alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            const fallback =
+                              e.currentTarget.parentElement?.querySelector(
+                                ".image-fallback",
+                              ) as HTMLElement;
+                            if (fallback) fallback.style.display = "flex";
+                          }}
+                        />
+                        <div className="image-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
+                          <ImageOff className="w-8 h-8 mb-2" />
+                          <p className="text-sm text-center">
+                            Sorry, we can't display this image right now
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      i.type === "video" && (
+                        <>
+                          <video
+                            src={String(i.videoUrl)}
+                            controls
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                              const fallback =
+                                e.currentTarget.parentElement?.querySelector(
+                                  ".video-fallback",
+                                ) as HTMLElement;
+                              if (fallback) fallback.style.display = "flex";
+                            }}
+                          />
+                          <div className="video-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
+                            <VideoOff className="w-8 h-8 mb-2" />
+                            <p className="text-sm text-center">
+                              Sorry, we can't play this video right now
+                            </p>
+                          </div>
+                        </>
+                      )
+                    )}
                     <Link href={`/item/${i.postId}`}>
                       <ExternalLink />
                     </Link>
-                    {i.type === "image" ? (
-                      <Image
-                        src={String(i.imageUrl)}
-                        alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
-                      />
-                    ) : (
-                      i.type === "video" && <video src={String(i.videoUrl)} />
-                    )}
                   </div>
                 ))}
               </div>

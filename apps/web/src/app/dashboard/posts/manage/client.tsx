@@ -12,35 +12,21 @@ import Link from "next/link";
 
 export default function Client() {
   const submitToServer = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (data: any) => {
       try {
         const req = await fetch("/api/data/settings?tab=post_manage", {
           method: "POST",
           headers: {
             "Content-Type": "appilcation/json",
           },
-          body: JSON.stringify({
-            action: "obtain_toggle_data_for_robotsTxt_and_others",
-          }),
+          body: JSON.stringify(data),
         });
         const res = await req.json();
         if (res.success != true) {
           throw new Error(res.msg);
         }
-        setStatusSystemPull({
-          homePage: res.data.homePage,
-          registration: res.data.registration,
-          robotsTxt: res.data.robotsTxt,
-          sysFailed: false,
-        });
         return;
       } catch (e: any) {
-        setStatusSystemPull({
-          homePage: statusSystemPull.homePage,
-          registration: statusSystemPull.registration,
-          robotsTxt: statusSystemPull.robotsTxt,
-          sysFailed: true,
-        });
         console.error(e);
         toast.error(`Fetch Failed: ${e.message}`);
       }
