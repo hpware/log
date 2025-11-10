@@ -31,16 +31,14 @@ import Image from "next/image";
 
 export function Client() {
   const submitToServer = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (sendData: any) => {
       try {
-        const req = await fetch("/api/data/settings?tab=settings", {
+        const req = await fetch("/api/data/settings?tab=users", {
           method: "POST",
           headers: {
             "Content-Type": "appilcation/json",
           },
-          body: JSON.stringify({
-            action: "obtain_toggle_data_for_robotsTxt_and_others",
-          }),
+          body: JSON.stringify(sendData),
         });
         const res = await req.json();
         if (res.success != true) {
