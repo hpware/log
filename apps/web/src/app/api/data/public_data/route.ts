@@ -36,7 +36,7 @@ export const GET = async (request: NextRequest) => {
           success: true,
           msg: "",
           result: [],
-          nextOffset: Number(offset) + 50,
+          nextOffset: undefined,
           featDisabled: true,
         });
       }
@@ -57,7 +57,7 @@ export const GET = async (request: NextRequest) => {
       success: true,
       msg: "",
       result: dbResult,
-      nextOffset: Number(offset) + 50,
+      nextOffset: dbResult.length < 50 ? undefined : Number(offset) + 50,
       featDisabled: false,
     });
   } catch (e: any) {

@@ -114,6 +114,7 @@ export function PublicPostsAndVideos({
     queryFn: fetchData,
     initialPageParam: 0,
     getNextPageParam: (lastPage, pages) => lastPage.nextOffset,
+    
   });
   const findUserInfo = async (allData: {
     msg: String;
@@ -135,7 +136,7 @@ export function PublicPostsAndVideos({
 
   useEffect(() => {
     if (mode !== "index" && mode !== "profile") return;
-    
+
     const observer = new IntersectionObserver(
       (entries) => {
         const first = entries[0];
@@ -143,7 +144,7 @@ export function PublicPostsAndVideos({
           fetchNextPage();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     const currentRef = loadMoreRef.current;
@@ -263,83 +264,85 @@ export function PublicPostsAndVideos({
             )}
             {status === "success" && data.pages?.[0]?.result !== undefined && (
               <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-                {data.pages.flatMap((page) => page.result || []).map((i: Post) => (
-                  <div
-                    className="border shadow text-wrap flex flex-col rounded m-1 dark:border-gray-100/50 p-2"
-                    key={crypto.randomUUID()}
-                  >
-                    <div className="flex flex-row gap-1">
-                      {(i.tags as string[]).map((it: string) => (
-                        <Link
-                          key={crypto.randomUUID()}
-                          href={`/user/${i.byUser}?filter=by_tag&tag=${it}`}
-                        >
-                          <Badge variant="default">{it}</Badge>
-                        </Link>
-                      ))}
-                    </div>
-                    <Link href={`/user/${i.byUser}`}>
-                      <UserData
-                        userId={i.byUser}
-                        logUserInfo={logUserInfo}
-                        key={`${i.byUser}-${logUserInfo.length}`}
-                      />
-                    </Link>
-                    <span className="break-all">{i.textData}</span>
-                    {i.type === "photos" ? (
-                      <>
-                        <img
-                          src={String(i.imageUrl)}
-                          className="rounded m-1 border"
-                          alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                            const fallback =
-                              e.currentTarget.parentElement?.querySelector(
-                                ".image-fallback",
-                              ) as HTMLElement;
-                            if (fallback) fallback.style.display = "flex";
-                          }}
+                {data.pages
+                  .flatMap((page) => page.result || [])
+                  .map((i: Post) => (
+                    <div
+                      className="border shadow text-wrap flex flex-col rounded m-1 dark:border-gray-100/50 p-2"
+                      key={crypto.randomUUID()}
+                    >
+                      <div className="flex flex-row gap-1">
+                        {(i.tags as string[]).map((it: string) => (
+                          <Link
+                            key={crypto.randomUUID()}
+                            href={`/user/${i.byUser}?filter=by_tag&tag=${it}`}
+                          >
+                            <Badge variant="default">{it}</Badge>
+                          </Link>
+                        ))}
+                      </div>
+                      <Link href={`/user/${i.byUser}`}>
+                        <UserData
+                          userId={i.byUser}
+                          logUserInfo={logUserInfo}
+                          key={`${i.byUser}-${logUserInfo.length}`}
                         />
-                        <div className="image-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
-                          <ImageOff className="w-8 h-8 mb-2" />
-                          <p className="text-sm text-center">
-                            Sorry, we can't display this image right now
-                          </p>
-                        </div>
-                      </>
-                    ) : (
-                      i.type === "video" && (
+                      </Link>
+                      <span className="break-all">{i.textData}</span>
+                      {i.type === "photos" ? (
                         <>
-                          <video
-                            src={String(i.videoUrl)}
-                            controls
+                          <img
+                            src={String(i.imageUrl)}
+                            className="rounded m-1 border"
+                            alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
                             onError={(e) => {
                               e.currentTarget.style.display = "none";
                               const fallback =
                                 e.currentTarget.parentElement?.querySelector(
-                                  ".video-fallback",
+                                  ".image-fallback",
                                 ) as HTMLElement;
                               if (fallback) fallback.style.display = "flex";
                             }}
                           />
-                          <div className="video-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
-                            <VideoOff className="w-8 h-8 mb-2" />
+                          <div className="image-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
+                            <ImageOff className="w-8 h-8 mb-2" />
                             <p className="text-sm text-center">
-                              Sorry, we can't play this video right now
+                              Sorry, we can't display this image right now
                             </p>
                           </div>
                         </>
-                      )
-                    )}
-                    <Link href={`/item/${i.postId}`}>
-                      <ExternalLink />
-                    </Link>
-                  </div>
-                ))}
+                      ) : (
+                        i.type === "video" && (
+                          <>
+                            <video
+                              src={String(i.videoUrl)}
+                              controls
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                                const fallback =
+                                  e.currentTarget.parentElement?.querySelector(
+                                    ".video-fallback",
+                                  ) as HTMLElement;
+                                if (fallback) fallback.style.display = "flex";
+                              }}
+                            />
+                            <div className="video-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
+                              <VideoOff className="w-8 h-8 mb-2" />
+                              <p className="text-sm text-center">
+                                Sorry, we can't play this video right now
+                              </p>
+                            </div>
+                          </>
+                        )
+                      )}
+                      <Link href={`/item/${i.postId}`}>
+                        <ExternalLink />
+                      </Link>
+                    </div>
+                  ))}
               </div>
             )}
-            
+
             {status === "success" && (
               <div ref={loadMoreRef} className="flex justify-center mt-6 mb-6">
                 {isFetchingNextPage ? (
@@ -348,7 +351,9 @@ export function PublicPostsAndVideos({
                     <span>Loading more...</span>
                   </div>
                 ) : !hasNextPage ? (
-                  <span className="text-gray-500">You have scrolled to the bottom</span>
+                  <span className="text-gray-500">
+                    You have scrolled to the bottom
+                  </span>
                 ) : null}
               </div>
             )}
