@@ -105,7 +105,7 @@ export default function Dashboard({
             });
             setTextBoxData("");
             setIsPending(false);
-          } catch (e) {
+          } catch (e: any) {
             setIsPending(false);
             throw new Error(`${e.message}`);
           }

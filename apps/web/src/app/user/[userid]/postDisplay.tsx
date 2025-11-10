@@ -33,7 +33,7 @@ export default function DisplayPosts({
       }
       parsedResult = parsed;
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error("Filter is not valid json!");
     toast.error("Filter is not valid json!");
   }
