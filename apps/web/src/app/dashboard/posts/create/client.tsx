@@ -96,7 +96,7 @@ export default function Dashboard({
             if (!res.success) {
               setIsPending(false);
               console.error(`ERR_SERVER_RESPOSE: ${res.msg}`);
-              throw new Error(`${res.msg}`);
+              throw new Error(res.msg || "Upload failed");
             }
             setCurrentOption("text");
             setTagData({
@@ -107,7 +107,7 @@ export default function Dashboard({
             setIsPending(false);
           } catch (e) {
             setIsPending(false);
-            throw new Error(`${res.msg}`);
+            throw new Error(`${e.message}`);
           }
         },
         {
