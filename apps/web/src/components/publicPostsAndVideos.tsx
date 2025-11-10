@@ -1,7 +1,7 @@
 "use client";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "./ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { main_schema } from "../../../../packages/db/src/index";
 import Link from "next/link";
@@ -130,6 +130,34 @@ export function PublicPostsAndVideos({
     }
   }, [passedData]);
 
+  // Intersection observer ref for infinite scroll
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (mode !== "index" && mode !== "profile") return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, mode]);
+
   return (
     <div>
       {mode === "search" ? (
@@ -235,7 +263,7 @@ export function PublicPostsAndVideos({
             )}
             {status === "success" && data.pages?.[0]?.result !== undefined && (
               <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-                {(data.pages?.[0]?.result || []).map((i: Post) => (
+                {data.pages.flatMap((page) => page.result || []).map((i: Post) => (
                   <div
                     className="border shadow text-wrap flex flex-col rounded m-1 dark:border-gray-100/50 p-2"
                     key={crypto.randomUUID()}
@@ -309,6 +337,19 @@ export function PublicPostsAndVideos({
                     </Link>
                   </div>
                 ))}
+              </div>
+            )}
+            
+            {status === "success" && (
+              <div ref={loadMoreRef} className="flex justify-center mt-6 mb-6">
+                {isFetchingNextPage ? (
+                  <div className="flex items-center gap-2">
+                    <Spinner className="w-4 h-4" />
+                    <span>Loading more...</span>
+                  </div>
+                ) : !hasNextPage ? (
+                  <span className="text-gray-500">You have scrolled to the bottom</span>
+                ) : null}
               </div>
             )}
 
