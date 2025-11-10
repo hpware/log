@@ -25,11 +25,27 @@ export const GET = async (request: NextRequest) => {
                        ORDER BY rank DESC;
     `,
     );
+
+    // Transform snake_case PostgreSQL results to camelCase to match Drizzle schema
+    const transformedRows = searchData.rows.map((row: any) => ({
+      postId: row.post_id,
+      type: row.type,
+      createdAt: row.created_at,
+      byUser: row.by_user,
+      textData: row.text_data,
+      imageUrl: row.image_url,
+      videoUrl: row.video_url,
+      status: row.status,
+      tags: row.tags,
+      updatedAt: row.updated_at,
+      rank: row.rank,
+    }));
+
     const endPerf = performance.now();
     return NextResponse.json({
       success: true,
       msg: "",
-      data: searchData,
+      data: { ...searchData, rows: transformedRows },
       queryTime: endPerf - startPerf,
     });
   } catch (e: any) {

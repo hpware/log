@@ -23,8 +23,10 @@ export default function Dashboard({
 }: {
   session: typeof authClient.$Infer.Session;
 }) {
+  const uploadLimit = process.env.NEXT_PUBLIC_UPLOAD_LIMIT;
+
   const [currentOption, setCurrentOption] = useState<
-    "text" | "photo" | "video"
+    "text" | "photos" | "video"
   >("text");
   const [handleStatus, setHandleStatus] = useState({
     failed: false,
@@ -44,63 +46,69 @@ export default function Dashboard({
   const fileUploadingDivBox = useRef<HTMLInputElement | null>(null);
   const sendDataToServer = useMutation({
     mutationFn: async (data: {
-      type: "text" | "photo" | "video";
+      type: "text" | "photos" | "video";
       text?: string;
       file?: File | null;
     }) => {
       toast.promise(
         async () => {
-          setIsPending(true);
-          let uploadUrl = "";
-          if (data.type !== "text") {
-            const fd = new FormData();
-            if (data.file) fd.append("file", data.file);
+          try {
+            setIsPending(true);
+            let uploadUrl = "";
+            if (data.type !== "text") {
+              const fd = new FormData();
+              if (data.file) fd.append("file", data.file);
 
-            const req = await fetch("/api/data/publish/file", {
-              method: "POST",
-              body: fd,
-            });
+              const req = await fetch("/api/data/publish/file", {
+                method: "POST",
+                body: fd,
+              });
 
-            if (!req.ok) {
-              const errorRes = await req.json().catch(() => ({}));
-              throw new Error(
-                errorRes.msg || `Upload failed with status ${req.status}`,
-              );
+              if (!req.ok) {
+                const errorRes = await req.json().catch(() => ({}));
+                throw new Error(
+                  errorRes.msg || `Upload failed with status ${req.status}`,
+                );
+              }
+
+              const res = await req.json();
+              if (!res.success) {
+                throw new Error(res.msg || "Upload failed");
+              }
+
+              uploadUrl = res.uploadUrl;
             }
-
+            const req = await fetch("/api/data/publish", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                type: data.type,
+                text: data.text || "",
+                imageUrl: uploadUrl,
+                status: "public",
+                ...(tagData.tags?.length > 0 && { tags: tagData.tags }),
+              }),
+            });
             const res = await req.json();
+            console.log(res);
             if (!res.success) {
+              setIsPending(false);
+              console.error(`ERR_SERVER_RESPOSE: ${res.msg}`);
               throw new Error(res.msg || "Upload failed");
             }
-
-            uploadUrl = res.uploadUrl;
-          }
-          const req = await fetch("/api/data/publish", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              type: data.type,
-              text: data.text || "",
-              imageUrl: uploadUrl,
-              status: "public",
-              ...(tagData.tags?.length > 0 && { tags: tagData.tags }),
-            }),
-          });
-          const res = await req.json();
-          if (!res.success) {
+            setCurrentOption("text");
+            setTagData({
+              tags: [],
+              inputBox: "",
+            });
+            setTextBoxData("");
             setIsPending(false);
-            console.error(`ERR_SERVER_RESPOSE: ${res.msg}`);
-            throw new Error(`${res.msg}`);
+          } catch (e: any) {
+            setIsPending(false);
+            throw new Error(`${e.message}`);
           }
-          setCurrentOption("text");
-          setTagData({
-            tags: [],
-            inputBox: "",
-          });
-          setTextBoxData("");
-          setIsPending(false);
         },
         {
           loading: "Sending...",
@@ -149,11 +157,12 @@ export default function Dashboard({
       }
 
       // Check file size (50MB default)
-      const maxSize = 50 * 1024 * 1024; // 50MB in bytes
+      const maxSize =
+        (uploadLimit === undefined ? 50 : Number(uploadLimit)) * 1024 * 1024; // 50MB in bytes
       if (file.size > maxSize) {
         setHandleStatus({
           failed: true,
-          msg: "File size too large. Maximum allowed size is 50MB.",
+          msg: `File size too large. Maximum allowed size is ${uploadLimit === undefined ? 50 : Number(uploadLimit)}MB.`,
         });
         toast.error("File size too large.");
         return;
@@ -197,17 +206,17 @@ export default function Dashboard({
     ]);
   };
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-full max-w-4xl mx-auto p-2 sm:p-4">
       <Tabs
         defaultValue="text"
         className="pl-2 w-full"
         onValueChange={(vl) => {
-          setCurrentOption(vl as "text" | "photo" | "video");
+          setCurrentOption(vl as "text" | "photos" | "video");
         }}
       >
         <TabsList>
           <TabsTrigger value="text">Text</TabsTrigger>
-          <TabsTrigger value="photo">Photo</TabsTrigger>
+          <TabsTrigger value="photos">Photo</TabsTrigger>
           <TabsTrigger value="video">Video</TabsTrigger>
         </TabsList>
         <Tabs defaultValue="draft" className="">
@@ -263,20 +272,22 @@ export default function Dashboard({
           onChange={(v) => setTextBoxData(v.target.value)}
           className="border w-full h-12 resize-none rounded"
         />
-        <TabsContent value="photo">
+        <TabsContent value="photos">
           <UploadComponent
             fileUploadingDivBox={fileUploadingDivBox}
             fileUploadBox={fileUploadBox}
+            uploadLimit={uploadLimit}
           />
         </TabsContent>
         <TabsContent value="video">
           <UploadComponent
             fileUploadingDivBox={fileUploadingDivBox}
             fileUploadBox={fileUploadBox}
+            uploadLimit={uploadLimit}
           />
         </TabsContent>
       </Tabs>
-      <div className="gap-1 flex flex-row ml-1">
+      <div className="gap-2 flex flex-col sm:flex-row">
         <Button onClick={handleSend} disabled={isPending}>
           Send it!
         </Button>
@@ -298,28 +309,31 @@ export default function Dashboard({
 function UploadComponent({
   fileUploadingDivBox,
   fileUploadBox,
+  uploadLimit,
 }: {
   fileUploadingDivBox: RefObject<HTMLInputElement | null>;
   fileUploadBox: RefObject<HTMLInputElement | null>;
+  uploadLimit: string | undefined;
 }) {
   return (
     <div
-      className="border-2 border-gray-400"
+      className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 hover:bg-blue-50 transition-colors cursor-pointer"
       ref={fileUploadingDivBox}
+      onClick={() => fileUploadBox.current?.click()}
       onDragOver={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        e.currentTarget.classList.add("border-blue-500", "bg-gray-50");
+        e.currentTarget.classList.add("border-blue-500", "bg-blue-50");
       }}
       onDragLeave={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        e.currentTarget.classList.remove("border-blue-500", "bg-gray-50");
+        e.currentTarget.classList.remove("border-blue-500", "bg-blue-50");
       }}
       onDrop={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        e.currentTarget.classList.remove("border-blue-500", "bg-gray-50");
+        e.currentTarget.classList.remove("border-blue-500", "bg-blue-50");
         if (e.dataTransfer.files.length > 0 && fileUploadBox.current) {
           const file = e.dataTransfer.files[0];
           fileUploadBox.current.files = e.dataTransfer.files;
@@ -327,9 +341,25 @@ function UploadComponent({
         }
       }}
     >
-      <input type="file" ref={fileUploadBox}></input>
-      <FileUp />
-      <span>Upload your file here</span>
+      <input
+        type="file"
+        ref={fileUploadBox}
+        className="hidden"
+        accept="image/*,video/*"
+      ></input>
+      <FileUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+      <div>
+        <p className="text-lg font-medium text-gray-700 mb-2">
+          Upload your file here
+        </p>
+        <p className="text-sm text-gray-500">
+          Drag and drop or click to browse
+        </p>
+        <p className="text-xs text-gray-400 mt-2">
+          Max size: {uploadLimit === undefined ? 50 : Number(uploadLimit)}MB •
+          Formats: JPEG, PNG, GIF, WebP, MP4, WebM, MOV
+        </p>
+      </div>
     </div>
   );
 }

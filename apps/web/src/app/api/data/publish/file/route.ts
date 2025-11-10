@@ -45,7 +45,7 @@ export const POST = async (request: NextRequest) => {
     }
 
     // Validate file size
-    const uploadLimit = process.env.UPLOAD_LIMIT || "50"; // Default 50MB
+    const uploadLimit = process.env.NEXT_PUBLIC_UPLOAD_LIMIT || "50"; // Default 50MB
     const maxSizeInBytes = Number(uploadLimit) * 1024 * 1024;
 
     if (file.size > maxSizeInBytes) {
@@ -71,10 +71,6 @@ export const POST = async (request: NextRequest) => {
     const buffer = Buffer.from(await file.arrayBuffer());
     const fsName = s3.generateFileName(file.name);
 
-    console.log(
-      `Uploading file: ${file.name} as ${fsName} (${file.size} bytes)`,
-    );
-
     const upload = new Upload({
       client: s3.s3Client,
       params: {
@@ -89,14 +85,14 @@ export const POST = async (request: NextRequest) => {
         },
       },
     });
-
     const result = await upload.done();
+    console.log(result);
     console.log(`Successfully uploaded: ${fsName}`);
 
     return Response.json({
       success: true,
       msg: "File uploaded successfully",
-      uploadUrl: `/api/data/${fsName}`,
+      uploadUrl: `/api/data/files/${fsName}`,
       fileSize: file.size,
       contentType: file.type,
     });

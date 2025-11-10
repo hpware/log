@@ -20,12 +20,6 @@ export const POST = async (request: NextRequest) => {
         { status: 401 },
       );
     }
-    if (session.user.role !== "admin") {
-      return Response.json(
-        { success: false, msg: "ERR_USR_INVALID_PERMS", uploadUrl: "" },
-        { status: 401 },
-      );
-    }
     const { searchParams } = new URL(request.url);
     const tabAction = searchParams.get("tab");
     const body = await request.json();
@@ -44,6 +38,12 @@ export const POST = async (request: NextRequest) => {
     }
     // settings tab
     if (tabAction === "settings") {
+      if (session.user.role !== "admin") {
+        return Response.json(
+          { success: false, msg: "ERR_USR_INVALID_PERMS", uploadUrl: "" },
+          { status: 401 },
+        );
+      }
       // changes to the site title system
       if (
         body.action === "site_title_description" &&
@@ -258,6 +258,24 @@ export const POST = async (request: NextRequest) => {
       if (body.action === "change_custom_scripts") {
       }
     } else if (tabAction === "users") {
+      if (session.user.role !== "admin") {
+        return Response.json(
+          { success: false, msg: "ERR_USR_INVALID_PERMS", uploadUrl: "" },
+          { status: 401 },
+        );
+      }
+      if (body.action === "ban_user") {
+      }
+      if (body.action === "force_ban_user") {
+      }
+    } else if (tabAction === "post_manage") {
+      if (body.action === "delete") {
+        try {
+          return Response.json({ success: true, msg: "" }, { status: 200 });
+        } catch (e: any) {
+          return Response.json({ success: false, msg: e.msg }, { status: 500 });
+        }
+      }
     }
     // last
     return Response.json(

@@ -12,6 +12,8 @@ import {
   ExternalLink,
   MegaphoneOffIcon,
   ShieldMinusIcon,
+  ImageOff,
+  VideoOff,
 } from "lucide-react";
 import { truncate } from "fs/promises";
 import { toast } from "sonner";
@@ -76,27 +78,8 @@ export function PublicPostsAndVideos({
     }
   };
 
-  const {
-    data,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetching,
-    isFetchingNextPage,
-    status,
-  } = useInfiniteQuery({
-    queryKey: ["content", mode, userInfo, filters],
-    queryFn: fetchData,
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, pages) => lastPage.nextOffset,
-  });
-  const findUserInfo = async (allData: {
-    msg: String;
-    nextOffset: Number;
-    result: Post[];
-    success: true;
-  }) => {
-    for (const item of allData.result) {
+  const pullUserInfo = async (data: Post[]) => {
+    for (const item of data) {
       if (!checkedUserInfo.includes(item.byUser)) {
         try {
           const req = await fetch(
@@ -117,57 +100,127 @@ export function PublicPostsAndVideos({
       }
     }
   };
+
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    status,
+  } = useInfiniteQuery({
+    queryKey: ["content", mode, userInfo, filters],
+    queryFn: fetchData,
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, pages) => lastPage.nextOffset,
+  });
+  const findUserInfo = async (allData: {
+    msg: String;
+    nextOffset: Number;
+    result: Post[];
+    success: true;
+  }) => {
+    await pullUserInfo(allData.result);
+  };
+
+  useEffect(() => {
+    if (mode === "search" && passedData.length !== 0) {
+      pullUserInfo(passedData);
+    }
+  }, [passedData]);
+
   return (
     <div>
       {mode === "search" ? (
-        <div>
-          {passedData.map((i: Post) => (
-            <div
-              className="border shadow text-wrap flex flex-col rounded"
-              key={crypto.randomUUID()}
-            >
-              <div className="flex flex-row gap-1">
-                {(i.tags as string[]).map((it: string) => (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {passedData.map((i: Post) => (
+              <div
+                className="border shadow text-wrap flex flex-col rounded"
+                key={crypto.randomUUID()}
+              >
+                <div className="flex flex-row gap-1">
+                  {(i.tags as string[]).map((it: string) => (
+                    <Link
+                      key={crypto.randomUUID()}
+                      href={`/user/${i.byUser}?filter=by_tag&tag=${it}`}
+                    >
+                      <Badge variant="default">{it}</Badge>
+                    </Link>
+                  ))}
+                </div>
+                {!noDisplay?.includes("profile") && (
                   <Link
-                    key={crypto.randomUUID()}
-                    href={`/user/${i.byUser}?filter=by_tag&tag=${it}`}
+                    href={
+                      !noDisplay?.includes("profileLink")
+                        ? `/user/${i.byUser}`
+                        : "/dashboard"
+                    }
                   >
-                    <Badge variant="default">{it}</Badge>
+                    <UserData
+                      userId={i.byUser}
+                      logUserInfo={logUserInfo}
+                      key={`${i.byUser}-${logUserInfo.length}`}
+                    />
                   </Link>
-                ))}
+                )}
+                <span className="break-all">{i.textData}</span>
+                {i.type === "photos" ? (
+                  <>
+                    <img
+                      src={String(i.imageUrl)}
+                      className="rounded m-1 border"
+                      alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        const fallback =
+                          e.currentTarget.parentElement?.querySelector(
+                            ".image-fallback",
+                          ) as HTMLElement;
+                        if (fallback) fallback.style.display = "flex";
+                      }}
+                    />
+                    <div className="image-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
+                      <ImageOff className="w-8 h-8 mb-2" />
+                      <p className="text-sm text-center">
+                        Sorry, we can't display this image right now
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  i.type === "video" && (
+                    <>
+                      <video
+                        src={String(i.videoUrl)}
+                        controls
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const fallback =
+                            e.currentTarget.parentElement?.querySelector(
+                              ".video-fallback",
+                            ) as HTMLElement;
+                          if (fallback) fallback.style.display = "flex";
+                        }}
+                      />
+                      <div className="video-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
+                        <VideoOff className="w-8 h-8 mb-2" />
+                        <p className="text-sm text-center">
+                          Sorry, we can't play this video right now
+                        </p>
+                      </div>
+                    </>
+                  )
+                )}
+                {!noDisplay?.includes("link") && (
+                  <Link href={`/item/${i.postId}`}>
+                    <ExternalLink />
+                  </Link>
+                )}
               </div>
-              {!noDisplay?.includes("profile") && (
-                <Link
-                  href={
-                    !noDisplay?.includes("profileLink")
-                      ? `/user/${i.byUser}`
-                      : "/dashboard"
-                  }
-                >
-                  <UserData
-                    userId={i.byUser}
-                    logUserInfo={logUserInfo}
-                    key={`${i.byUser}-${logUserInfo.length}`}
-                  />
-                </Link>
-              )}
-              <span className="break-all">{i.textData}</span>
-              {!noDisplay?.includes("link") && (
-                <Link href={`/item/${i.postId}`}>
-                  <ExternalLink />
-                </Link>
-              )}
-              {i.type === "image" ? (
-                <Image
-                  src={String(i.imageUrl)}
-                  alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
-                />
-              ) : (
-                i.type === "video" && <video src={String(i.videoUrl)} />
-              )}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       ) : (
         (mode === "index" || mode === "profile") && (
           <div>
@@ -181,10 +234,10 @@ export function PublicPostsAndVideos({
               </div>
             )}
             {status === "success" && data.pages?.[0]?.result !== undefined && (
-              <div className="grid">
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
                 {(data.pages?.[0]?.result || []).map((i: Post) => (
                   <div
-                    className="border shadow text-wrap flex flex-col rounded"
+                    className="border shadow text-wrap flex flex-col rounded m-1 dark:border-gray-100/50 p-2"
                     key={crypto.randomUUID()}
                   >
                     <div className="flex flex-row gap-1">
@@ -205,17 +258,55 @@ export function PublicPostsAndVideos({
                       />
                     </Link>
                     <span className="break-all">{i.textData}</span>
+                    {i.type === "photos" ? (
+                      <>
+                        <img
+                          src={String(i.imageUrl)}
+                          className="rounded m-1 border"
+                          alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            const fallback =
+                              e.currentTarget.parentElement?.querySelector(
+                                ".image-fallback",
+                              ) as HTMLElement;
+                            if (fallback) fallback.style.display = "flex";
+                          }}
+                        />
+                        <div className="image-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
+                          <ImageOff className="w-8 h-8 mb-2" />
+                          <p className="text-sm text-center">
+                            Sorry, we can't display this image right now
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      i.type === "video" && (
+                        <>
+                          <video
+                            src={String(i.videoUrl)}
+                            controls
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                              const fallback =
+                                e.currentTarget.parentElement?.querySelector(
+                                  ".video-fallback",
+                                ) as HTMLElement;
+                              if (fallback) fallback.style.display = "flex";
+                            }}
+                          />
+                          <div className="video-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
+                            <VideoOff className="w-8 h-8 mb-2" />
+                            <p className="text-sm text-center">
+                              Sorry, we can't play this video right now
+                            </p>
+                          </div>
+                        </>
+                      )
+                    )}
                     <Link href={`/item/${i.postId}`}>
                       <ExternalLink />
                     </Link>
-                    {i.type === "image" ? (
-                      <Image
-                        src={String(i.imageUrl)}
-                        alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
-                      />
-                    ) : (
-                      i.type === "video" && <video src={String(i.videoUrl)} />
-                    )}
                   </div>
                 ))}
               </div>
