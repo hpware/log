@@ -59,12 +59,13 @@ export default async function Page(props: {
         {content[0].type === "photos" && content[0].imageUrl !== null && (
           <div>
             <img
+              className="max-w-[calc(100%-50px)] max-h-[80dvh] m-2 justify-center text-center align-middle mx-auto"
               src={content[0].imageUrl}
               alt={`An image uploaded by ${getUserInfo[0].name} ${content[0].textData && `with the caption ${content[0].textData}`}`}
             />
           </div>
         )}
-        <div>{content[0].textData ?? ""}</div>
+        <span className="pl-2">{content[0].textData ?? ""}</span>
         <div className="flex flex-row gap-1">
           {(content[0].tags as string[]).map((it: string) => (
             <Link
@@ -106,7 +107,6 @@ export default async function Page(props: {
           </div>
         </div>
       </div>
-      <div>{JSON.stringify(content)}</div>
     </div>
   );
 }

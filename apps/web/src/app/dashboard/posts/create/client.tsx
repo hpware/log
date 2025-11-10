@@ -28,6 +28,9 @@ export default function Dashboard({
   const [currentOption, setCurrentOption] = useState<
     "text" | "photos" | "video"
   >("text");
+  const [currentPublishOption, setCurrentPublishOption] = useState<
+    "draft" | "private" | "unlisted" | "public"
+  >("draft");
   const [handleStatus, setHandleStatus] = useState({
     failed: false,
     msg: "",
@@ -87,7 +90,7 @@ export default function Dashboard({
                 type: data.type,
                 text: data.text || "",
                 imageUrl: uploadUrl,
-                status: "public",
+                status: currentPublishOption,
                 ...(tagData.tags?.length > 0 && { tags: tagData.tags }),
               }),
             });
@@ -219,7 +222,15 @@ export default function Dashboard({
           <TabsTrigger value="photos">Photo</TabsTrigger>
           <TabsTrigger value="video">Video</TabsTrigger>
         </TabsList>
-        <Tabs defaultValue="draft" className="">
+        <Tabs
+          defaultValue="draft"
+          className=""
+          onValueChange={(vl) => {
+            setCurrentPublishOption(
+              vl as "draft" | "private" | "unlisted" | "public",
+            );
+          }}
+        >
           <TabsList>
             <TabsTrigger value="draft">Draft</TabsTrigger>
             <TabsTrigger value="private">Private</TabsTrigger>
