@@ -235,7 +235,7 @@ export function PublicPostsAndVideos({
             )}
             {status === "success" && data.pages?.[0]?.result !== undefined && (
               <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-                {(data.pages?.[0]?.result || []).map((i: Post) => (
+                {data.pages.flatMap((page) => page.result || []).map((i: Post) => (
                   <div
                     className="border shadow text-wrap flex flex-col rounded m-1 dark:border-gray-100/50 p-2"
                     key={crypto.randomUUID()}
@@ -309,6 +309,25 @@ export function PublicPostsAndVideos({
                     </Link>
                   </div>
                 ))}
+              </div>
+            )}
+            
+            {status === "success" && hasNextPage && (
+              <div className="flex justify-center mt-6">
+                <Button
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  variant="outline"
+                >
+                  {isFetchingNextPage ? (
+                    <div className="flex items-center gap-2">
+                      <Spinner className="w-4 h-4" />
+                      <span>Loading more...</span>
+                    </div>
+                  ) : (
+                    "Load More"
+                  )}
+                </Button>
               </div>
             )}
 
