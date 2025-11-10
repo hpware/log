@@ -1,7 +1,7 @@
 "use client";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "./ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { main_schema } from "../../../../packages/db/src/index";
 import Link from "next/link";
@@ -129,6 +129,34 @@ export function PublicPostsAndVideos({
       pullUserInfo(passedData);
     }
   }, [passedData]);
+
+  // Intersection observer ref for infinite scroll
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (mode !== "index" && mode !== "profile") return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, mode]);
 
   return (
     <div>
@@ -312,22 +340,16 @@ export function PublicPostsAndVideos({
               </div>
             )}
             
-            {status === "success" && hasNextPage && (
-              <div className="flex justify-center mt-6">
-                <Button
-                  onClick={() => fetchNextPage()}
-                  disabled={isFetchingNextPage}
-                  variant="outline"
-                >
-                  {isFetchingNextPage ? (
-                    <div className="flex items-center gap-2">
-                      <Spinner className="w-4 h-4" />
-                      <span>Loading more...</span>
-                    </div>
-                  ) : (
-                    "Load More"
-                  )}
-                </Button>
+            {status === "success" && (
+              <div ref={loadMoreRef} className="flex justify-center mt-6 mb-6">
+                {isFetchingNextPage ? (
+                  <div className="flex items-center gap-2">
+                    <Spinner className="w-4 h-4" />
+                    <span>Loading more...</span>
+                  </div>
+                ) : !hasNextPage ? (
+                  <span className="text-gray-500">You have scrolled to the bottom</span>
+                ) : null}
               </div>
             )}
 
