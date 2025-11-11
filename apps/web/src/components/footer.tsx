@@ -1,7 +1,7 @@
 import Link from "next/link";
 export default function Footer() {
   return (
-    <footer className="relative bottom-0 inset-x-0 justify-center text-center">
+    <footer className="relative bottom-0 inset-x-0 justify-center text-center flex-shrink-0">
       <hr />
       <span className="p-3">
         This project is{" "}

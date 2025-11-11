@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { Input } from "@/components/ui/input";
 
 export function Client() {
   const submitToServer = useMutation({
@@ -87,6 +88,7 @@ export function Client() {
 
   return (
     <div>
+      <span className="italic text-lg">Manage Users</span>
       {flattenedData.length > 0 && (
         <DataTable
           columns={[
@@ -145,7 +147,7 @@ export function Client() {
               cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                   {row.original.banned ? (
-                    <UserMinusIcon className="h-4 w-4" />
+                    <UserMinusIcon className="h-4 w-4 text-red-600 dark:text-red-500" />
                   ) : row.getValue("role") === "admin" ? (
                     <UserStarIcon className="h-4 w-4 text-yellow-600 dark:text-yellow-300" />
                   ) : (
@@ -205,9 +207,13 @@ export function Client() {
                         <AlertDialogTitle>
                           Are you absolutely sure?
                         </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action can be undone. This will remove the user's
-                          page & login method.
+                        <AlertDialogDescription className="flex flex-col">
+                          <span>Ban Reason</span>
+                          <Input type="text" />
+                          <span>
+                            This action can be undone. This will remove the
+                            user's page & login method.
+                          </span>
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter className="flex gap-3 sm:justify-end">
@@ -216,10 +222,10 @@ export function Client() {
                         </AlertDialogCancel>
                         <AlertDialogAction
                           className="cursor-pointer transition-all duration-300 bg-red-600 hover:bg-red-600/70 dark:bg-red-700 dark:hover:bg-red-300/70 text-white"
-                          onClick={() => {
-                            submitToServer.mutate({
-                              action: "ban_user",
-                              user: row.original.id,
+                          onClick={async () => {
+                            await authClient.admin.banUser({
+                              userId: row.original.id,
+                              banReason: "Spamming",
                             });
                           }}
                         >

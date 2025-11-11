@@ -22,10 +22,8 @@ export default function ConditionalLayout({
       <header className="flex-shrink-0">
         <Navigation />
       </header>
-      <main className="flex-1 mt-12 pt-5 overflow-x-hidden">
-        {children}
-      </main>
-      <Footer className="flex-shrink-0" />
+      <main className="flex-1 mt-12 pt-5 overflow-x-hidden">{children}</main>
+      <Footer />
     </div>
   );
 }

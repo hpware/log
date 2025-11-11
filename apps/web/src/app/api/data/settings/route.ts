@@ -257,17 +257,6 @@ export const POST = async (request: NextRequest) => {
       }
       if (body.action === "change_custom_scripts") {
       }
-    } else if (tabAction === "users") {
-      if (session.user.role !== "admin") {
-        return Response.json(
-          { success: false, msg: "ERR_USR_INVALID_PERMS", uploadUrl: "" },
-          { status: 401 },
-        );
-      }
-      if (body.action === "ban_user") {
-      }
-      if (body.action === "force_ban_user") {
-      }
     } else if (tabAction === "post_manage") {
       if (body.action === "delete") {
         try {
