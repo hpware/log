@@ -107,7 +107,10 @@ export function Client() {
                     alt={`Profile Pic for ${row.getValue("name")}`}
                     width={35}
                     height={35}
-                    className={`rounded-full w-6 h-6 ${row.original.banned && "grayscale"}`}
+                    className="rounded-full w-6 h-6"
+                    style={{
+                      filter: row.original.banned ? "grayscale(100%)" : "none",
+                    }}
                   />
                   {row.getValue("name") || "N/A"}
                 </div>
@@ -153,10 +156,13 @@ export function Client() {
                   ) : (
                     <User className="h-4 w-4" />
                   )}
-                  <span>
-                    {row.getValue("role")}
-                    {row.original.banned && <>- Banned</>}
-                  </span>
+                  {row.original.banned ? (
+                    <span className="text-red-600 dark:text-red-500">
+                      banned
+                    </span>
+                  ) : (
+                    <span>{row.getValue("role")}</span>
+                  )}
                 </div>
               ),
             },
@@ -194,7 +200,7 @@ export function Client() {
               cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                   <AlertDialog>
-                    <AlertDialogTrigger>
+                    <AlertDialogTrigger asChild>
                       <Button
                         variant="destructive"
                         className="cursor-pointer transition-all duration-300 bg-red-600 hover:bg-red-600/70 dark:bg-red-700 dark:hover:bg-red-300/70 text-white"
@@ -235,7 +241,7 @@ export function Client() {
                     </AlertDialogContent>
                   </AlertDialog>
                   <AlertDialog>
-                    <AlertDialogTrigger>
+                    <AlertDialogTrigger asChild>
                       <Button
                         variant="destructive"
                         className="cursor-pointer transition-all duration-300 bg-red-600 hover:bg-red-600/70 dark:bg-red-700 dark:hover:bg-red-300/70 text-white"

@@ -8,6 +8,7 @@ import {
   UsersIcon,
   Sun,
   Moon,
+  SettingsIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,13 +51,10 @@ const items = [
     url: "/dashboard/posts/create",
     icon: PlusCircleIcon,
   },
-];
-
-const postManagementItems = [
   {
-    title: "Manage Posts",
-    url: "manage",
-    icon: SquareChartGantt,
+    title: "Your Account",
+    url: "/dashboard/user/account",
+    icon: SettingsIcon,
   },
 ];
 

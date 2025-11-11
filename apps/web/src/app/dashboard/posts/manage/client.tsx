@@ -73,9 +73,9 @@ export default function Client() {
             header: () => <div className="flex items-center gap-2">Type</div>,
             cell: ({ row }) => (
               <div className="flex items-center gap-2">
-                {row.original.type === "text" ? (
+                {row.getValue("type") === "text" ? (
                   <TextInitialIcon className="h-5 w-5" />
-                ) : row.original.type === "photos" ? (
+                ) : row.getValue("type") === "photos" ? (
                   <ImageIcon className="h-5 w-5" />
                 ) : (
                   <VideoIcon className="h-5 w-5" />
