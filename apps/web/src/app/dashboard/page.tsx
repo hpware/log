@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@devlogs_hosting/auth";
+import PostManageClient from "./posts/manage/client";
 
 export default async function Page() {
   const session = await auth.api.getSession({
@@ -11,10 +12,14 @@ export default async function Page() {
     redirect("/login");
   }
   return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Welcome {session.user.name}</p>
-      <span className="break-all">{JSON.stringify(session)}</span>
+    <div className="flex flex-col w-full min-w-1/2">
+      <span className="text-2xl text-center">
+        Welcome back, {session.user.name} 👋
+      </span>
+      <div>
+        <span className="text-lg italic">Your posts</span>
+        <PostManageClient />
+      </div>
     </div>
   );
 }

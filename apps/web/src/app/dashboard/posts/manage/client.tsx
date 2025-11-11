@@ -75,7 +75,7 @@ export default function Client() {
               <div className="flex items-center gap-2">
                 {row.original.type === "text" ? (
                   <TextInitialIcon className="h-5 w-5" />
-                ) : row.original.type === "image" ? (
+                ) : row.original.type === "photos" ? (
                   <ImageIcon className="h-5 w-5" />
                 ) : (
                   <VideoIcon className="h-5 w-5" />

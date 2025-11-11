@@ -114,7 +114,6 @@ export function PublicPostsAndVideos({
     queryFn: fetchData,
     initialPageParam: 0,
     getNextPageParam: (lastPage, pages) => lastPage.nextOffset,
-    
   });
   const findUserInfo = async (allData: {
     msg: string;
@@ -163,10 +162,10 @@ export function PublicPostsAndVideos({
     <div>
       {mode === "search" ? (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 p-4">
             {passedData.map((i: Post) => (
               <div
-                className="border shadow text-wrap flex flex-col rounded"
+                className="border shadow text-wrap flex flex-col rounded break-inside-avoid mb-4"
                 key={crypto.randomUUID()}
               >
                 <div className="flex flex-row gap-1">
@@ -194,12 +193,14 @@ export function PublicPostsAndVideos({
                     />
                   </Link>
                 )}
-                <span className="break-all">{i.textData}</span>
+                <div className="p-2">
+                  <span className="break-words">{i.textData}</span>
+                </div>
                 {i.type === "photos" ? (
-                  <>
+                  <div className="w-full overflow-hidden">
                     <img
                       src={String(i.imageUrl)}
-                      className="rounded m-1 border"
+                      className="w-full h-auto rounded border"
                       alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
@@ -216,13 +217,14 @@ export function PublicPostsAndVideos({
                         Sorry, we can't display this image right now
                       </p>
                     </div>
-                  </>
+                  </div>
                 ) : (
                   i.type === "video" && (
-                    <>
+                    <div className="w-full overflow-hidden">
                       <video
                         src={String(i.videoUrl)}
                         controls
+                        className="w-full h-auto rounded border"
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                           const fallback =
@@ -238,7 +240,7 @@ export function PublicPostsAndVideos({
                           Sorry, we can't play this video right now
                         </p>
                       </div>
-                    </>
+                    </div>
                   )
                 )}
                 {!noDisplay?.includes("link") && (
@@ -263,12 +265,12 @@ export function PublicPostsAndVideos({
               </div>
             )}
             {status === "success" && data.pages?.[0]?.result !== undefined && (
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+              <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 p-4">
                 {data.pages
                   .flatMap((page) => page.result || [])
                   .map((i: Post) => (
                     <div
-                      className="border shadow text-wrap flex flex-col rounded m-1 dark:border-gray-100/50 p-2"
+                      className="border shadow text-wrap flex flex-col rounded dark:border-gray-100/50 p-2 break-inside-avoid mb-4"
                       key={crypto.randomUUID()}
                     >
                       <div className="flex flex-row gap-1">
@@ -288,12 +290,14 @@ export function PublicPostsAndVideos({
                           key={`${i.byUser}-${logUserInfo.length}`}
                         />
                       </Link>
-                      <span className="break-all">{i.textData}</span>
+                      <div className="mb-2">
+                        <span className="break-words">{i.textData}</span>
+                      </div>
                       {i.type === "photos" ? (
-                        <>
+                        <div className="w-full overflow-hidden">
                           <img
                             src={String(i.imageUrl)}
-                            className="rounded m-1 border"
+                            className="w-full h-auto rounded border"
                             alt={`An image that is linked to the post with the caption ${i.textData || "No data"}.`}
                             onError={(e) => {
                               e.currentTarget.style.display = "none";
@@ -310,13 +314,14 @@ export function PublicPostsAndVideos({
                               Sorry, we can't display this image right now
                             </p>
                           </div>
-                        </>
+                        </div>
                       ) : (
                         i.type === "video" && (
-                          <>
+                          <div className="w-full overflow-hidden">
                             <video
                               src={String(i.videoUrl)}
                               controls
+                              className="w-full h-auto rounded border"
                               onError={(e) => {
                                 e.currentTarget.style.display = "none";
                                 const fallback =
@@ -332,7 +337,7 @@ export function PublicPostsAndVideos({
                                 Sorry, we can't play this video right now
                               </p>
                             </div>
-                          </>
+                          </div>
                         )
                       )}
                       <Link href={`/item/${i.postId}`}>

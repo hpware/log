@@ -3,7 +3,12 @@ import { Suspense, useEffect, useState } from "react";
 import { PublicPostsAndVideos } from "@/components/publicPostsAndVideos";
 import type { Metadata } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SearchIcon, TimerIcon } from "lucide-react";
+import {
+  BotMessageSquareIcon,
+  MicroscopeIcon,
+  SearchIcon,
+  TimerIcon,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -79,11 +84,20 @@ export default function SearchFunction() {
       <div className="mt-2">
         {displayingData !== undefined && searchBox.length > 0 && (
           <div>
-            <PublicPostsAndVideos
-              mode="search"
-              passedData={displayingData.data.rows}
-              key={Number(displayingData.queryTime).toPrecision(10)}
-            />
+            {displayingData.data.rows.length > 0 ? (
+              <PublicPostsAndVideos
+                mode="search"
+                passedData={displayingData.data.rows}
+                key={Number(displayingData.queryTime).toPrecision(10)}
+              />
+            ) : (
+              <div className="flex flex-col md:flex-row gap-1 justify-center text-center align-middle mx-auto">
+                <BotMessageSquareIcon className="justify-center text-center xs:mx-auto align-middle xs:text-4xl" />
+                <span>
+                  Postgres cannot find this content you are looking for.
+                </span>
+              </div>
+            )}
           </div>
         )}
         {status === "error" && searchBox.length > 0 ? (

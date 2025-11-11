@@ -11,7 +11,6 @@ import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { CalendarPlusIcon, CalendarSyncIcon, DotIcon } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
@@ -81,7 +80,7 @@ export default async function Page(props: {
             className="flex flex-row gap-1 transition-all duration-300 hover:text-gray-600/80 dark:hover:text-gray-200/80"
             href={`/user/${getUserInfo[0].id}`}
           >
-            <Image
+            <img
               src={
                 getUserInfo[0]?.image !== null
                   ? getUserInfo[0].image

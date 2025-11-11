@@ -6,9 +6,9 @@ import {
   PlusCircleIcon,
   SquareChartGantt,
   UsersIcon,
+  UserIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Sidebar,
   SidebarContent,
@@ -18,8 +18,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarHeader,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
-import { auth } from "@devlogs_hosting/auth";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
@@ -35,12 +36,12 @@ const items = [
 
 const postManagementItems = [
   {
-    title: "Create",
+    title: "Create Post",
     url: "create",
     icon: PlusCircleIcon,
   },
   {
-    title: "Manage",
+    title: "Manage Posts",
     url: "manage",
     icon: SquareChartGantt,
   },
@@ -48,12 +49,12 @@ const postManagementItems = [
 
 const setting_items = [
   {
-    title: "Set Site Settings",
+    title: "Site Settings",
     url: "/dashboard/settings#site",
     icon: PanelTopIcon,
   },
   {
-    title: "Manage All Users",
+    title: "Manage Users",
     url: "/dashboard/user/manage_all",
     icon: UsersIcon,
   },
@@ -65,19 +66,35 @@ export default function DashboardSidebar({
   session: typeof authClient.$Infer.Session;
 }) {
   const router = useRouter();
+
   return (
-    <Sidebar className="mt-12">
-      <SidebarContent>
+    <Sidebar className="border-r">
+      <SidebarHeader className="border-b p-4">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
+            <span className="text-sm font-semibold text-primary-foreground">
+              {session.user.name?.charAt(0).toUpperCase() || "U"}
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">{session.user.name}</span>
+            <span className="text-xs text-muted-foreground">
+              {session.user.role === "admin" ? "Administrator" : "User"}
+            </span>
+          </div>
+        </div>
+      </SidebarHeader>
+
+      <SidebarContent className="flex flex-col">
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarTrigger />
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link href={item.url as Route}>
-                      <item.icon />
+                      <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -86,15 +103,16 @@ export default function DashboardSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
         <SidebarGroup>
-          <SidebarGroupLabel>Logs</SidebarGroupLabel>
+          <SidebarGroupLabel>Posts</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {postManagementItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <Link href={`/dashboard/posts/${item.url}` as Route}>
-                      <item.icon />
+                      <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -103,16 +121,17 @@ export default function DashboardSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
         {session.user.role === "admin" && (
           <SidebarGroup>
-            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupLabel>Administration</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {setting_items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <Link href={`${item.url}` as Route}>
-                        <item.icon />
+                      <Link href={item.url as Route} onClick={() => {}}>
+                        <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -122,32 +141,29 @@ export default function DashboardSidebar({
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-        <SidebarGroup>
-          <SidebarGroupLabel>Account</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <button
-                    onClick={() =>
-                      authClient.signOut({
-                        fetchOptions: {
-                          onSuccess: () => {
-                            router.push("/");
-                          },
-                        },
-                      })
-                    }
-                  >
-                    <LogOutIcon />
-                    <span>Logout</span>
-                  </button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="border-t p-4">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() =>
+                authClient.signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      router.push("/");
+                    },
+                  },
+                })
+              }
+              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <LogOutIcon className="h-4 w-4" />
+              <span>Sign Out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
