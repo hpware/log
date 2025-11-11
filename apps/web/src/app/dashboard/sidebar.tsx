@@ -149,10 +149,11 @@ export default function DashboardSidebar({
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t p-4">
+      <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
+            <Button
+              variant="outline"
               onClick={() => {
                 if (isMobile) {
                   setOpenMobile(false);
@@ -165,11 +166,11 @@ export default function DashboardSidebar({
                   },
                 });
               }}
-              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
             >
               <LogOutIcon className="h-4 w-4" />
               <span>Sign Out</span>
-            </SidebarMenuButton>
+            </Button>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
