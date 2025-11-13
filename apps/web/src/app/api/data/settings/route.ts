@@ -103,6 +103,12 @@ export const POST = async (request: NextRequest) => {
               .from(main_schema.kvData)
               .where(dorm.eq(main_schema.kvData.key, "robotsTxtStatus"))
           )[0].value;
+          const search = (
+            await db
+              .select()
+              .from(main_schema.kvData)
+              .where(dorm.eq(main_schema.kvData.key, "searchStatus"))
+          )[0].value;
           return Response.json(
             {
               success: true,
@@ -112,6 +118,7 @@ export const POST = async (request: NextRequest) => {
                 homePage,
                 registration,
                 robotsTxt,
+                search,
               },
             },
             {
@@ -141,11 +148,13 @@ export const POST = async (request: NextRequest) => {
             homePage: boolean;
             registration: boolean;
             robotsTxt: boolean;
+            search: boolean;
           };
           if (
             typeof data.homePage !== "boolean" ||
             typeof data.registration !== "boolean" ||
-            typeof data.robotsTxt !== "boolean"
+            typeof data.robotsTxt !== "boolean" ||
+            typeof data.search !== "boolean"
           ) {
             throw new Error("ERR_INVALID_BODY_TYPE");
           }
@@ -161,6 +170,10 @@ export const POST = async (request: NextRequest) => {
             .update(main_schema.kvData)
             .set({ value: body.data.robotsTxt })
             .where(dorm.eq(main_schema.kvData.key, "robotsTxtStatus"));
+          await db
+            .update(main_schema.kvData)
+            .set({ value: body.data.search })
+            .where(dorm.eq(main_schema.kvData.key, "searchStatus"));
 
           return Response.json(
             {

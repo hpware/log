@@ -355,7 +355,7 @@ export function PublicPostsAndVideos({
                     <Spinner className="w-4 h-4" />
                     <span>Loading more...</span>
                   </div>
-                ) : !hasNextPage ? (
+                ) : !hasNextPage && !data?.pages?.[0]?.featDisabled ? (
                   <span className="text-gray-500">
                     You have scrolled to the bottom
                   </span>

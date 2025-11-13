@@ -1,9 +1,25 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { dorm, db } from "../../../../../../../packages/db/src";
+import { dorm, db, main_schema } from "../../../../../../../packages/db/src";
 
 export const GET = async (request: NextRequest) => {
   const startPerf = performance.now();
   try {
+    // Check if search is enabled
+    const searchStatus = await db
+      .select()
+      .from(main_schema.kvData)
+      .where(dorm.eq(main_schema.kvData.key, "searchStatus"));
+
+    if (searchStatus.length > 0 && searchStatus[0].value === false) {
+      return NextResponse.json({
+        success: false,
+        msg: "Search functionality is currently disabled.",
+        data: [],
+        queryTime: 0,
+        disabled: true,
+      });
+    }
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("query");
     if (query == null) {
@@ -12,6 +28,7 @@ export const GET = async (request: NextRequest) => {
         msg: "No query.",
         data: [],
         queryTime: 0,
+        disabled: false,
       });
     }
     const searchData = await db.execute(
@@ -47,6 +64,7 @@ export const GET = async (request: NextRequest) => {
       msg: "",
       data: { ...searchData, rows: transformedRows },
       queryTime: endPerf - startPerf,
+      disabled: false,
     });
   } catch (e: any) {
     console.error(e);
@@ -56,6 +74,7 @@ export const GET = async (request: NextRequest) => {
       msg: e.message,
       data: [],
       queryTime: endPerf - startPerf,
+      disabled: false,
     });
   }
 };
