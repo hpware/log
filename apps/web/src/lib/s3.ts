@@ -2,7 +2,11 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import generateId from "./generate_id";
 
-// Check if S3 is configured
+/**
+ * Determine whether the required S3 environment variables are present.
+ *
+ * @returns `true` if `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, and `S3_BUCKET_NAME` are all set in the environment, `false` otherwise.
+ */
 function isS3Configured(): boolean {
   return !!(
     process.env.S3_ACCESS_KEY_ID &&
@@ -11,7 +15,13 @@ function isS3Configured(): boolean {
   );
 }
 
-// Validate required environment variables only when needed
+/**
+ * Ensures required S3 environment variables are present.
+ *
+ * Throws an error listing any missing variables.
+ *
+ * @throws Error If one or more required environment variables are not set, with a message listing the missing keys.
+ */
 function validateS3Config() {
   const required = [
     "S3_ACCESS_KEY_ID",
@@ -31,6 +41,12 @@ function validateS3Config() {
 // Lazy initialization of S3 client
 let _s3Client: S3Client | null = null;
 
+/**
+ * Get the singleton S3 client, initializing and validating configuration on first use.
+ *
+ * @returns The initialized `S3Client` instance.
+ * @throws Error if required S3 environment variables are missing or S3 is not configured.
+ */
 export function getS3Client(): S3Client {
   if (!isS3Configured()) {
     throw new Error(
@@ -107,7 +123,14 @@ export function generateFileName(originalName: string): string {
   return `uploads/${timestamp}_${randomId}.${extension}`;
 }
 
-// Helper function to get signed URL for secure uploads (if needed)
+/**
+ * Create a presigned PUT URL for uploading an object to the configured S3 bucket.
+ *
+ * @param key - The destination object key (path) within the S3 bucket.
+ * @param contentType - The MIME type that will be set for the uploaded object.
+ * @returns A signed URL that allows uploading the object to S3.
+ * @throws Error if S3 is not configured and a signed URL cannot be generated.
+ */
 export async function getSignedUploadUrl(key: string, contentType: string) {
   if (!isS3Configured()) {
     throw new Error("S3 is not configured. Cannot generate signed upload URL.");
