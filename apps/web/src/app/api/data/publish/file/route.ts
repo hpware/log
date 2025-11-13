@@ -59,12 +59,18 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
-    // Validate required environment variables
-    if (!process.env.S3_BUCKET_NAME) {
-      console.error("S3_BUCKET_NAME environment variable is not set");
+    // Check if S3 is configured
+    if (!s3.s3Config.isConfigured) {
+      console.error(
+        "S3 is not configured - missing required environment variables",
+      );
       return Response.json(
-        { success: false, msg: "Server configuration error", uploadUrl: "" },
-        { status: 500 },
+        {
+          success: false,
+          msg: "File upload is not available - S3 storage not configured",
+          uploadUrl: "",
+        },
+        { status: 503 },
       );
     }
 
