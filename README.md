@@ -4,7 +4,7 @@ Me personally, after HC's neighborhood ended, I just felt the need of a platform
 
 ## What does this project use?
 THis project uses a lot of libraries (and frameworks)
-- Next.js
+- Next.js 16
 - Tailwind CSS
 - Better-Auth
 - Drizzle
@@ -12,6 +12,13 @@ THis project uses a lot of libraries (and frameworks)
 - Docker
 - Bun
 - shadcn/ui
+- Sonnar
+
+## Currently known issues
+Most of the known issues are in GH issues (as a issue tracker)
+But some of it I'm going to list here:
+- The admin toggles will just move around for some reason
+- The edit system is still broken
 
 ## Auth
 You must pull the GitHub Repo in order to recompile it. This guide assumes that you've using Linux and already got bun (or npm, yarn, pnpm, deno), git and docker buildx installed.
