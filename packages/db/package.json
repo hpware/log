@@ -19,17 +19,17 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.2",
-    "@types/pg": "^8.11.11",
-    "tsdown": "catalog:"
+    "drizzle-kit": "^0.31.6",
+    "@types/pg": "^8.15.6",
+    "tsdown": "^0.15.12"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "drizzle-orm": "^0.44.2",
-    "pg": "^8.14.1",
-    "dotenv": "catalog:",
-    "zod": "catalog:"
+    "drizzle-orm": "^0.44.7",
+    "pg": "^8.16.3",
+    "dotenv": "^17.2.3",
+    "zod": "^4.1.12"
   }
 }
