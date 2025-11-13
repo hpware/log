@@ -20,6 +20,7 @@ type Post = typeof main_schema.userPosts.$inferSelect;
 export default async function Page(props: {
   params: Promise<{ slug: string }>;
 }) {
+  //
   const session = await auth.api.getSession({
     headers: await headers(),
   });
