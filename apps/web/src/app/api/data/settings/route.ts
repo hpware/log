@@ -36,6 +36,7 @@ export const POST = async (request: NextRequest) => {
         },
       );
     }
+
     // settings tab
     if (tabAction === "settings") {
       if (session.user.role !== "admin") {
@@ -387,6 +388,32 @@ export const POST = async (request: NextRequest) => {
               status: 500,
               statusText: e.msg !== undefined ? e.msg : "Server Side Error",
             },
+          );
+        }
+      }
+    } else if (tabAction === "non_admin_user") {
+      if (body.action === "profile_pic_update") {
+        try {
+          if (!body.imageUrl) {
+            return Response.json(
+              { success: false, msg: "No image URL provided" },
+              { status: 400 },
+            );
+          }
+
+          await db
+            .update(auth_schema.user)
+            .set({ image: body.imageUrl })
+            .where(dorm.eq(auth_schema.user.id, session.user.id));
+
+          return Response.json(
+            { success: true, msg: "Profile picture updated successfully" },
+            { status: 200 },
+          );
+        } catch (e: any) {
+          return Response.json(
+            { success: false, msg: e.message },
+            { status: 500 },
           );
         }
       }
