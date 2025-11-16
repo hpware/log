@@ -48,10 +48,7 @@ export const POST = async (request: NextRequest) => {
       ...(body.type === "photos" &&
         body.imageUrl && { imageUrl: body.imageUrl }),
       ...(body.type === "video" &&
-        body.imageUrl && {
-          imageUrl: body.imageUrl,
-          videoUrl: body.imageUrl, // Use the same URL for video since S3 handles both
-        }),
+        body.videoUrl && { videoUrl: body.videoUrl }),
       ...(body.tags && { tags: body.tags }),
       ...(body.status && { status: body.status }),
     });

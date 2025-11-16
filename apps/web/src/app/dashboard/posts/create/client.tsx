@@ -44,38 +44,42 @@ export default function Dashboard({
     inputBox: "",
   });
   const [isPending, setIsPending] = useState(false);
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
   const [previewData, setPreviewData] = useState<Post[]>([]);
   const fileUploadBox = useRef<HTMLInputElement | null>(null);
   const fileUploadingDivBox = useRef<HTMLInputElement | null>(null);
-  const uploadFileToTheServer = (file: File) =>
-    toast.promise(async () => {
-      try {
-        let uploadUrl = "";
-        const fd = new FormData();
-        fd.append("file", file);
+  const uploadFileToTheServer = async (file: File) => {
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
 
-        const req = await fetch("/api/data/publish/file", {
-          method: "POST",
-          body: fd,
-        });
+      const req = await fetch("/api/data/publish/file", {
+        method: "POST",
+        body: fd,
+      });
 
-        if (!req.ok) {
-          const errorRes = await req.json().catch(() => ({}));
-          throw new Error(
-            errorRes.msg || `Upload failed with status ${req.status}`,
-          );
-        }
+      if (!req.ok) {
+        const errorRes = await req.json().catch(() => ({}));
+        throw new Error(
+          errorRes.msg || `Upload failed with status ${req.status}`,
+        );
+      }
 
-        const res = await req.json();
-        uploadUrl = res.uploadUrl;
-      } catch (e: any) {}
-    });
-  useEffect(() => {
-    console.log("Running file upload script");
+      const res = await req.json();
+      setUploadedFileUrl(res.uploadUrl);
+      toast.success("File uploaded successfully!");
+      return res.uploadUrl;
+    } catch (e: any) {
+      toast.error(`Upload failed: ${e.message}`);
+      throw e;
+    }
+  };
+
+  const handleFileSelect = async (files: FileList | null) => {
     if (currentOption === "text") {
       return;
     }
-    const file = fileUploadBox?.current?.files?.[0];
+    const file = files?.[0];
 
     if (file === undefined) {
       toast.error("No File Included");
@@ -108,8 +112,9 @@ export default function Dashboard({
       toast.error("File size too large.");
       return;
     }
-    uploadFileToTheServer(file);
-  }, [fileUploadBox.current?.files]);
+
+    await uploadFileToTheServer(file!);
+  };
   // debug use
   useEffect(() => {
     console.log(fileUploadBox);
@@ -138,7 +143,8 @@ export default function Dashboard({
               body: JSON.stringify({
                 type: data.type,
                 text: data.text || "",
-                imageUrl: data.fileUrl,
+                ...(data.type === "photos" && { imageUrl: data.fileUrl }),
+                ...(data.type === "video" && { videoUrl: data.fileUrl }),
                 status: currentPublishOption,
                 ...(tagData.tags?.length > 0 && { tags: tagData.tags }),
               }),
@@ -185,10 +191,23 @@ export default function Dashboard({
       toast.error("No text provided.");
       return;
     }
+
+    if (
+      (currentOption === "photos" || currentOption === "video") &&
+      !uploadedFileUrl
+    ) {
+      setHandleStatus({
+        failed: true,
+        msg: "No file uploaded.",
+      });
+      toast.error("Please upload a file first.");
+      return;
+    }
+
     sendDataToServer.mutate({
       type: currentOption,
       text: textBoxData || "",
-      //file,
+      fileUrl: uploadedFileUrl || undefined,
     });
   };
   const deleteTag = (tag: string) => {
@@ -206,8 +225,8 @@ export default function Dashboard({
         updatedAt: new Date(0),
         byUser: session.user.id,
         textData: textBoxData,
-        imageUrl: "",
-        videoUrl: "",
+        imageUrl: currentOption === "photos" ? uploadedFileUrl || "" : "",
+        videoUrl: currentOption === "video" ? uploadedFileUrl || "" : "",
         status: "draft",
         tags: tagData.tags,
       },
@@ -220,6 +239,7 @@ export default function Dashboard({
         className="pl-2 w-full"
         onValueChange={(vl) => {
           setCurrentOption(vl as "text" | "photos" | "video");
+          setUploadedFileUrl(null); // Reset uploaded file when switching tabs
         }}
       >
         <TabsList>
@@ -293,6 +313,7 @@ export default function Dashboard({
             fileUploadingDivBox={fileUploadingDivBox}
             fileUploadBox={fileUploadBox}
             uploadLimit={uploadLimit}
+            onFileSelect={handleFileSelect}
           />
         </TabsContent>
         <TabsContent value="video">
@@ -300,6 +321,7 @@ export default function Dashboard({
             fileUploadingDivBox={fileUploadingDivBox}
             fileUploadBox={fileUploadBox}
             uploadLimit={uploadLimit}
+            onFileSelect={handleFileSelect}
           />
         </TabsContent>
       </Tabs>
@@ -326,10 +348,12 @@ function UploadComponent({
   fileUploadingDivBox,
   fileUploadBox,
   uploadLimit,
+  onFileSelect,
 }: {
   fileUploadingDivBox: RefObject<HTMLInputElement | null>;
   fileUploadBox: RefObject<HTMLInputElement | null>;
   uploadLimit: string | undefined;
+  onFileSelect: (files: FileList | null) => void;
 }) {
   return (
     <div
@@ -350,10 +374,8 @@ function UploadComponent({
         e.preventDefault();
         e.stopPropagation();
         e.currentTarget.classList.remove("border-blue-500", "bg-blue-50");
-        if (e.dataTransfer.files.length > 0 && fileUploadBox.current) {
-          const file = e.dataTransfer.files[0];
-          fileUploadBox.current.files = e.dataTransfer.files;
-          console.log("Dropped file:", file.name);
+        if (e.dataTransfer.files.length > 0) {
+          onFileSelect(e.dataTransfer.files);
         }
       }}
     >
@@ -362,6 +384,7 @@ function UploadComponent({
         ref={fileUploadBox}
         className="hidden"
         accept="image/*,video/*"
+        onChange={(e) => onFileSelect(e.target.files)}
       ></input>
       <FileUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
       <div>
