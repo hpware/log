@@ -273,11 +273,12 @@ export function PublicPostsAndVideos({
                       className="border shadow text-wrap flex flex-col rounded dark:border-gray-100/50 p-2 break-inside-avoid mb-4"
                       key={crypto.randomUUID()}
                     >
-                      <div className="flex flex-row gap-1">
+                      <div className="grid grid-flow-col-dense auto-cols-max gap-2 overflow-x-auto pb-1">
                         {(i.tags as string[]).map((it: string) => (
                           <Link
                             key={crypto.randomUUID()}
                             href={`/user/${i.byUser}?filter=by_tag&tag=${it}`}
+                            className="whitespace-nowrap overflow-hidden text-ellipsis block"
                           >
                             <Badge variant="default">{it}</Badge>
                           </Link>

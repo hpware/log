@@ -39,8 +39,8 @@ export const POST = async (request: NextRequest) => {
 
     if (!allowedTypes.includes(file.type)) {
       return Response.json(
-        { success: false, msg: "File type not allowed", uploadUrl: "" },
-        { status: 400 },
+        { msg: "File type not allowed", uploadUrl: "" },
+        { status: 400, statusText: "File type not allowed" },
       );
     }
 
@@ -51,7 +51,6 @@ export const POST = async (request: NextRequest) => {
     if (file.size > maxSizeInBytes) {
       return Response.json(
         {
-          success: false,
           msg: `File size too large. Maximum allowed size is ${uploadLimit}MB.`,
           uploadUrl: "",
         },
@@ -66,16 +65,19 @@ export const POST = async (request: NextRequest) => {
       );
       return Response.json(
         {
-          success: false,
           msg: "File upload is not available - S3 storage not configured",
           uploadUrl: "",
         },
-        { status: 503 },
+        {
+          status: 503,
+          statusText:
+            "File upload is not available - S3 storage not configured",
+        },
       );
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const fsName = s3.generateFileName(file.name);
+    const fsName = s3.generateFileName(file.name, session.user.id);
 
     const upload = new Upload({
       client: s3.s3Client,
@@ -96,7 +98,6 @@ export const POST = async (request: NextRequest) => {
     console.log(`Successfully uploaded: ${fsName}`);
 
     return Response.json({
-      success: true,
       msg: "File uploaded successfully",
       uploadUrl: `/api/data/files/${fsName}`,
       fileSize: file.size,
@@ -109,11 +110,10 @@ export const POST = async (request: NextRequest) => {
     if (e.name === "AccessDenied" || e.Code === "AccessDenied") {
       return Response.json(
         {
-          success: false,
           msg: "S3 access denied. Check credentials.",
           uploadUrl: "",
         },
-        { status: 403 },
+        { status: 403, statusText: "S3 access denied. Check credentials." },
       );
     }
 

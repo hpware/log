@@ -8,6 +8,7 @@ import { useRef } from "react";
 export default function Client({ session }: { session: AuthUserType }) {
   const fileUploadBox = useRef<HTMLInputElement | null>(null);
   const fileUploadingDivBox = useRef<HTMLInputElement | null>(null);
+
   return (
     <div>
       <span className="text-lg italic">Your Account</span>

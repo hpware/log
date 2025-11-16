@@ -1,7 +1,7 @@
 "use client";
 import { authClient } from "@/lib/auth-client";
 import { useMutation, useInfiniteQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { auth_schema } from "../../../../../../../packages/db/src/index";
 import DataTable from "@/components/table";
 import { toast } from "sonner";
@@ -31,10 +31,11 @@ import Image from "next/image";
 import { Input } from "@/components/ui/input";
 
 export function Client() {
+  const [banReason, setBanReason] = useState("");
   const submitToServer = useMutation({
     mutationFn: async (sendData: any) => {
       try {
-        const req = await fetch("/api/data/settings?tab=users", {
+        const req = await fetch("/api/data/settings?tab=admin_user_actions", {
           method: "POST",
           headers: {
             "Content-Type": "appilcation/json",
@@ -215,7 +216,11 @@ export function Client() {
                         </AlertDialogTitle>
                         <AlertDialogDescription className="flex flex-col">
                           <span>Ban Reason</span>
-                          <Input type="text" />
+                          <Input
+                            type="text"
+                            value={banReason}
+                            onChange={(e) => setBanReason(e.target.value)}
+                          />
                           <span>
                             This action can be undone. This will remove the
                             user's page & login method.
@@ -228,10 +233,11 @@ export function Client() {
                         </AlertDialogCancel>
                         <AlertDialogAction
                           className="cursor-pointer transition-all duration-300 bg-red-600 hover:bg-red-600/70 dark:bg-red-700 dark:hover:bg-red-300/70 text-white"
-                          onClick={async () => {
-                            await authClient.admin.banUser({
-                              userId: row.original.id,
-                              banReason: "Spamming",
+                          onClick={() => {
+                            submitToServer.mutate({
+                              action: "ban_user",
+                              user: row.original.id,
+                              reason: "spamming",
                             });
                           }}
                         >
@@ -268,7 +274,7 @@ export function Client() {
                           className="cursor-pointer transition-all duration-300 bg-red-600 hover:bg-red-600/70 dark:bg-red-700 dark:hover:bg-red-300/70 text-white"
                           onClick={() => {
                             submitToServer.mutate({
-                              action: "ban_user",
+                              action: "delete_user",
                               user: row.original.id,
                             });
                           }}

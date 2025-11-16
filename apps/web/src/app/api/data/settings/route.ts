@@ -41,7 +41,7 @@ export const POST = async (request: NextRequest) => {
       if (session.user.role !== "admin") {
         return Response.json(
           { success: false, msg: "ERR_USR_INVALID_PERMS", uploadUrl: "" },
-          { status: 401 },
+          { status: 403 },
         );
       }
       // changes to the site title system
@@ -276,6 +276,118 @@ export const POST = async (request: NextRequest) => {
           return Response.json({ success: true, msg: "" }, { status: 200 });
         } catch (e: any) {
           return Response.json({ success: false, msg: e.msg }, { status: 500 });
+        }
+      }
+    } else if (tabAction === "admin_user_actions") {
+      if (session.user.role !== "admin") {
+        return Response.json(
+          { success: false, msg: "ERR_USR_INVALID_PERMS", uploadUrl: "" },
+          { status: 403 },
+        );
+      }
+      if (body.action === "delete_user") {
+        try {
+          if (!body.user) {
+            throw new Error("No user attached to the body");
+          }
+          if (body.user === session.user.id) {
+            throw new Error("You cannot delete yourself");
+          }
+          const data = await auth.api.removeUser({
+            body: {
+              userId: body.user,
+            },
+            headers: header,
+          });
+          if (!data.success) {
+            throw new Error("Cannot remove user");
+          }
+          await db
+            .delete(main_schema.userPosts)
+            .where(dorm.eq(main_schema.userPosts.byUser, body.user));
+          return Response.json(
+            { success: true, msg: "Deleted User" },
+            {
+              status: 200,
+            },
+          );
+        } catch (e: any) {
+          return Response.json(
+            { success: false, msg: e.msg },
+            {
+              status: 500,
+              statusText: e.msg !== undefined ? e.msg : "Server Side Error",
+            },
+          );
+        }
+      } else if (body.action === "ban_user") {
+        try {
+          if (!body.user) {
+            throw new Error("No user attached to the body");
+          }
+          if (body.user === session.user.id) {
+            throw new Error("You cannot ban yourself");
+          }
+          if (!body.reason) {
+            throw new Error("No reason attached to the body");
+          }
+          await auth.api.banUser({
+            body: {
+              userId: body.user,
+              banReason: body.reason,
+              ...(body.banLength && { banExpiresIn: body.banLength }),
+            },
+            // This endpoint requires session cookies.
+            headers: header,
+          });
+          await db
+            .update(main_schema.userPosts)
+            .set({ status: "draft" }) // making every post a "draft" instaed of making it unlisted
+            .where(dorm.eq(main_schema.userPosts.byUser, body.user));
+          return Response.json(
+            { success: true, msg: "Banned User" },
+            {
+              status: 200,
+            },
+          );
+        } catch (e: any) {
+          return Response.json(
+            { success: false, msg: e.msg },
+            {
+              status: 500,
+              statusText: e.msg !== undefined ? e.msg : "Server Side Error",
+            },
+          );
+        }
+      } else if (body.action === "revoke_sessions") {
+        try {
+          if (!body.user) {
+            throw new Error("No user attached to the ban");
+          }
+          const data = await auth.api.revokeUserSessions({
+            body: {
+              userId: body.user,
+            },
+            // This endpoint requires session cookies.
+            headers: header,
+          });
+          if (!data.success) {
+            throw new Error("Failed to revoke the user's sessions");
+          }
+          return Response.json(
+            { success: true, msg: "Revoked the user's sessions" },
+            {
+              status: 200,
+            },
+          );
+        } catch (e: any) {
+          return Response.json(
+            { success: false, msg: e.msg },
+            {
+              status: 500,
+              statusText: e.msg !== undefined ? e.msg : "Server Side Error",
+            },
+          );
         }
       }
     }

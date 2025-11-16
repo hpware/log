@@ -4,7 +4,7 @@ import type { RefObject } from "react";
 import { authClient } from "@/lib/auth-client";
 import { useMutation } from "@tanstack/react-query";
 import { FileUp, XCircleIcon } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { main_schema } from "../../../../../../../packages/db/src";
@@ -47,40 +47,89 @@ export default function Dashboard({
   const [previewData, setPreviewData] = useState<Post[]>([]);
   const fileUploadBox = useRef<HTMLInputElement | null>(null);
   const fileUploadingDivBox = useRef<HTMLInputElement | null>(null);
+  const uploadFileToTheServer = (file: File) =>
+    toast.promise(async () => {
+      try {
+        let uploadUrl = "";
+        const fd = new FormData();
+        fd.append("file", file);
+
+        const req = await fetch("/api/data/publish/file", {
+          method: "POST",
+          body: fd,
+        });
+
+        if (!req.ok) {
+          const errorRes = await req.json().catch(() => ({}));
+          throw new Error(
+            errorRes.msg || `Upload failed with status ${req.status}`,
+          );
+        }
+
+        const res = await req.json();
+        uploadUrl = res.uploadUrl;
+      } catch (e: any) {}
+    });
+  useEffect(() => {
+    console.log("Running file upload script");
+    if (currentOption === "text") {
+      return;
+    }
+    const file = fileUploadBox?.current?.files?.[0];
+
+    if (file === undefined) {
+      toast.error("No File Included");
+      return;
+    }
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "video/mp4",
+      "video/webm",
+      "video/quicktime",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("File type not allowed.");
+      return;
+    }
+
+    // Check file size (50MB default)
+    const maxSize =
+      (uploadLimit === undefined ? 50 : Number(uploadLimit)) * 1024 * 1024; // 50MB in bytes
+    if (file.size > maxSize) {
+      setHandleStatus({
+        failed: true,
+        msg: `File size too large. Maximum allowed size is ${uploadLimit === undefined ? 50 : Number(uploadLimit)}MB.`,
+      });
+      toast.error("File size too large.");
+      return;
+    }
+    uploadFileToTheServer(file);
+  }, [fileUploadBox.current?.files]);
+  // debug use
+  useEffect(() => {
+    console.log(fileUploadBox);
+    console.log(fileUploadBox?.current || "s");
+    console.log(fileUploadBox?.current?.files || "yes");
+  }, [fileUploadBox]);
   const sendDataToServer = useMutation({
     mutationFn: async (data: {
       type: "text" | "photos" | "video";
       text?: string;
-      file?: File | null;
+      fileUrl?: string;
     }) => {
       toast.promise(
         async () => {
           try {
-            setIsPending(true);
-            let uploadUrl = "";
-            if (data.type !== "text") {
-              const fd = new FormData();
-              if (data.file) fd.append("file", data.file);
-
-              const req = await fetch("/api/data/publish/file", {
-                method: "POST",
-                body: fd,
-              });
-
-              if (!req.ok) {
-                const errorRes = await req.json().catch(() => ({}));
-                throw new Error(
-                  errorRes.msg || `Upload failed with status ${req.status}`,
-                );
-              }
-
-              const res = await req.json();
-              if (!res.success) {
-                throw new Error(res.msg || "Upload failed");
-              }
-
-              uploadUrl = res.uploadUrl;
+            if (data.type !== "text" && !data.fileUrl) {
+              toast.error("No file Uploaded");
+              return;
             }
+            setIsPending(true);
             const req = await fetch("/api/data/publish", {
               method: "POST",
               headers: {
@@ -89,7 +138,7 @@ export default function Dashboard({
               body: JSON.stringify({
                 type: data.type,
                 text: data.text || "",
-                imageUrl: uploadUrl,
+                imageUrl: data.fileUrl,
                 status: currentPublishOption,
                 ...(tagData.tags?.length > 0 && { tags: tagData.tags }),
               }),
@@ -128,49 +177,6 @@ export default function Dashboard({
       msg: "",
     });
 
-    if (currentOption !== "text" && !fileUploadBox.current?.files?.[0]) {
-      setHandleStatus({
-        failed: true,
-        msg: "No files uploaded.",
-      });
-      toast.error("No files uploaded.");
-      return;
-    }
-
-    // Validate file type and size on client side
-    if (currentOption !== "text" && fileUploadBox.current?.files?.[0]) {
-      const file = fileUploadBox.current.files[0];
-      const allowedTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "image/webp",
-        "video/mp4",
-        "video/webm",
-        "video/quicktime",
-      ];
-
-      if (!allowedTypes.includes(file.type)) {
-        setHandleStatus({
-          failed: true,
-          msg: "File type not allowed. Please upload images (JPEG, PNG, GIF, WebP) or videos (MP4, WebM, MOV).",
-        });
-        toast.error("File type not allowed.");
-        return;
-      }
-
-      // Check file size (50MB default)
-      const maxSize =
-        (uploadLimit === undefined ? 50 : Number(uploadLimit)) * 1024 * 1024; // 50MB in bytes
-      if (file.size > maxSize) {
-        setHandleStatus({
-          failed: true,
-          msg: `File size too large. Maximum allowed size is ${uploadLimit === undefined ? 50 : Number(uploadLimit)}MB.`,
-        });
-        toast.error("File size too large.");
-        return;
-      }
-    }
     if (currentOption === "text" && !textBoxData) {
       setHandleStatus({
         failed: true,
@@ -179,11 +185,10 @@ export default function Dashboard({
       toast.error("No text provided.");
       return;
     }
-    const file = fileUploadBox.current?.files?.[0];
     sendDataToServer.mutate({
       type: currentOption,
       text: textBoxData || "",
-      file,
+      //file,
     });
   };
   const deleteTag = (tag: string) => {

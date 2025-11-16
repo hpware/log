@@ -103,7 +103,10 @@ export const s3Config = {
 };
 
 // Generate a unique file name with better validation
-export function generateFileName(originalName: string): string {
+export function generateFileName(
+  originalName: string,
+  uploadedUser: string,
+): string {
   if (!originalName || typeof originalName !== "string") {
     throw new Error("Invalid original filename provided");
   }
@@ -120,7 +123,7 @@ export function generateFileName(originalName: string): string {
   const timestamp = new Date().getTime();
   const randomId = generateId();
 
-  return `uploads/${timestamp}_${randomId}.${extension}`;
+  return `${uploadedUser}/${timestamp}_${randomId}.${extension}`;
 }
 
 /**

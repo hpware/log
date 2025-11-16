@@ -39,6 +39,7 @@ export const GET = async (request: NextRequest) => {
                        FROM user_posts
                        WHERE to_tsvector('english', text_data)
                              @@ plainto_tsquery('english', ${query})
+                       AND status IN ('public')
                        ORDER BY rank DESC;
     `,
     );
