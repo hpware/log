@@ -5,6 +5,12 @@ import type { User as AuthUserType } from "better-auth";
 // import stuff
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+/*import ReactCrop, {
+  type Crop,
+  centerCrop,
+  makeAspectCrop,
+} from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";*/
 
 export default function Client({ session }: { session: AuthUserType }) {
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(
