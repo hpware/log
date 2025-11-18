@@ -286,10 +286,6 @@ export function Client() {
                           // Reset idle timer on typing
                           resetIdleTimer(row.original.id);
                         }}
-                        onKeyDown={() => {
-                          // Reset idle timer on any key press
-                          resetIdleTimer(row.original.id);
-                        }}
                         onFocus={() => {
                           // Reset idle timer when input is focused
                           resetIdleTimer(row.original.id);
