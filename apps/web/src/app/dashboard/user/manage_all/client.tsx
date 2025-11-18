@@ -42,7 +42,7 @@ import Image from "next/image";
 import { Input } from "@/components/ui/input";
 
 export function Client() {
-  const [banReason, setBanReason] = useState("");
+  const [banReasons, setBanReasons] = useState<Record<string, string>>({});
   const submitToServer = useMutation({
     mutationFn: async (sendData: any) => {
       try {
@@ -227,8 +227,13 @@ export function Client() {
                       <span>Ban Reason</span>
                       <Input
                         type="text"
-                        value={banReason}
-                        onChange={(e) => setBanReason(e.target.value)}
+                        value={banReasons[row.original.id] || ""}
+                        onChange={(e) => 
+                          setBanReasons(prev => ({
+                            ...prev,
+                            [row.original.id]: e.target.value
+                          }))
+                        }
                       />
                       <DialogDescription className="flex flex-col">
                         <span>
@@ -248,9 +253,13 @@ export function Client() {
                             submitToServer.mutate({
                               action: "ban_user",
                               user: row.original.id,
-                              reason: banReason,
+                              reason: banReasons[row.original.id] || "",
                             });
-                            setBanReason("");
+                            setBanReasons(prev => {
+                              const newReasons = { ...prev };
+                              delete newReasons[row.original.id];
+                              return newReasons;
+                            });
                           }}
                         >
                           Ban User
