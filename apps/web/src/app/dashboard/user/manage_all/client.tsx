@@ -6,16 +6,6 @@ import { auth_schema } from "../../../../../../../packages/db/src/index";
 import DataTable from "@/components/table";
 import { toast } from "sonner";
 import {
-  User,
-  Mail,
-  Shield,
-  Calendar,
-  UserStarIcon,
-  MailCheckIcon,
-  MailXIcon,
-  UserMinusIcon,
-} from "lucide-react";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -26,7 +16,28 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  User,
+  Mail,
+  Shield,
+  Calendar,
+  UserStarIcon,
+  MailCheckIcon,
+  MailXIcon,
+  UserMinusIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 
@@ -200,52 +211,53 @@ export function Client() {
               header: () => <div></div>,
               cell: ({ row }) => (
                 <div className="flex items-center gap-2">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
+                  <Dialog>
+                    <DialogTrigger asChild>
                       <Button
                         variant="destructive"
                         className="cursor-pointer transition-all duration-300 bg-red-600 hover:bg-red-600/70 dark:bg-red-700 dark:hover:bg-red-300/70 text-white"
                       >
                         Ban User
                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          Are you absolutely sure?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className="flex flex-col">
-                          <span>Ban Reason</span>
-                          <Input
-                            type="text"
-                            value={banReason}
-                            onChange={(e) => setBanReason(e.target.value)}
-                          />
-                          <span>
-                            This action can be undone. This will remove the
-                            user's page & login method.
-                          </span>
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter className="flex gap-3 sm:justify-end">
-                        <AlertDialogCancel className="mt-0 cursor-pointer transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-800">
-                          Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Are you absolutely sure?</DialogTitle>
+                      </DialogHeader>
+                      <span>Ban Reason</span>
+                      <Input
+                        type="text"
+                        value={banReason}
+                        onChange={(e) => setBanReason(e.target.value)}
+                      />
+                      <DialogDescription className="flex flex-col">
+                        <span>
+                          This action can be undone. This will remove the user's
+                          page & login method.
+                        </span>
+                      </DialogDescription>
+                      <DialogFooter className="flex gap-3 sm:justify-end">
+                        <DialogClose asChild>
+                          <Button variant="outline" className="cursor-pointer">
+                            Cancel
+                          </Button>
+                        </DialogClose>
+                        <Button
                           className="cursor-pointer transition-all duration-300 bg-red-600 hover:bg-red-600/70 dark:bg-red-700 dark:hover:bg-red-300/70 text-white"
                           onClick={() => {
                             submitToServer.mutate({
                               action: "ban_user",
                               user: row.original.id,
-                              reason: "spamming",
+                              reason: banReason,
                             });
+                            setBanReason("");
                           }}
                         >
                           Ban User
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
