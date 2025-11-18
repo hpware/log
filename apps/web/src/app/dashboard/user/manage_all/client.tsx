@@ -1,7 +1,7 @@
 "use client";
 import { authClient } from "@/lib/auth-client";
 import { useMutation, useInfiniteQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { auth_schema } from "../../../../../../../packages/db/src/index";
 import DataTable from "@/components/table";
 import { toast } from "sonner";
@@ -43,6 +43,36 @@ import { Input } from "@/components/ui/input";
 
 export function Client() {
   const [banReasons, setBanReasons] = useState<Record<string, string>>({});
+  const [dialogOpen, setDialogOpen] = useState<Record<string, boolean>>({});
+  const idleTimers = useRef<Record<string, NodeJS.Timeout>>({});
+  
+  // Auto-close timeout in milliseconds (30 seconds)
+  const AUTO_CLOSE_TIMEOUT = 30000;
+
+  // Reset idle timer when user interacts with the dialog
+  const resetIdleTimer = (userId: string) => {
+    // Clear existing timer if any
+    if (idleTimers.current[userId]) {
+      clearTimeout(idleTimers.current[userId]);
+    }
+    
+    // Set new timer to auto-close after idle period
+    idleTimers.current[userId] = setTimeout(() => {
+      setDialogOpen(prev => ({
+        ...prev,
+        [userId]: false
+      }));
+      // Clean up the timer reference
+      delete idleTimers.current[userId];
+    }, AUTO_CLOSE_TIMEOUT);
+  };
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(idleTimers.current).forEach(timer => clearTimeout(timer));
+    };
+  }, []);
   const submitToServer = useMutation({
     mutationFn: async (sendData: any) => {
       try {
@@ -211,7 +241,26 @@ export function Client() {
               header: () => <div></div>,
               cell: ({ row }) => (
                 <div className="flex items-center gap-2">
-                  <Dialog>
+                  <Dialog 
+                    open={dialogOpen[row.original.id] || false}
+                    onOpenChange={(open) => {
+                      setDialogOpen(prev => ({
+                        ...prev,
+                        [row.original.id]: open
+                      }));
+                      
+                      if (open) {
+                        // Start idle timer when dialog opens
+                        resetIdleTimer(row.original.id);
+                      } else {
+                        // Clear timer when dialog closes
+                        if (idleTimers.current[row.original.id]) {
+                          clearTimeout(idleTimers.current[row.original.id]);
+                          delete idleTimers.current[row.original.id];
+                        }
+                      }
+                    }}
+                  >
                     <DialogTrigger asChild>
                       <Button
                         variant="destructive"
@@ -228,12 +277,22 @@ export function Client() {
                       <Input
                         type="text"
                         value={banReasons[row.original.id] || ""}
-                        onChange={(e) => 
+                        onChange={(e) => {
                           setBanReasons(prev => ({
                             ...prev,
                             [row.original.id]: e.target.value
-                          }))
-                        }
+                          }));
+                          // Reset idle timer on typing
+                          resetIdleTimer(row.original.id);
+                        }}
+                        onKeyDown={() => {
+                          // Reset idle timer on any key press
+                          resetIdleTimer(row.original.id);
+                        }}
+                        onFocus={() => {
+                          // Reset idle timer when input is focused
+                          resetIdleTimer(row.original.id);
+                        }}
                       />
                       <DialogDescription className="flex flex-col">
                         <span>
@@ -260,6 +319,16 @@ export function Client() {
                               delete newReasons[row.original.id];
                               return newReasons;
                             });
+                            // Close the dialog
+                            setDialogOpen(prev => ({
+                              ...prev,
+                              [row.original.id]: false
+                            }));
+                            // Clear timer
+                            if (idleTimers.current[row.original.id]) {
+                              clearTimeout(idleTimers.current[row.original.id]);
+                              delete idleTimers.current[row.original.id];
+                            }
                           }}
                         >
                           Ban User
