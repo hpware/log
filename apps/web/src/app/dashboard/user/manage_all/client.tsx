@@ -1,7 +1,7 @@
 "use client";
 import { authClient } from "@/lib/auth-client";
 import { useMutation, useInfiniteQuery } from "@tanstack/react-query";
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState } from "react";
 import { auth_schema } from "../../../../../../../packages/db/src/index";
 import DataTable from "@/components/table";
 import { toast } from "sonner";
@@ -27,53 +27,10 @@ import {
   UserMinusIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 
 export function Client() {
-  // State management for ban reasons and dialog visibility per user
-  const [banReasons, setBanReasons] = useState<Record<string, string>>({});
-  const [dialogOpen, setDialogOpen] = useState<Record<string, boolean>>({});
-  const idleTimers = useRef<Record<string, NodeJS.Timeout>>({});
-  
-  // Auto-close timeout in milliseconds (30 seconds)
-  const AUTO_CLOSE_TIMEOUT = 30000;
-
-  // Reset idle timer when user interacts with the dialog
-  const resetIdleTimer = (userId: string) => {
-    // Clear existing timer if any
-    if (idleTimers.current[userId]) {
-      clearTimeout(idleTimers.current[userId]);
-    }
-    
-    // Set new timer to auto-close after idle period
-    idleTimers.current[userId] = setTimeout(() => {
-      setDialogOpen(prev => ({
-        ...prev,
-        [userId]: false
-      }));
-      // Clean up the timer reference
-      delete idleTimers.current[userId];
-    }, AUTO_CLOSE_TIMEOUT);
-  };
-
-  // Cleanup timers on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(idleTimers.current).forEach(timer => clearTimeout(timer));
-    };
-  }, []);
   const submitToServer = useMutation({
     mutationFn: async (sendData: any) => {
       try {
@@ -242,97 +199,46 @@ export function Client() {
               header: () => <div></div>,
               cell: ({ row }) => (
                 <div className="flex items-center gap-2">
-                  <Dialog 
-                    open={dialogOpen[row.original.id] || false}
-                    onOpenChange={(open) => {
-                      setDialogOpen(prev => ({
-                        ...prev,
-                        [row.original.id]: open
-                      }));
-                      
-                      if (open) {
-                        // Start idle timer when dialog opens
-                        resetIdleTimer(row.original.id);
-                      } else {
-                        // Clear timer when dialog closes
-                        if (idleTimers.current[row.original.id]) {
-                          clearTimeout(idleTimers.current[row.original.id]);
-                          delete idleTimers.current[row.original.id];
-                        }
-                      }
-                    }}
-                  >
-                    <DialogTrigger asChild>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
                       <Button
                         variant="destructive"
                         className="cursor-pointer transition-all duration-300 bg-red-600 hover:bg-red-600/70 dark:bg-red-700 dark:hover:bg-red-300/70 text-white"
                       >
                         Ban User
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Are you absolutely sure?</DialogTitle>
-                      </DialogHeader>
-                      <span>Ban Reason</span>
-                      <Input
-                        type="text"
-                        value={banReasons[row.original.id] || ""}
-                        onChange={(e) => {
-                          setBanReasons(prev => ({
-                            ...prev,
-                            [row.original.id]: e.target.value
-                          }));
-                          // Reset idle timer on typing
-                          resetIdleTimer(row.original.id);
-                        }}
-                        onFocus={() => {
-                          // Reset idle timer when input is focused
-                          resetIdleTimer(row.original.id);
-                        }}
-                      />
-                      <DialogDescription className="flex flex-col">
-                        <span>
-                          This action can be undone. This will remove the user's
-                          page & login method.
-                        </span>
-                      </DialogDescription>
-                      <DialogFooter className="flex gap-3 sm:justify-end">
-                        <DialogClose asChild>
-                          <Button variant="outline" className="cursor-pointer">
-                            Cancel
-                          </Button>
-                        </DialogClose>
-                        <Button
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Are you absolutely sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="flex flex-col">
+                          <span>
+                            This action can be undone. This will remove the
+                            user's page & login method.
+                          </span>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter className="flex gap-3 sm:justify-end">
+                        <AlertDialogCancel className="mt-0 cursor-pointer transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
                           className="cursor-pointer transition-all duration-300 bg-red-600 hover:bg-red-600/70 dark:bg-red-700 dark:hover:bg-red-300/70 text-white"
                           onClick={() => {
                             submitToServer.mutate({
                               action: "ban_user",
                               user: row.original.id,
-                              reason: banReasons[row.original.id] || "",
+                              reason: "spamming",
                             });
-                            setBanReasons(prev => {
-                              const newReasons = { ...prev };
-                              delete newReasons[row.original.id];
-                              return newReasons;
-                            });
-                            // Close the dialog
-                            setDialogOpen(prev => ({
-                              ...prev,
-                              [row.original.id]: false
-                            }));
-                            // Clear timer
-                            if (idleTimers.current[row.original.id]) {
-                              clearTimeout(idleTimers.current[row.original.id]);
-                              delete idleTimers.current[row.original.id];
-                            }
                           }}
                         >
                           Ban User
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
