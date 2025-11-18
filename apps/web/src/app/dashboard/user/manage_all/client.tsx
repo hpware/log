@@ -42,6 +42,7 @@ import Image from "next/image";
 import { Input } from "@/components/ui/input";
 
 export function Client() {
+  // State management for ban reasons and dialog visibility per user
   const [banReasons, setBanReasons] = useState<Record<string, string>>({});
   const [dialogOpen, setDialogOpen] = useState<Record<string, boolean>>({});
   const idleTimers = useRef<Record<string, NodeJS.Timeout>>({});
