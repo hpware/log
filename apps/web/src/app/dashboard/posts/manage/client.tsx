@@ -1,7 +1,11 @@
 "use client";
 import { useMemo } from "react";
 import { auth_schema } from "../../../../../../../packages/db/src/index";
-import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
 import Table from "@/components/table";
 import { toast } from "sonner";
@@ -9,12 +13,24 @@ import { ImageIcon, TextInitialIcon, VideoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Route } from "next";
 import Link from "next/link";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function Client() {
+  const queryClient = useQueryClient();
   const submitToServer = useMutation({
     mutationFn: async (data: any) => {
       try {
-        const req = await fetch("/api/data/settings?tab=post_manage", {
+        const req = await fetch("/api/data/modify/posts?tab=post_manage", {
           method: "POST",
           headers: {
             "Content-Type": "appilcation/json",
@@ -22,14 +38,19 @@ export default function Client() {
           body: JSON.stringify(data),
         });
         const res = await req.json();
-        if (res.success != true) {
+        if (!req.ok) {
           throw new Error(res.msg);
         }
+        toast.success("This post is deleted");
         return;
       } catch (e: any) {
         console.error(e);
         toast.error(`Fetch Failed: ${e.message}`);
       }
+    },
+    // on success then refresh the page (this should also be applied somewhere as well)
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["content"] });
     },
   });
 
@@ -124,18 +145,41 @@ export default function Client() {
                       Edit
                     </Button>
                   </Link>
-                  <Button
-                    variant="destructive"
-                    className="cursor-pointer transition-all duration-300 hover:bg-red-600/70 dark:hover:bg-red-300/70"
-                    onClick={() =>
-                      submitToServer.mutate({
-                        action: "",
-                        id,
-                      })
-                    }
-                  >
-                    Delete
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        className="cursor-pointer transition-all duration-300 hover:bg-red-600/70 dark:hover:bg-red-300/70"
+                      >
+                        Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Are you absolutely sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete this post from this instance.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="cursor-pointer transition-all duration-300 bg-red-600 text-white hover:bg-red-600/70 dark:hover:bg-red-300/70"
+                          onClick={() => {
+                            submitToServer.mutate({
+                              action: "delete_post",
+                              postId: row.original.postId,
+                            });
+                          }}
+                        >
+                          Continue
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               );
             },

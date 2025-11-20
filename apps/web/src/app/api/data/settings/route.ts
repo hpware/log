@@ -10,13 +10,26 @@ import { auth } from "@devlogs_hosting/auth";
 
 type RobotsParsedJson = Record<string, { allow: string[]; disallow: string[] }>;
 
+export const GET = async () => {
+  return Response.json(
+    {
+      data: null,
+      message: "ERR_NO_REQUESTED_QUERY",
+    },
+    {
+      status: 404,
+      statusText: "ERR_NO_REQUESTED_QUERY",
+    },
+  );
+};
+
 export const POST = async (request: NextRequest) => {
   try {
     const header = await headers();
     const session = await auth.api.getSession({ headers: header });
     if (!session) {
       return Response.json(
-        { success: false, msg: "ERR_USR_INVALID_SESSION", uploadUrl: "" },
+        { success: false, msg: "ERR_USR_INVALID_SESSION" },
         { status: 401 },
       );
     }
