@@ -307,6 +307,9 @@ export const POST = async (request: NextRequest) => {
           if (body.user === session.user.id) {
             throw new Error("You cannot delete yourself");
           }
+          await db
+            .delete(main_schema.userPosts)
+            .where(dorm.eq(main_schema.userPosts.byUser, body.user));
           const data = await auth.api.removeUser({
             body: {
               userId: body.user,
@@ -314,11 +317,8 @@ export const POST = async (request: NextRequest) => {
             headers: header,
           });
           if (!data.success) {
-            throw new Error("Cannot remove user");
+            throw new Error("ERR_REMOVE_FAILED");
           }
-          await db
-            .delete(main_schema.userPosts)
-            .where(dorm.eq(main_schema.userPosts.byUser, body.user));
           return Response.json(
             { success: true, msg: "Deleted User" },
             {
@@ -326,8 +326,9 @@ export const POST = async (request: NextRequest) => {
             },
           );
         } catch (e: any) {
+          console.log(e);
           return Response.json(
-            { success: false, msg: e.msg },
+            { success: false, msg: e.msg || "" },
             {
               status: 500,
               statusText: e.msg !== undefined ? e.msg : "Server Side Error",
@@ -337,13 +338,13 @@ export const POST = async (request: NextRequest) => {
       } else if (body.action === "ban_user") {
         try {
           if (!body.user) {
-            throw new Error("No user attached to the body");
+            throw new Error("ERR_NO_USER_ATTACHED");
           }
           if (body.user === session.user.id) {
-            throw new Error("You cannot ban yourself");
+            throw new Error("ERR_CANNOT_BAN_THIS_USER");
           }
           if (!body.reason) {
-            throw new Error("No reason attached to the body");
+            throw new Error("ERR_NO_REASON_ATTACHED");
           }
           await auth.api.banUser({
             body: {
@@ -365,6 +366,7 @@ export const POST = async (request: NextRequest) => {
             },
           );
         } catch (e: any) {
+          console.error(e);
           return Response.json(
             { success: false, msg: e.msg },
             {

@@ -1,6 +1,10 @@
 "use client";
 import { authClient } from "@/lib/auth-client";
-import { useMutation, useInfiniteQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useInfiniteQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { auth_schema } from "../../../../../../../packages/db/src/index";
 import DataTable from "@/components/table";
@@ -31,6 +35,7 @@ import Image from "next/image";
 import { Input } from "@/components/ui/input";
 
 export function Client() {
+  const queryClient = useQueryClient();
   const submitToServer = useMutation({
     mutationFn: async (sendData: any) => {
       try {
@@ -50,6 +55,9 @@ export function Client() {
         console.error(e);
         toast.error(`Fetch Failed: ${e.message}`);
       }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["content"] });
     },
   });
 

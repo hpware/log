@@ -104,6 +104,7 @@ export default function DashboardSidebar({
                 width={60}
                 height={60}
                 alt="Profile Picture"
+                className="rounded-full"
               />
             </div>
             <div className="flex flex-col">
