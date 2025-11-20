@@ -9,8 +9,10 @@ import {
   Sun,
   Moon,
   SettingsIcon,
+  InfoIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,6 +71,11 @@ const setting_items = [
     url: "/dashboard/user/manage_all",
     icon: UsersIcon,
   },
+  {
+    title: "About this instance",
+    url: "/dashboard/settings/about",
+    icon: InfoIcon,
+  },
 ];
 
 export default function DashboardSidebar({
@@ -92,9 +99,12 @@ export default function DashboardSidebar({
         <div className="flex flex-row justify-between">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-sm font-semibold text-primary-foreground">
-                {session.user.name?.charAt(0).toUpperCase() || "U"}
-              </span>
+              <Image
+                src={session.user.image || "/user/default_pfp.png"}
+                width={60}
+                height={60}
+                alt="Profile Picture"
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-medium">{session.user.name}</span>
