@@ -40,8 +40,9 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
+    const id = generateItemId();
     await db.insert(main_schema.userPosts).values({
-      postId: generateItemId(),
+      postId: id,
       type: body.type,
       byUser: userId,
       ...(body.text?.length > 0 && { textData: body.text }),
@@ -53,11 +54,11 @@ export const POST = async (request: NextRequest) => {
       ...(body.status && { status: body.status }),
     });
 
-    return Response.json({ success: true, msg: "" });
+    return Response.json({ success: true, msg: "", postId: id });
   } catch (e: any) {
     console.error(e);
     return Response.json(
-      { success: false, msg: e.message },
+      { success: false, msg: e.message, postId: null },
       {
         status: 500,
       },

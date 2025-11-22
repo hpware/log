@@ -9,12 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { main_schema } from "../../../../../../../packages/db/src";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { PublicPostsAndVideos } from "@/components/publicPostsAndVideos";
+import type { Route } from "next";
 
 type Post = typeof main_schema.userPosts.$inferSelect;
 
@@ -128,12 +130,14 @@ export default function Dashboard({
       fileUrl?: string;
     }) => {
       toast.promise(
-        async () => {
+        async (): Promise<{ postId: string }> => {
+          if (data.type !== "text" && !data.fileUrl) {
+            throw new Error("No file uploaded");
+          }
+          if (data.type === "text" && data.text === undefined) {
+            throw new Error("No text provided");
+          }
           try {
-            if (data.type !== "text" && !data.fileUrl) {
-              toast.error("No file Uploaded");
-              return;
-            }
             setIsPending(true);
             const req = await fetch("/api/data/publish", {
               method: "POST",
@@ -163,6 +167,9 @@ export default function Dashboard({
             });
             setTextBoxData("");
             setIsPending(false);
+            return {
+              postId: res.postId,
+            };
           } catch (e: any) {
             setIsPending(false);
             throw new Error(`${e.message}`);
@@ -170,7 +177,19 @@ export default function Dashboard({
         },
         {
           loading: "Sending...",
-          success: "Saved!",
+          success: ({ postId }: { postId: string }) => (
+            <div className="flex flex-col gap-1">
+              <p className="font-medium">Saved!</p>
+              <Link
+                href={`/item/${postId}` as Route}
+                className="underline text-blue-500 hover:text-blue-600 cursor-pointer"
+                target="_blank"
+              >
+                View your post
+              </Link>
+            </div>
+          ),
+          duration: 10000,
           error: (error) => `Error saving your post. ERR: ${error}`,
         },
       );

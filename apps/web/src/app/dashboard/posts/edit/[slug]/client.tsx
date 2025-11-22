@@ -12,8 +12,9 @@ export default function Client({ orgPost }: { orgPost: Post }) {
         <textarea />
         <Button variant="outline">Submit</Button>
       </div>
+      <div>Change Visibly</div>
       <div>
-        <span>Preview</span>
+        <span></span>
         <PublicPostsAndVideos mode="search" passedData={[post]} />
       </div>
     </div>

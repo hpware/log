@@ -75,7 +75,7 @@ export default async function Page(props: {
             </Link>
           ))}
         </div>
-        <div className="flex flex-row">
+        <div className="flex md:flex-row flex-col">
           <Link
             className="flex flex-row gap-1 transition-all duration-300 hover:text-gray-600/80 dark:hover:text-gray-200/80"
             href={`/user/${getUserInfo[0].id}`}
@@ -94,12 +94,12 @@ export default async function Page(props: {
             />
             <span>{getUserInfo[0].name}</span>
           </Link>
-          <DotIcon />
+          <DotIcon className="hidden md:block" />
           <div className="flex flex-row">
             <CalendarPlusIcon className="p-1" />{" "}
             <span>{new Date(content[0].createdAt).toLocaleString()}</span>
           </div>
-          <DotIcon />
+          <DotIcon className="hidden md:block" />
           <div className="flex flex-row">
             <CalendarSyncIcon className="p-1" />{" "}
             <span>{new Date(content[0].updatedAt).toLocaleString()}</span>
