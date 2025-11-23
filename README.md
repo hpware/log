@@ -3,7 +3,7 @@
 Me personally, after HC's neighborhood ended, I just felt the need of a platform where I can log my dev process. And yap about what I've done during the video. And I dearly miss that. And other things happened in life, that made me more connected to Retro, and app that you can upload & remember your memories, however, that app has a paid tier, and it is not based in my (super unstable) home infra. So, I'm making this!
 
 ## What does this project use?
-THis project uses a lot of libraries (and frameworks)
+This project uses a lot of libraries (and frameworks)
 - Next.js 16
 - Tailwind CSS
 - Better-Auth

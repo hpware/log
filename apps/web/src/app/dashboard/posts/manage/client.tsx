@@ -88,26 +88,34 @@ export default function Client() {
   return (
     <div className="max-w-screen">
       <Table
+        key="manage_page_DO_NOT_CRASH"
         columns={[
           {
             accessorKey: "type",
             header: () => <div className="flex items-center gap-2">Type</div>,
-            cell: ({ row }) => (
-              <div className="flex items-center gap-2">
-                {row.getValue("type") === "text" ? (
-                  <TextInitialIcon className="h-5 w-5" />
-                ) : row.getValue("type") === "photos" ? (
-                  <ImageIcon className="h-5 w-5" />
-                ) : (
-                  <VideoIcon className="h-5 w-5" />
-                )}
-              </div>
-            ),
+            cell: ({ row }) => {
+              if (!row || !row.original)
+                return <div className="flex items-center gap-2">N/A</div>;
+              const type = row.getValue("type");
+              return (
+                <div className="flex items-center gap-2">
+                  {type === "text" ? (
+                    <TextInitialIcon className="h-5 w-5" />
+                  ) : type === "photos" ? (
+                    <ImageIcon className="h-5 w-5" />
+                  ) : (
+                    <VideoIcon className="h-5 w-5" />
+                  )}
+                </div>
+              );
+            },
           },
           {
             accessorKey: "textData",
             header: () => <div className="flex items-center gap-2">Text</div>,
             cell: ({ row }) => {
+              if (!row || !row.original)
+                return <div className="flex items-center gap-2">N/A</div>;
               const text = row.original.textData || "N/A";
               const truncatedText =
                 text.length > 50 ? text.substring(0, 50) + "..." : text;
@@ -124,16 +132,23 @@ export default function Client() {
             header: () => (
               <div className="flex items-center gap-2">Created At</div>
             ),
-            cell: ({ row }) => (
-              <div className="flex items-center gap-2">
-                {new Date(row.getValue("createdAt")).toLocaleString() || "N/A"}
-              </div>
-            ),
+            cell: ({ row }) => {
+              if (!row || !row.original)
+                return <div className="flex items-center gap-2">N/A</div>;
+              return (
+                <div className="flex items-center gap-2">
+                  {new Date(row.getValue("createdAt")).toLocaleString() ||
+                    "N/A"}
+                </div>
+              );
+            },
           },
           {
             accessorKey: "postId",
             header: () => <></>,
             cell: ({ row }) => {
+              if (!row || !row.original)
+                return <div className="flex items-center gap-2">N/A</div>;
               const id = row.getValue("postId");
               return (
                 <div className="flex items-center gap-2">
