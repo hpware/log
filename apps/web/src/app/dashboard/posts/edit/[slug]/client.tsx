@@ -3,6 +3,7 @@
 
 import { PublicPostsAndVideos } from "@/components/publicPostsAndVideos";
 import { main_schema, db, dorm } from "../../../../../../../../packages/db/src";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
@@ -12,13 +13,37 @@ type Post = typeof main_schema.userPosts.$inferSelect;
 
 export default function Client({ orgPost }: { orgPost: Post }) {
   const [post, setPost] = useState<Post>(orgPost);
-  const [currentPublishOption, setCurrentPublishOption] = useState<
-    "draft" | "private" | "unlisted" | "public"
-  >(post.status as "draft" | "private" | "unlisted" | "public");
-  const submitRequest = useMutation({});
+  const submitRequest = useMutation({
+    mutationFn: async () => {
+      toast.promise(
+        async () => {
+          const req = await fetch("/api/data/modify/posts?tab=edit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              action: "change_post",
+              postId: post.postId,
+              postStatus: post,
+            }),
+          });
+          if (req.status !== 200) {
+            throw new Error(req.statusText);
+          }
+          return;
+        },
+        {
+          loading: "Editing...",
+          success: "Edited!",
+          error: (error) => `Error editing your post, error: ${error}`,
+        },
+      );
+    },
+  });
   return (
     <div className="flex flex-col md:flex-row">
-      <div>
+      <div className="flex flex-col">
         <div>
           <span>Change Visibility</span>
           <Tabs
@@ -65,9 +90,16 @@ export default function Client({ orgPost }: { orgPost: Post }) {
             })
           }
         />
-        <Button variant="outline" onClick={() => submitRequest.mutate()}>
-          Submit
-        </Button>
+        <div className="justify-between flex flex-row mr-3 mt-2">
+          <div></div>
+          <Button
+            variant="outline"
+            onClick={() => submitRequest.mutate()}
+            className="cursor-pointer"
+          >
+            Submit
+          </Button>
+        </div>
       </div>
       <div>
         <span></span>

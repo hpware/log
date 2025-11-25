@@ -130,7 +130,10 @@ export default function Dashboard({
       fileUrl?: string;
     }) => {
       toast.promise(
-        async (): Promise<{ postId: string }> => {
+        async (): Promise<{
+          postId: string;
+          postStatus: "draft" | "private" | "public" | "unlisted";
+        }> => {
           if (data.type !== "text" && !data.fileUrl) {
             throw new Error("No file uploaded");
           }
@@ -139,6 +142,7 @@ export default function Dashboard({
           }
           try {
             setIsPending(true);
+            const saveCurrentPublishOption = currentPublishOption;
             const req = await fetch("/api/data/publish", {
               method: "POST",
               headers: {
@@ -169,6 +173,7 @@ export default function Dashboard({
             setIsPending(false);
             return {
               postId: res.postId,
+              postStatus: saveCurrentPublishOption,
             };
           } catch (e: any) {
             setIsPending(false);
@@ -177,16 +182,24 @@ export default function Dashboard({
         },
         {
           loading: "Sending...",
-          success: ({ postId }: { postId: string }) => (
+          success: ({
+            postId,
+            postStatus,
+          }: {
+            postId: string;
+            postStatus: "draft" | "private" | "public" | "unlisted";
+          }) => (
             <div className="flex flex-col gap-1">
               <p className="font-medium">Saved!</p>
-              <Link
-                href={`/item/${postId}` as Route}
-                className="underline text-blue-500 hover:text-blue-600 cursor-pointer"
-                target="_blank"
-              >
-                View your post
-              </Link>
+              {postStatus !== "draft" && (
+                <Link
+                  href={`/item/${postId}` as Route}
+                  className="underline text-blue-500 hover:text-blue-600 cursor-pointer"
+                  target="_blank"
+                >
+                  View your post
+                </Link>
+              )}
             </div>
           ),
           duration: 10000,

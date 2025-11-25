@@ -70,10 +70,64 @@ export const POST = async (request: NextRequest) => {
           message: "ok",
         });
       }
-    } else if (tabAction === "edit") {
-      if (body.action === "change_visibility") {
-      } else if (body.action === "change_post") {
+    } else if (tabAction === "edit" && body.action === "change_post") {
+      if (!/^_ITM[A-Za-z0-9]{20}$/.test(body.postId)) {
+        statusCode = 400;
+        throw new Error("ERR_WRONG_POSTID");
       }
+      if (!body.postStatus) {
+        statusCode = 400;
+        throw new Error("ERR_NO_CORRECT_BODY");
+      }
+
+      const postData: {
+        status: "draft" | "private" | "public" | "unlisted";
+        postId: string;
+        type: "photos" | "text" | "video";
+        createdAt: Date;
+        updatedAt: Date;
+        byUser: string;
+        textData: string | null;
+        imageUrl: string | null;
+        videoUrl: string | null;
+        tags: unknown;
+      } = body.postStatus;
+
+      if (postData.postId !== body.postId) {
+        throw new Error("ERR_NO_MATCH");
+      }
+
+      const getPost = await db
+        .select()
+        .from(main_schema.userPosts)
+        .where(dorm.eq(main_schema.userPosts.postId, body.postId));
+
+      if (getPost.length === 0) {
+        statusCode = 404;
+        throw new Error("ERR_NO_POST_FOUND");
+      }
+
+      if (getPost[0].byUser !== postData.byUser) {
+        statusCode = 403;
+        throw new Error("ERR_NO_PERMS");
+      }
+      try {
+        await db
+          .update(main_schema.userPosts)
+          .set({
+            status: postData.status,
+            updatedAt: new Date(),
+            textData: postData.textData,
+            tags: postData.tags,
+          })
+          .where(dorm.eq(main_schema.userPosts.postId, body.postId));
+      } catch (e: any) {
+        throw new Error(e.message);
+      }
+      return Response.json({
+        data: null,
+        message: "ok",
+      });
     }
     statusCode = 404;
     throw new Error("ERR_NO_REQUESTED_QUERY");
