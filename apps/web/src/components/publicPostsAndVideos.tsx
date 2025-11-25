@@ -59,7 +59,7 @@ export function PublicPostsAndVideos({
       }
       let finalFilter = "";
       if (filters !== undefined) {
-        finalFilter = `&filters=${JSON.stringify(filters)}`;
+        finalFilter = `&filters=${encodeURIComponent(JSON.stringify(filters))}`;
       }
       const req = await fetch(
         "/api/data/public_data?offset=" +
@@ -172,7 +172,7 @@ export function PublicPostsAndVideos({
                   {(i.tags as string[]).map((it: string) => (
                     <Link
                       key={crypto.randomUUID()}
-                      href={`/user/${i.byUser}?filter=by_tag&tag=${it}`}
+                      href={`/user/${i.byUser}?filters=${encodeURIComponent(JSON.stringify({ by: "tag", filter: it }))}`}
                     >
                       <Badge variant="default">{it}</Badge>
                     </Link>
@@ -277,7 +277,7 @@ export function PublicPostsAndVideos({
                         {(i.tags as string[]).map((it: string) => (
                           <Link
                             key={crypto.randomUUID()}
-                            href={`/user/${i.byUser}?filter=by_tag&tag=${it}`}
+                            href={`/user/${i.byUser}?filters=${encodeURIComponent(JSON.stringify({ by: "tag", filter: it }))}`}
                             className="whitespace-nowrap overflow-hidden text-ellipsis block"
                           >
                             <Badge variant="default">{it}</Badge>
