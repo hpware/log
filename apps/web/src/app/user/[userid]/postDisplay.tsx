@@ -38,7 +38,6 @@ export default function DisplayPosts({
     toast.error("Filter is not valid json!");
   }
   console.log({
-    isSameUser: isSameUser,
     filters: parsedResult,
   });
 
