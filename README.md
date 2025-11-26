@@ -2,6 +2,17 @@
 ## Why make this project?
 Me personally, after HC's neighborhood ended, I just felt the need of a platform where I can log my dev process. And yap about what I've done during the video. And I dearly miss that. And other things happened in life, that made me more connected to Retro, and app that you can upload & remember your memories, however, that app has a paid tier, and it is not based in my (super unstable) home infra. So, I'm making this!
 
+## Future changes
+1. The text will be Markdown.
+2. Adding image & video overlay view when users touch it.
+3. Fixing the broken user page (maybe I'll work on it when I have time)
+4. Remove Debug text.
+5. Bring filtering to life. Including tags, and text (although the postgres index is a bit shotty)
+6. Videos should have a custom UI to it.
+7. Short text previews on the home page instead of paragraphs of text taking over user's profile page, edit previews, search previews, and public feed previews.
+8. Adding video encoding if possible.
+9. Add more stuff that the administrator can just customize.
+
 ## What does this project use?
 This project uses a lot of libraries (and frameworks)
 - Next.js 16
