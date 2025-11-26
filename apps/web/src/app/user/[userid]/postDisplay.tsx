@@ -33,19 +33,16 @@ export default function DisplayPosts({
       }
       parsedResult = parsed;
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error("Filter is not valid json!");
     toast.error("Filter is not valid json!");
   }
+  console.log({
+    filters: parsedResult,
+  });
 
   return (
     <div>
-      <span>
-        {JSON.stringify({
-          isSameUser: isSameUser,
-          filters: parsedResult,
-        })}
-      </span>
       <PublicPostsAndVideos
         mode="profile"
         passedData={[]}

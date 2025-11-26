@@ -11,13 +11,16 @@ export const GET = async (request: NextRequest) => {
     .from(main_schema.kvData)
     .where(dorm.eq(main_schema.kvData.key, "robotsTxtStatus"));
 
-  if (String(homePageStatus[0].value) !== "false") {
-    return new Response("", {
-      status: 200,
-      headers: {
-        "Content-Type": "text/plain",
+  if (String(homePageStatus[0].value) === "false") {
+    return new Response(
+      `# robots.txt disabled by owner, default block all robots. \n\nUser-agent: *\nDisallow: /*`,
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain",
+        },
       },
-    });
+    );
   }
   const robotsTxt = await db
     .select()
@@ -25,7 +28,7 @@ export const GET = async (request: NextRequest) => {
     .where(dorm.eq(main_schema.kvData.key, "robotsTxtList"));
 
   // Build robots.txt
-  let buildRobotsTxt = "";
+  let buildRobotsTxt = "# robots.txt served by the server \n\n";
   // Assuming robotsTxt[0].value is the parsed JSON structure from the previous function
   const robotsData = robotsTxt[0].value as Record<
     string,

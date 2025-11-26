@@ -39,19 +39,18 @@ export const POST = async (request: NextRequest) => {
 
     if (!allowedTypes.includes(file.type)) {
       return Response.json(
-        { success: false, msg: "File type not allowed", uploadUrl: "" },
-        { status: 400 },
+        { msg: "File type not allowed", uploadUrl: "" },
+        { status: 400, statusText: "File type not allowed" },
       );
     }
 
     // Validate file size
-    const uploadLimit = process.env.UPLOAD_LIMIT || "50"; // Default 50MB
+    const uploadLimit = process.env.NEXT_PUBLIC_UPLOAD_LIMIT || "50"; // Default 50MB
     const maxSizeInBytes = Number(uploadLimit) * 1024 * 1024;
 
     if (file.size > maxSizeInBytes) {
       return Response.json(
         {
-          success: false,
           msg: `File size too large. Maximum allowed size is ${uploadLimit}MB.`,
           uploadUrl: "",
         },
@@ -59,21 +58,26 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
-    // Validate required environment variables
-    if (!process.env.S3_BUCKET_NAME) {
-      console.error("S3_BUCKET_NAME environment variable is not set");
+    // Check if S3 is configured
+    if (!s3.s3Config.isConfigured) {
+      console.error(
+        "S3 is not configured - missing required environment variables",
+      );
       return Response.json(
-        { success: false, msg: "Server configuration error", uploadUrl: "" },
-        { status: 500 },
+        {
+          msg: "File upload is not available - S3 storage not configured",
+          uploadUrl: "",
+        },
+        {
+          status: 503,
+          statusText:
+            "File upload is not available - S3 storage not configured",
+        },
       );
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const fsName = s3.generateFileName(file.name);
-
-    console.log(
-      `Uploading file: ${file.name} as ${fsName} (${file.size} bytes)`,
-    );
+    const fsName = s3.generateFileName(file.name, session.user.id);
 
     const upload = new Upload({
       client: s3.s3Client,
@@ -89,14 +93,13 @@ export const POST = async (request: NextRequest) => {
         },
       },
     });
-
     const result = await upload.done();
+    console.log(result);
     console.log(`Successfully uploaded: ${fsName}`);
 
     return Response.json({
-      success: true,
       msg: "File uploaded successfully",
-      uploadUrl: `/api/data/${fsName}`,
+      uploadUrl: `/api/data/files/${fsName}`,
       fileSize: file.size,
       contentType: file.type,
     });
@@ -107,11 +110,10 @@ export const POST = async (request: NextRequest) => {
     if (e.name === "AccessDenied" || e.Code === "AccessDenied") {
       return Response.json(
         {
-          success: false,
           msg: "S3 access denied. Check credentials.",
           uploadUrl: "",
         },
-        { status: 403 },
+        { status: 403, statusText: "S3 access denied. Check credentials." },
       );
     }
 

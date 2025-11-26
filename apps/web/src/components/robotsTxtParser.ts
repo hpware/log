@@ -6,7 +6,7 @@ export default function robotsTxtParseToJson(list: string) {
     .map((line) => line.trim())
     .filter((line) => line && !line.startsWith("#")); // remove comments & empty lines
 
-  let newList: Record<string, { allow: string[]; disallow: string[] }> = {};
+  const newList: Record<string, { allow: string[]; disallow: string[] }> = {};
   let currentAgents: string[] = [];
 
   for (const line of lines) {

@@ -2,7 +2,26 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import generateId from "./generate_id";
 
-// Validate required environment variables
+/**
+ * Determine whether the required S3 environment variables are present.
+ *
+ * @returns `true` if `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, and `S3_BUCKET_NAME` are all set in the environment, `false` otherwise.
+ */
+function isS3Configured(): boolean {
+  return !!(
+    process.env.S3_ACCESS_KEY_ID &&
+    process.env.S3_SECRET_ACCESS_KEY &&
+    process.env.S3_BUCKET_NAME
+  );
+}
+
+/**
+ * Ensures required S3 environment variables are present.
+ *
+ * Throws an error listing any missing variables.
+ *
+ * @throws Error If one or more required environment variables are not set, with a message listing the missing keys.
+ */
 function validateS3Config() {
   const required = [
     "S3_ACCESS_KEY_ID",
@@ -19,32 +38,75 @@ function validateS3Config() {
   }
 }
 
-// Validate config on import
-validateS3Config();
+// Lazy initialization of S3 client
+let _s3Client: S3Client | null = null;
 
-// Initialize S3 client with better configuration
-export const s3Client = new S3Client({
-  endpoint: process.env.S3_ENDPOINT,
-  region: process.env.S3_REGION || "auto",
-  credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+/**
+ * Get the singleton S3 client, initializing and validating configuration on first use.
+ *
+ * @returns The initialized `S3Client` instance.
+ * @throws Error if required S3 environment variables are missing or S3 is not configured.
+ */
+export function getS3Client(): S3Client {
+  if (!isS3Configured()) {
+    throw new Error(
+      "S3 is not configured. Please set S3 environment variables.",
+    );
+  }
+
+  if (!_s3Client) {
+    validateS3Config();
+
+    _s3Client = new S3Client({
+      endpoint: process.env.S3_ENDPOINT,
+      region: process.env.S3_REGION || "auto",
+      credentials: {
+        accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+      },
+      // Add retry configuration
+      maxAttempts: 3,
+      // Force path style for compatibility with some S3 providers
+      forcePathStyle: process.env.S3_FORCE_PATH_STYLE === "true",
+    });
+  }
+
+  return _s3Client;
+}
+
+// Export for backward compatibility, but will throw if S3 is not configured
+export const s3Client = new Proxy({} as S3Client, {
+  get(target, prop) {
+    const client = getS3Client();
+    const value = (client as any)[prop];
+    return typeof value === "function" ? value.bind(client) : value;
   },
-  // Add retry configuration
-  maxAttempts: 3,
-  // Force path style for compatibility with some S3 providers
-  forcePathStyle: process.env.S3_FORCE_PATH_STYLE === "true",
 });
 
 export const s3Config = {
-  client: s3Client,
-  bucket: process.env.S3_BUCKET_NAME!,
+  get client() {
+    return getS3Client();
+  },
+  get bucket() {
+    if (!isS3Configured()) {
+      throw new Error(
+        "S3 is not configured. Please set S3_BUCKET_NAME environment variable.",
+      );
+    }
+    return process.env.S3_BUCKET_NAME!;
+  },
   region: process.env.S3_REGION || "us-east-1",
   endpoint: process.env.S3_ENDPOINT,
+  get isConfigured() {
+    return isS3Configured();
+  },
 };
 
 // Generate a unique file name with better validation
-export function generateFileName(originalName: string): string {
+export function generateFileName(
+  originalName: string,
+  uploadedUser: string,
+): string {
   if (!originalName || typeof originalName !== "string") {
     throw new Error("Invalid original filename provided");
   }
@@ -61,16 +123,27 @@ export function generateFileName(originalName: string): string {
   const timestamp = new Date().getTime();
   const randomId = generateId();
 
-  return `uploads/${timestamp}_${randomId}.${extension}`;
+  return `${uploadedUser}/${timestamp}_${randomId}.${extension}`;
 }
 
-// Helper function to get signed URL for secure uploads (if needed)
+/**
+ * Create a presigned PUT URL for uploading an object to the configured S3 bucket.
+ *
+ * @param key - The destination object key (path) within the S3 bucket.
+ * @param contentType - The MIME type that will be set for the uploaded object.
+ * @returns A signed URL that allows uploading the object to S3.
+ * @throws Error if S3 is not configured and a signed URL cannot be generated.
+ */
 export async function getSignedUploadUrl(key: string, contentType: string) {
+  if (!isS3Configured()) {
+    throw new Error("S3 is not configured. Cannot generate signed upload URL.");
+  }
+
   const command = new PutObjectCommand({
     Bucket: process.env.S3_BUCKET_NAME!,
     Key: key,
     ContentType: contentType,
   });
 
-  return await getSignedUrl(s3Client, command, { expiresIn: 3600 }); // 1 hour
+  return await getSignedUrl(getS3Client(), command, { expiresIn: 3600 }); // 1 hour
 }

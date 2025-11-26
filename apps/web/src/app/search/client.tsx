@@ -3,7 +3,13 @@ import { Suspense, useEffect, useState } from "react";
 import { PublicPostsAndVideos } from "@/components/publicPostsAndVideos";
 import type { Metadata } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SearchIcon, TimerIcon } from "lucide-react";
+import {
+  ShieldMinusIcon,
+  BotMessageSquareIcon,
+  MicroscopeIcon,
+  SearchIcon,
+  TimerIcon,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -66,30 +72,57 @@ export default function SearchFunction() {
           }}
           autoFocus={searchParams.get("focus") === "1"}
           placeholder="Type anything..."
+          disabled={displayingData !== undefined && displayingData.disabled}
         ></textarea>
-        {!error && displayingData && searchBox.length > 0 && (
-          <div>
-            <div className="flex flex-row">
-              <TimerIcon className="p-1" />
-              <span>{Number(displayingData.queryTime).toPrecision(3)}ms</span>
+        {!error &&
+          displayingData &&
+          searchBox.length > 0 &&
+          !(displayingData !== undefined && displayingData.disabled) && (
+            <div>
+              <div className="flex flex-row">
+                <TimerIcon className="p-1" />
+                <span>{Number(displayingData.queryTime).toPrecision(3)}ms</span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
       <div className="mt-2">
         {displayingData !== undefined && searchBox.length > 0 && (
           <div>
-            {JSON.stringify(displayingData)}
-            <PublicPostsAndVideos
-              mode="search"
-              passedData={displayingData.data.rows}
-              key={Number(displayingData.queryTime).toPrecision(10)}
-            />
+            {displayingData.disabled ? (
+              <div>
+                <div className="flex flex-col gap-1 absolute inset-0 justify-center text-center">
+                  <ShieldMinusIcon className="w-12 h-12 mx-auto mb-3" />
+                  <span>
+                    The search function is currently disabled by the instance
+                    owner.
+                  </span>
+                </div>
+              </div>
+            ) : displayingData.data.rows.length > 0 ? (
+              <PublicPostsAndVideos
+                mode="search"
+                passedData={displayingData.data.rows}
+                key={Number(displayingData.queryTime).toPrecision(10)}
+              />
+            ) : (
+              <div className="flex flex-col md:flex-row gap-1 justify-center text-center align-middle mx-auto">
+                <BotMessageSquareIcon className="justify-center text-center xs:mx-auto align-middle xs:text-4xl" />
+                <span>
+                  Postgres cannot find this content you are looking for.
+                </span>
+              </div>
+            )}
           </div>
         )}
         {status === "error" && searchBox.length > 0 ? (
-          <div>
-            <span>Error fetching search: {error.message}</span>
+          <div className="flex flex-col md:flex-row gap-1 justify-center text-center align-middle mx-auto">
+            <BotMessageSquareIcon className="justify-center text-center xs:mx-auto align-middle xs:text-4xl" />
+            <span>
+              {error.message === "Search functionality is currently disabled."
+                ? "Search is currently disabled by the administrator."
+                : `Error fetching search: ${error.message}`}
+            </span>
           </div>
         ) : null}
         {status === "pending" && searchBox.length > 0 && (

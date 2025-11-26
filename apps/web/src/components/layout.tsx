@@ -35,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title,
       description,
     };
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
     return {
       title: `Home`,

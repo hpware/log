@@ -48,7 +48,7 @@ export const GET = async (request: NextRequest) => {
       success: true,
       msg: "",
       result: dbResult,
-      nextOffset: Number(offset) + 100,
+      nextOffset: dbResult.length < 100 ? undefined : Number(offset) + 100,
     });
   } catch (e: any) {
     console.error(e);

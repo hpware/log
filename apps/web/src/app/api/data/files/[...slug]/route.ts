@@ -10,6 +10,17 @@ type Props = {
 
 export const GET = async (request: NextRequest, context: Props) => {
   try {
+    // Check if S3 is configured
+    if (!s3.s3Config.isConfigured) {
+      return new Response(
+        JSON.stringify({ error: "S3 storage not configured" }),
+        {
+          status: 503,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
     const { slug } = await context.params;
     let buildUrl: string = "";
     for (let i = 0; i < slug.length; i++) {

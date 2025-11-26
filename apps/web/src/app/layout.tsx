@@ -7,9 +7,9 @@ import {
 } from "next/font/google";
 import "../index.css";
 import Providers from "@/components/providers";
-import Navigation from "@/components/navigation";
+import ConditionalLayout from "@/components/conditional-layout";
 import { db, main_schema, dorm } from "../../../../packages/db/src";
-import Footer from "@/components/footer";
+import { headers } from "next/headers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,13 +43,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${archivoBlack.variable} antialiased`}
       >
         <Providers>
-          <div className="flex flex-col">
-            <header>
-              <Navigation />
-            </header>
-            <main className="mt-12 pt-5 min-h-screen">{children}</main>
-            <Footer />
-          </div>
+          <ConditionalLayout>{children}</ConditionalLayout>
         </Providers>
       </body>
     </html>

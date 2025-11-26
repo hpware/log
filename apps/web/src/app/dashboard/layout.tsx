@@ -47,7 +47,7 @@ export default async function RootLayout({
   return (
     <SidebarProvider>
       <DashboardSidebar session={session} />
-      <main>
+      <main className="flex-1 w-full p-6 overflow-auto">
         <SidebarTrigger />
         {children}
       </main>

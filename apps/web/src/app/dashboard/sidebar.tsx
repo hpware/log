@@ -6,9 +6,22 @@ import {
   PlusCircleIcon,
   SquareChartGantt,
   UsersIcon,
+  Sun,
+  Moon,
+  SettingsIcon,
+  InfoIcon,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Sidebar,
   SidebarContent,
@@ -18,11 +31,15 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarHeader,
+  SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
-import { auth } from "@devlogs_hosting/auth";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
+import { useTheme } from "next-themes";
+import { useEffect } from "react";
 
 // Menu items.
 const items = [
@@ -31,31 +48,33 @@ const items = [
     url: "/dashboard",
     icon: Home,
   },
-];
-
-const postManagementItems = [
   {
-    title: "Create",
-    url: "create",
+    title: "Create Post",
+    url: "/dashboard/posts/create",
     icon: PlusCircleIcon,
   },
   {
-    title: "Manage",
-    url: "manage",
-    icon: SquareChartGantt,
+    title: "Your Account",
+    url: "/dashboard/user/account",
+    icon: SettingsIcon,
   },
 ];
 
 const setting_items = [
   {
-    title: "Set Site Settings",
+    title: "Site Settings",
     url: "/dashboard/settings#site",
     icon: PanelTopIcon,
   },
   {
-    title: "Manage All Users",
+    title: "Manage Users",
     url: "/dashboard/user/manage_all",
     icon: UsersIcon,
+  },
+  {
+    title: "About this instance",
+    url: "/dashboard/settings/about",
+    icon: InfoIcon,
   },
 ];
 
@@ -65,19 +84,50 @@ export default function DashboardSidebar({
   session: typeof authClient.$Infer.Session;
 }) {
   const router = useRouter();
+  const { setOpenMobile, isMobile } = useSidebar();
+
+  // Auto-close sidebar on mobile when clicking links
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
   return (
-    <Sidebar className="mt-12">
-      <SidebarContent>
+    <Sidebar className="border-r">
+      <SidebarHeader className="border-b p-4">
+        <div className="flex flex-row justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
+              <Image
+                src={session.user.image || "/user/default_pfp.png"}
+                width={60}
+                height={60}
+                alt="Profile Picture"
+                className="rounded-full"
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">{session.user.name}</span>
+              <span className="text-xs text-muted-foreground">
+                {session.user.role === "admin" ? "Administrator" : "User"}
+              </span>
+            </div>
+          </div>
+          <ModeToggle />
+        </div>
+      </SidebarHeader>
+
+      <SidebarContent className="flex flex-col">
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel></SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarTrigger />
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link href={item.url as Route}>
-                      <item.icon />
+                    <Link href={item.url as Route} onClick={handleLinkClick}>
+                      <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -86,33 +136,17 @@ export default function DashboardSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Logs</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {postManagementItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link href={`/dashboard/posts/${item.url}` as Route}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+
         {session.user.role === "admin" && (
           <SidebarGroup>
-            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupLabel>Administration</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {setting_items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <Link href={`${item.url}` as Route}>
-                        <item.icon />
+                      <Link href={item.url as Route} onClick={handleLinkClick}>
+                        <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -122,32 +156,60 @@ export default function DashboardSidebar({
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-        <SidebarGroup>
-          <SidebarGroupLabel>Account</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <button
-                    onClick={() =>
-                      authClient.signOut({
-                        fetchOptions: {
-                          onSuccess: () => {
-                            router.push("/");
-                          },
-                        },
-                      })
-                    }
-                  >
-                    <LogOutIcon />
-                    <span>Logout</span>
-                  </button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (isMobile) {
+                  setOpenMobile(false);
+                }
+                authClient.signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      router.push("/");
+                    },
+                  },
+                });
+              }}
+              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+            >
+              <LogOutIcon className="h-4 w-4" />
+              <span>Sign Out</span>
+            </Button>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function ModeToggle() {
+  const { setTheme } = useTheme();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon">
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setTheme("light")}>
+          Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>
+          Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("system")}>
+          System
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -11,12 +11,12 @@ export const GET = async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const offset = searchParams.get("offset");
     const pullFromUserId = searchParams.get("user");
+    const filter = searchParams.get("filters");
     if (offset === null) {
       throw new Error("ERR_NO_PARAMS_TO_USE");
     }
 
     if (!/^\d+$/.test(offset)) {
-      throw new Error("ERR_OFFSET_PARAM_NOT_A_NUMBER");
     }
     if (!Number.isSafeInteger(Number(offset))) {
       throw new Error("ERR_OFFSET_PARAM_NOT_A_SAFE_INTEGER");
@@ -36,15 +36,33 @@ export const GET = async (request: NextRequest) => {
           success: true,
           msg: "",
           result: [],
-          nextOffset: Number(offset) + 50,
+          nextOffset: undefined,
           featDisabled: true,
         });
       }
     } else {
-      query = dorm.and(
-        dorm.eq(main_schema.userPosts.status, "public"),
-        dorm.eq(main_schema.userPosts.byUser, pullFromUserId),
-      );
+      if (filter === null) {
+        const filter2 = JSON.parse(JSON.stringify(filter));
+        if (filter2.by === "tag") {
+          query = dorm.and(
+            dorm.eq(main_schema.userPosts.status, "public"),
+            dorm.and(
+              dorm.eq(main_schema.userPosts.byUser, pullFromUserId),
+              dorm.inArray(main_schema.userPosts.tags, filter2.filter),
+            ),
+          );
+        } else {
+          query = dorm.and(
+            dorm.eq(main_schema.userPosts.status, "public"),
+            dorm.eq(main_schema.userPosts.byUser, pullFromUserId),
+          );
+        }
+      } else {
+        query = dorm.and(
+          dorm.eq(main_schema.userPosts.status, "public"),
+          dorm.eq(main_schema.userPosts.byUser, pullFromUserId),
+        );
+      }
     }
     const dbResult = await db
       .select()
@@ -57,7 +75,7 @@ export const GET = async (request: NextRequest) => {
       success: true,
       msg: "",
       result: dbResult,
-      nextOffset: Number(offset) + 50,
+      nextOffset: dbResult.length < 50 ? undefined : Number(offset) + 50,
       featDisabled: false,
     });
   } catch (e: any) {

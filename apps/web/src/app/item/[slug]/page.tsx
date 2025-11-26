@@ -11,7 +11,6 @@ import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { CalendarPlusIcon, CalendarSyncIcon, DotIcon } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
@@ -59,12 +58,13 @@ export default async function Page(props: {
         {content[0].type === "photos" && content[0].imageUrl !== null && (
           <div>
             <img
+              className="max-w-[calc(100%-50px)] max-h-[80dvh] m-2 justify-center text-center align-middle mx-auto"
               src={content[0].imageUrl}
               alt={`An image uploaded by ${getUserInfo[0].name} ${content[0].textData && `with the caption ${content[0].textData}`}`}
             />
           </div>
         )}
-        <div>{content[0].textData ?? ""}</div>
+        <span className="pl-2">{content[0].textData ?? ""}</span>
         <div className="flex flex-row gap-1">
           {(content[0].tags as string[]).map((it: string) => (
             <Link
@@ -75,12 +75,12 @@ export default async function Page(props: {
             </Link>
           ))}
         </div>
-        <div className="flex flex-row">
+        <div className="flex md:flex-row flex-col">
           <Link
             className="flex flex-row gap-1 transition-all duration-300 hover:text-gray-600/80 dark:hover:text-gray-200/80"
             href={`/user/${getUserInfo[0].id}`}
           >
-            <Image
+            <img
               src={
                 getUserInfo[0]?.image !== null
                   ? getUserInfo[0].image
@@ -94,19 +94,18 @@ export default async function Page(props: {
             />
             <span>{getUserInfo[0].name}</span>
           </Link>
-          <DotIcon />
+          <DotIcon className="hidden md:block" />
           <div className="flex flex-row">
             <CalendarPlusIcon className="p-1" />{" "}
             <span>{new Date(content[0].createdAt).toLocaleString()}</span>
           </div>
-          <DotIcon />
+          <DotIcon className="hidden md:block" />
           <div className="flex flex-row">
             <CalendarSyncIcon className="p-1" />{" "}
             <span>{new Date(content[0].updatedAt).toLocaleString()}</span>
           </div>
         </div>
       </div>
-      <div>{JSON.stringify(content)}</div>
     </div>
   );
 }

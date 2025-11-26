@@ -32,11 +32,13 @@ export function ChangeSiteSettings({
     homePage: boolean;
     registration: boolean;
     robotsTxt: boolean;
+    search: boolean;
     sysFailed: boolean;
   }>({
     homePage: false,
     registration: false,
     robotsTxt: false,
+    search: true,
     sysFailed: true,
   });
 
@@ -60,6 +62,7 @@ export function ChangeSiteSettings({
           homePage: res.data.homePage,
           registration: res.data.registration,
           robotsTxt: res.data.robotsTxt,
+          search: res.data.search,
           sysFailed: false,
         });
         return;
@@ -68,6 +71,7 @@ export function ChangeSiteSettings({
           homePage: statusSystemPull.homePage,
           registration: statusSystemPull.registration,
           robotsTxt: statusSystemPull.robotsTxt,
+          search: statusSystemPull.search,
           sysFailed: true,
         });
         console.error(e);
@@ -172,6 +176,7 @@ export function ChangeSiteSettings({
                 homePage: checked,
                 registration: statusSystemPull.registration,
                 robotsTxt: statusSystemPull.robotsTxt,
+                search: statusSystemPull.search,
                 sysFailed: statusSystemPull.sysFailed,
               });
               sendData.mutate({
@@ -180,6 +185,7 @@ export function ChangeSiteSettings({
                   homePage: checked,
                   registration: statusSystemPull.registration,
                   robotsTxt: statusSystemPull.robotsTxt,
+                  search: statusSystemPull.search,
                 },
               });
               getToggleData.mutate();
@@ -198,6 +204,7 @@ export function ChangeSiteSettings({
                 homePage: statusSystemPull.homePage,
                 registration: checked,
                 robotsTxt: statusSystemPull.robotsTxt,
+                search: statusSystemPull.search,
                 sysFailed: statusSystemPull.sysFailed,
               });
               sendData.mutate({
@@ -206,6 +213,7 @@ export function ChangeSiteSettings({
                   homePage: statusSystemPull.homePage,
                   registration: checked,
                   robotsTxt: statusSystemPull.robotsTxt,
+                  search: statusSystemPull.search,
                 },
               });
               getToggleData.mutate();
@@ -224,6 +232,7 @@ export function ChangeSiteSettings({
                 homePage: statusSystemPull.homePage,
                 registration: statusSystemPull.registration,
                 robotsTxt: checked,
+                search: statusSystemPull.search,
                 sysFailed: statusSystemPull.sysFailed,
               });
               sendData.mutate({
@@ -232,6 +241,7 @@ export function ChangeSiteSettings({
                   homePage: statusSystemPull.homePage,
                   registration: statusSystemPull.registration,
                   robotsTxt: checked,
+                  search: statusSystemPull.search,
                 },
               });
               getToggleData.mutate();
@@ -239,6 +249,34 @@ export function ChangeSiteSettings({
             disabled={statusSystemPull.sysFailed}
           />
           <Label htmlFor="robots-enable">Enable robots.txt</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="search-enable"
+            checked={statusSystemPull.search}
+            onCheckedChange={(checked) => {
+              console.log(`Search: ${checked}`);
+              setStatusSystemPull({
+                homePage: statusSystemPull.homePage,
+                registration: statusSystemPull.registration,
+                robotsTxt: statusSystemPull.robotsTxt,
+                search: checked,
+                sysFailed: statusSystemPull.sysFailed,
+              });
+              sendData.mutate({
+                action: "change_home_page_register_robotstxt_toggles",
+                data: {
+                  homePage: statusSystemPull.homePage,
+                  registration: statusSystemPull.registration,
+                  robotsTxt: statusSystemPull.robotsTxt,
+                  search: checked,
+                },
+              });
+              getToggleData.mutate();
+            }}
+            disabled={statusSystemPull.sysFailed}
+          />
+          <Label htmlFor="search-enable">Enable search</Label>
         </div>
       </div>
     </>

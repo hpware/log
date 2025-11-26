@@ -1,5 +1,5 @@
-import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { betterAuth } from "better-auth";
 import { db } from "@devlogs_hosting/db";
 import * as schema from "@devlogs_hosting/db/schema/auth";
 import { admin } from "better-auth/plugins";
@@ -10,7 +10,7 @@ export const auth = betterAuth({
 
     schema: schema,
   }),
-  trustedOrigins: [process.env.CORS_ORIGIN || ""],
+  trustedOrigins: JSON.parse(JSON.stringify(process.env.CORS_ORIGINS || [])),
   emailAndPassword: {
     enabled: true,
   },
@@ -26,22 +26,14 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user, ctx) => {
-          // Check if context is available
-          if (!ctx?.internalAdapter) {
-            // Fallback: assign default role if no context
-            return {
-              data: {
-                ...user,
-                role: "user",
-              },
-            };
-          }
           try {
-            // Check if this is the first user using internalAdapter
-            const existingUsers = await ctx.internalAdapter.findMany({
-              model: "user",
-              limit: 1,
-            });
+            // Query database directly using your existing Drizzle connection
+            const existingUsers = await db
+              .select()
+              .from(schema.user)
+              .limit(1)
+              .execute();
+
             // If no users exist, make this user an admin
             if (existingUsers.length === 0) {
               return {

@@ -1,9 +1,25 @@
 "use client";
 import { authClient } from "@/lib/auth-client";
-import { useMutation, useInfiniteQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import {
+  useMutation,
+  useInfiniteQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { auth_schema } from "../../../../../../../packages/db/src/index";
 import DataTable from "@/components/table";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   User,
   Mail,
@@ -16,11 +32,32 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { Input } from "@/components/ui/input";
 
 export function Client() {
+  const queryClient = useQueryClient();
   const submitToServer = useMutation({
-    mutationFn: async (data: any) => {
-      return;
+    mutationFn: async (sendData: any) => {
+      try {
+        const req = await fetch("/api/data/settings?tab=admin_user_actions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "appilcation/json",
+          },
+          body: JSON.stringify(sendData),
+        });
+        const res = await req.json();
+        if (res.success != true) {
+          throw new Error(res.msg);
+        }
+        return;
+      } catch (e: any) {
+        console.error(e);
+        toast.error(`Fetch Failed: ${e.message}`);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["content"] });
     },
   });
 
@@ -59,6 +96,7 @@ export function Client() {
 
   return (
     <div>
+      <span className="italic text-lg">Manage Users</span>
       {flattenedData.length > 0 && (
         <DataTable
           columns={[
@@ -77,7 +115,10 @@ export function Client() {
                     alt={`Profile Pic for ${row.getValue("name")}`}
                     width={35}
                     height={35}
-                    className={`rounded-full w-6 h-6 ${row.original.banned && "grayscale"}`}
+                    className="rounded-full w-6 h-6"
+                    style={{
+                      filter: row.original.banned ? "grayscale(100%)" : "none",
+                    }}
                   />
                   {row.getValue("name") || "N/A"}
                 </div>
@@ -117,16 +158,19 @@ export function Client() {
               cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                   {row.original.banned ? (
-                    <UserMinusIcon className="h-4 w-4" />
+                    <UserMinusIcon className="h-4 w-4 text-red-600 dark:text-red-500" />
                   ) : row.getValue("role") === "admin" ? (
-                    <UserStarIcon className="h-4 w-4" />
+                    <UserStarIcon className="h-4 w-4 text-yellow-600 dark:text-yellow-300" />
                   ) : (
                     <User className="h-4 w-4" />
                   )}
-                  <span>
-                    {row.getValue("role")}
-                    {row.original.banned && <>- Banned</>}
-                  </span>
+                  {row.original.banned ? (
+                    <span className="text-red-600 dark:text-red-500">
+                      banned
+                    </span>
+                  ) : (
+                    <span>{row.getValue("role")}</span>
+                  )}
                 </div>
               ),
             },
@@ -163,26 +207,84 @@ export function Client() {
               header: () => <div></div>,
               cell: ({ row }) => (
                 <div className="flex items-center gap-2">
-                  <Button
-                    onClick={() => {
-                      submitToServer.mutate({
-                        action: "ban_user",
-                        user: row.original.id,
-                      });
-                    }}
-                  >
-                    Ban User
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      submitToServer.mutate({
-                        action: "delete_user",
-                        user: row.original.id,
-                      });
-                    }}
-                  >
-                    Delete User
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        className="cursor-pointer transition-all duration-300 bg-red-600 hover:bg-red-600/70 dark:bg-red-700 dark:hover:bg-red-300/70 text-white"
+                      >
+                        Ban User
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Are you absolutely sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="flex flex-col">
+                          <span>
+                            This action can be undone. This will remove the
+                            user's page & login method.
+                          </span>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter className="flex gap-3 sm:justify-end">
+                        <AlertDialogCancel className="mt-0 cursor-pointer transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          className="cursor-pointer transition-all duration-300 bg-red-600 hover:bg-red-600/70 dark:bg-red-700 dark:hover:bg-red-300/70 text-white"
+                          onClick={() => {
+                            submitToServer.mutate({
+                              action: "ban_user",
+                              user: row.original.id,
+                              reason: "spamming",
+                            });
+                          }}
+                        >
+                          Ban User
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        className="cursor-pointer transition-all duration-300 bg-red-600 hover:bg-red-600/70 dark:bg-red-700 dark:hover:bg-red-300/70 text-white"
+                      >
+                        Delete User
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Are you absolutely sure?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete this account and remove this user's data from
+                          this instence.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter className="flex gap-3 sm:justify-end">
+                        <AlertDialogCancel className="mt-0 cursor-pointer transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          className="cursor-pointer transition-all duration-300 bg-red-600 hover:bg-red-600/70 dark:bg-red-700 dark:hover:bg-red-300/70 text-white"
+                          onClick={() => {
+                            submitToServer.mutate({
+                              action: "delete_user",
+                              user: row.original.id,
+                            });
+                          }}
+                        >
+                          Delete User
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               ),
             },
