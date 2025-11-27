@@ -54,4 +54,16 @@ export const kvData = pgTable("kv_data", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
-//export const postTrackCount
+
+export const urlShorter = pgTable("url_shorter", {
+  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  urlSlug: text("url_slug").notNull().unique(),
+  linkedItem: text("linked_item")
+    .notNull()
+    .references(() => userPosts.postId),
+  byUser: text("by_user")
+    .notNull()
+    .references(() => user.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});

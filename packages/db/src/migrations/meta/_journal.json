@@ -85,6 +85,13 @@
       "when": 1763002338603,
       "tag": "0011_numerous_molly_hayes",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1764211270662,
+      "tag": "0012_wild_rictor",
+      "breakpoints": true
     }
   ]
 }
