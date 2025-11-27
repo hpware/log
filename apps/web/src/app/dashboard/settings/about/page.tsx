@@ -93,7 +93,6 @@ export default async function DashboardPage() {
         </TableBody>
       </Table>
       <PromoBlock />
-      ma{" "}
     </div>
   );
 }
