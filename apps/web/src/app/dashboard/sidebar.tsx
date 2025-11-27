@@ -4,12 +4,12 @@ import {
   LogOutIcon,
   PanelTopIcon,
   PlusCircleIcon,
-  SquareChartGantt,
   UsersIcon,
   Sun,
   Moon,
   SettingsIcon,
   InfoIcon,
+  CircleArrowLeftIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -94,9 +94,9 @@ export default function DashboardSidebar({
   };
 
   return (
-    <Sidebar className="border-r">
-      <SidebarHeader className="border-b p-4">
-        <div className="flex flex-row justify-between">
+    <Sidebar className="border-r scrollbar-hide overflow-y-hidden overscroll-y-none no-scrollbar">
+      <SidebarHeader className="border-b p-4 scrollbar-hide overflow-y-hidden overscroll-y-none no-scrollbar">
+        <div className="flex flex-row justify-between scrollbar-hide">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
               <Image
@@ -118,7 +118,7 @@ export default function DashboardSidebar({
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="flex flex-col">
+      <SidebarContent className="flex flex-col overflow-y-hidden overscroll-y-none no-scrollbar">
         <SidebarGroup>
           <SidebarGroupLabel></SidebarGroupLabel>
           <SidebarGroupContent>
@@ -159,7 +159,18 @@ export default function DashboardSidebar({
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
+        <SidebarMenu className="space-y-1">
+          <SidebarMenuItem>
+            <Link href="/">
+              <Button
+                variant="outline"
+                className="w-full justify-start hover:text-outline hover:bg-outline/10 cursor-pointer"
+              >
+                <CircleArrowLeftIcon className="h-4 w-4" />
+                <span>Back Home</span>
+              </Button>
+            </Link>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <Button
               variant="outline"

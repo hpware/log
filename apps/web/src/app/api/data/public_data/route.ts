@@ -41,28 +41,10 @@ export const GET = async (request: NextRequest) => {
         });
       }
     } else {
-      if (filter === null) {
-        const filter2 = JSON.parse(JSON.stringify(filter));
-        if (filter2.by === "tag") {
-          query = dorm.and(
-            dorm.eq(main_schema.userPosts.status, "public"),
-            dorm.and(
-              dorm.eq(main_schema.userPosts.byUser, pullFromUserId),
-              dorm.inArray(main_schema.userPosts.tags, filter2.filter),
-            ),
-          );
-        } else {
-          query = dorm.and(
-            dorm.eq(main_schema.userPosts.status, "public"),
-            dorm.eq(main_schema.userPosts.byUser, pullFromUserId),
-          );
-        }
-      } else {
-        query = dorm.and(
-          dorm.eq(main_schema.userPosts.status, "public"),
-          dorm.eq(main_schema.userPosts.byUser, pullFromUserId),
-        );
-      }
+      query = dorm.and(
+        dorm.eq(main_schema.userPosts.status, "public"),
+        dorm.eq(main_schema.userPosts.byUser, pullFromUserId),
+      );
     }
     const dbResult = await db
       .select()
