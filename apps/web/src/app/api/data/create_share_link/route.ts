@@ -8,5 +8,7 @@ import {
 
 export const POST = (request: NextRequest) => {
   const body = request.json();
-  return "ok";
+  return new Response("ok", {
+    status: 403,
+  });
 };

@@ -130,7 +130,10 @@ body {
 }
 
 ::selection {
-    background: var(--selection-color);
+    @apply opacity-1 bg-amber-300;
+}
+.dark ::selection {
+    @apply bg-amber-700;
 }
 
 .fasterSpinner {

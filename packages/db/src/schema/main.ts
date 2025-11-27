@@ -67,3 +67,9 @@ export const urlShorter = pgTable("url_shorter", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export const collections = pgTable("collections", {
+  id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
+  collectionId: text("collection_id").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+});
