@@ -29,6 +29,7 @@ import {
   MailCheckIcon,
   MailXIcon,
   UserMinusIcon,
+  RotateCcwIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -82,6 +83,7 @@ export function Client() {
     isFetching,
     isFetchingNextPage,
     status,
+    refetch,
   } = useInfiniteQuery({
     queryKey: ["content"],
     queryFn: fetchData,
@@ -96,7 +98,20 @@ export function Client() {
 
   return (
     <div>
-      <span className="italic text-lg">Manage Users</span>
+      <div className="flex flex-row justify-between mb-2 mr-2">
+        <span className="italic text-lg">Manage Users</span>
+        <div className="flex flex-row">
+          <Button
+            variant="outline"
+            onClick={() => {
+              refetch();
+              toast.success("Refreshed!");
+            }}
+          >
+            <RotateCcwIcon />
+          </Button>
+        </div>
+      </div>
       {flattenedData.length > 0 && (
         <DataTable
           columns={[

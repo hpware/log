@@ -71,8 +71,8 @@ export const POST = async (request: NextRequest) => {
             .where(dorm.eq(main_schema.kvData.key, "title"));
           await db
             .update(main_schema.kvData)
-            .set({ value: body.title })
-            .where(dorm.eq(main_schema.kvData.key, "title"));
+            .set({ value: body.description })
+            .where(dorm.eq(main_schema.kvData.key, "description"));
           return Response.json(
             {
               success: true,

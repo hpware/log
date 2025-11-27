@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 // import types
 import type { User as AuthUserType } from "better-auth";
@@ -145,7 +146,7 @@ export default function Client({ session }: { session: AuthUserType }) {
           </div>
         </div>
       </div>
-      <span>{JSON.stringify(session)}</span>
+      <Button>Submit</Button>
     </div>
   );
 }
