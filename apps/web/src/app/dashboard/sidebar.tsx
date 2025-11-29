@@ -42,48 +42,6 @@ import type { Route } from "next";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 
-// Menu items.
-const items1 = [
-  {
-    title: "Home",
-    url: "/dashboard",
-    icon: Home,
-  },
-  {
-    title: "Create Post",
-    url: "/dashboard/posts/create",
-    icon: PlusCircleIcon,
-  },
-  {
-    title: "Collections",
-    url: "/dashboard/collections/",
-    icon: LibraryIcon,
-  },
-  {
-    title: "Your Account",
-    url: "/dashboard/user/account",
-    icon: SettingsIcon,
-  },
-];
-
-const setting_items = [
-  {
-    title: "Site Settings",
-    url: "/dashboard/settings#site",
-    icon: PanelTopIcon,
-  },
-  {
-    title: "Manage Users",
-    url: "/dashboard/user/manage_all",
-    icon: UsersIcon,
-  },
-  {
-    title: "About this instance",
-    url: "/dashboard/settings/about",
-    icon: InfoIcon,
-  },
-];
-
 const items = [
   {
     title: "",
@@ -113,6 +71,11 @@ const items = [
       {
         title: "Collections",
         url: "/dashboard/collections/",
+        icon: LibraryIcon,
+      },
+      {
+        title: "Collections",
+        url: "/dashboard/collections/create",
         icon: LibraryIcon,
       },
     ],

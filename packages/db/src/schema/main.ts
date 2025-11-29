@@ -58,9 +58,7 @@ export const kvData = pgTable("kv_data", {
 export const urlShorter = pgTable("url_shorter", {
   id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
   urlSlug: text("url_slug").notNull().unique(),
-  linkedItem: text("linked_item")
-    .notNull()
-    .references(() => userPosts.postId),
+  targetUrl: text("target_url").notNull(),
   byUser: text("by_user")
     .notNull()
     .references(() => user.id),
@@ -72,4 +70,10 @@ export const collections = pgTable("collections", {
   id: integer("id").generatedByDefaultAsIdentity().primaryKey(),
   collectionId: text("collection_id").notNull().unique(),
   slug: text("slug").notNull().unique(),
+  items: jsonb("items").notNull().default({}),
+  byUser: text("by_user")
+    .notNull()
+    .references(() => user.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });

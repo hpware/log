@@ -244,7 +244,7 @@ export function PublicPostsAndVideos({
                   )
                 )}
                 {!noDisplay?.includes("link") && (
-                  <Link href={`/item/${i.postId}`}>
+                  <Link href={`/i/${i.postId}`}>
                     <ExternalLink />
                   </Link>
                 )}
@@ -341,7 +341,7 @@ export function PublicPostsAndVideos({
                           </div>
                         )
                       )}
-                      <Link href={`/item/${i.postId}`}>
+                      <Link href={`/i/${i.postId}`}>
                         <ExternalLink />
                       </Link>
                     </div>

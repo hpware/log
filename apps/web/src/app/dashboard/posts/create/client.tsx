@@ -193,7 +193,7 @@ export default function Dashboard({
               <p className="font-medium">Saved!</p>
               {postStatus !== "draft" && (
                 <Link
-                  href={`/item/${postId}` as Route}
+                  href={`/i/${postId}` as Route}
                   className="underline text-blue-500 hover:text-blue-600 dark:text-blue-300 hover:dark:text-blue-200 cursor-pointer"
                   target="_blank"
                 >
