@@ -91,7 +91,15 @@ function UserMenu() {
         <Button variant="outline">{session.user.name}</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-card">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuLabel as Child>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={`/user/${session.user.id}`}
+            >
+          Your Account
+          </Button>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Button
