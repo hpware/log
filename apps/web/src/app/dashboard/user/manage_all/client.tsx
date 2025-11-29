@@ -21,6 +21,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   User,
   Mail,
   Shield,
@@ -30,6 +38,8 @@ import {
   MailXIcon,
   UserMinusIcon,
   RotateCcwIcon,
+  ChevronDownIcon,
+  CrownIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -173,18 +183,53 @@ export function Client() {
               cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                   {row.original.banned ? (
-                    <UserMinusIcon className="h-4 w-4 text-red-600 dark:text-red-500" />
-                  ) : row.getValue("role") === "admin" ? (
-                    <UserStarIcon className="h-4 w-4 text-yellow-600 dark:text-yellow-300" />
+                    <>
+                      <UserMinusIcon className="h-4 w-4 text-red-600 dark:text-red-500" />
+                      <span className="text-red-600 dark:text-red-500">
+                        banned
+                      </span>
+                    </>
                   ) : (
-                    <User className="h-4 w-4" />
-                  )}
-                  {row.original.banned ? (
-                    <span className="text-red-600 dark:text-red-500">
-                      banned
-                    </span>
-                  ) : (
-                    <span>{row.getValue("role")}</span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <div className="flex gap-2 group">
+                          {row.original.role === "owner" ? (
+                            <CrownIcon className="h-4 w-4 text-yellow-700 dark:text-yellow-300 group-hover:text-yellow-700/80 dark:group-hover:text-yellow-300/80 duration-300 transition-all" />
+                          ) : row.original.role === "admin" ? (
+                            <UserStarIcon className="h-4 w-4 text-yellow-700 dark:text-yellow-300 group-hover:text-yellow-700/80 dark:group-hover:text-yellow-300/80 duration-300 transition-all" />
+                          ) : (
+                            <User className="h-4 w-4 group-hover:text-black/70 dark:group-hover:text-white/80 transition-all duration-300" />
+                          )}
+                          <span
+                            className={
+                              row.original.role === "admin"
+                                ? " text-yellow-700 dark:text-yellow-300 group-hover:text-yellow-700/80 dark:group-hover:text-yellow-300/80 duration-300 transition-all"
+                                : "group-hover:text-black/70 dark:group-hover:text-white/80 transition-all duration-300"
+                            }
+                          >
+                            {row.getValue("role")}
+                          </span>
+                        </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuLabel>
+                          Change Permissions
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="group">
+                          <User className="h-4 w-4 group-hover:text-black/70 dark:group-hover:text-white/80 transition-all duration-300" />{" "}
+                          <span className="group-hover:text-black/70 dark:group-hover:text-white/80 transition-all duration-300">
+                            user
+                          </span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="group">
+                          <UserStarIcon className="h-4 w-4 text-yellow-700 dark:text-yellow-300 group-hover:text-yellow-700/80 dark:group-hover:text-yellow-300/80 duration-300 transition-all" />{" "}
+                          <span className="text-yellow-700 dark:text-yellow-300 group-hover:text-yellow-700/80 dark:group-hover:text-yellow-300/80 duration-300 transition-all">
+                            admin
+                          </span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                 </div>
               ),

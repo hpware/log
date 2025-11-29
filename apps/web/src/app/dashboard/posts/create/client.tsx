@@ -194,7 +194,7 @@ export default function Dashboard({
               {postStatus !== "draft" && (
                 <Link
                   href={`/item/${postId}` as Route}
-                  className="underline text-blue-500 hover:text-blue-600 cursor-pointer"
+                  className="underline text-blue-500 hover:text-blue-600 dark:text-blue-300 hover:dark:text-blue-200 cursor-pointer"
                   target="_blank"
                 >
                   View your post
@@ -265,112 +265,119 @@ export default function Dashboard({
     ]);
   };
   return (
-    <div className="flex flex-col w-full max-w-4xl mx-auto p-2 sm:p-4">
-      <Tabs
-        defaultValue="text"
-        className="pl-2 w-full"
-        onValueChange={(vl) => {
-          setCurrentOption(vl as "text" | "photos" | "video");
-          setUploadedFileUrl(null); // Reset uploaded file when switching tabs
-        }}
-      >
-        <TabsList>
-          <TabsTrigger value="text">Text</TabsTrigger>
-          <TabsTrigger value="photos">Photo</TabsTrigger>
-          <TabsTrigger value="video">Video</TabsTrigger>
-        </TabsList>
+    <div>
+      <span className="text-lg italic">Create new post</span>
+      <hr />
+      <div className="flex flex-col w-full max-w-4xl mx-auto p-2 sm:p-4">
         <Tabs
-          defaultValue="draft"
-          className=""
+          defaultValue="text"
+          className="pl-2 w-full"
           onValueChange={(vl) => {
-            setCurrentPublishOption(
-              vl as "draft" | "private" | "unlisted" | "public",
-            );
+            setCurrentOption(vl as "text" | "photos" | "video");
+            setUploadedFileUrl(null); // Reset uploaded file when switching tabs
           }}
         >
           <TabsList>
-            <TabsTrigger value="draft">Draft</TabsTrigger>
-            <TabsTrigger value="private">Private</TabsTrigger>
-            <TabsTrigger value="unlisted">Link-only</TabsTrigger>
-            <TabsTrigger value="public">Public</TabsTrigger>
+            <TabsTrigger value="text">Text</TabsTrigger>
+            <TabsTrigger value="photos">Photo</TabsTrigger>
+            <TabsTrigger value="video">Video</TabsTrigger>
           </TabsList>
+          <Tabs
+            defaultValue="draft"
+            className=""
+            onValueChange={(vl) => {
+              setCurrentPublishOption(
+                vl as "draft" | "private" | "unlisted" | "public",
+              );
+            }}
+          >
+            <TabsList>
+              <TabsTrigger value="draft">Draft</TabsTrigger>
+              <TabsTrigger value="private">Private</TabsTrigger>
+              <TabsTrigger value="unlisted">Link-only</TabsTrigger>
+              <TabsTrigger value="public">Public</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <span>
+            tags:
+            <input
+              type="text"
+              value={tagData.inputBox}
+              maxLength={20}
+              onChange={(e) => {
+                setTagData({ tags: tagData.tags, inputBox: e.target.value });
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === "Space") {
+                  e.preventDefault();
+                  if (tagData.inputBox.replaceAll(" ", "").length === 0) {
+                    toast.error("This cannot be empty");
+                    return;
+                  }
+                  if (tagData.tags.includes(tagData.inputBox)) {
+                    toast.error("This tag is already used in this post.");
+                    return;
+                  }
+                  setTagData({
+                    tags: [
+                      ...tagData.tags,
+                      tagData.inputBox.replaceAll(" ", ""),
+                    ],
+                    inputBox: "",
+                  });
+                }
+              }}
+            />
+          </span>
+          <div className="flex flex-row gap-1 flex-wrap">
+            {tagData.tags.map((it: string) => (
+              <button key={it} onClick={() => deleteTag(it)}>
+                <Badge
+                  variant="default"
+                  className="hover:bg-red-500 hover:text-white hover:line-through justify-center text-center transition-all duration-300"
+                >
+                  {it}
+                </Badge>
+              </button>
+            ))}
+          </div>
+          <textarea
+            value={textBoxData}
+            onChange={(v) => setTextBoxData(v.target.value)}
+            className="border w-full h-12 resize-none rounded"
+          />
+          <TabsContent value="photos">
+            <UploadComponent
+              fileUploadingDivBox={fileUploadingDivBox}
+              fileUploadBox={fileUploadBox}
+              uploadLimit={uploadLimit}
+              onFileSelect={handleFileSelect}
+            />
+          </TabsContent>
+          <TabsContent value="video">
+            <UploadComponent
+              fileUploadingDivBox={fileUploadingDivBox}
+              fileUploadBox={fileUploadBox}
+              uploadLimit={uploadLimit}
+              onFileSelect={handleFileSelect}
+            />
+          </TabsContent>
         </Tabs>
-        <span>
-          tags:
-          <input
-            type="text"
-            value={tagData.inputBox}
-            maxLength={20}
-            onChange={(e) => {
-              setTagData({ tags: tagData.tags, inputBox: e.target.value });
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === "Space") {
-                e.preventDefault();
-                if (tagData.inputBox.replaceAll(" ", "").length === 0) {
-                  toast.error("This cannot be empty");
-                  return;
-                }
-                if (tagData.tags.includes(tagData.inputBox)) {
-                  toast.error("This tag is already used in this post.");
-                  return;
-                }
-                setTagData({
-                  tags: [...tagData.tags, tagData.inputBox.replaceAll(" ", "")],
-                  inputBox: "",
-                });
-              }
-            }}
-          />
-        </span>
-        <div className="flex flex-row gap-1 flex-wrap">
-          {tagData.tags.map((it: string) => (
-            <button key={it} onClick={() => deleteTag(it)}>
-              <Badge
-                variant="default"
-                className="hover:bg-red-500 hover:text-white hover:line-through justify-center text-center transition-all duration-300"
-              >
-                {it}
-              </Badge>
-            </button>
-          ))}
+        <div className="gap-2 flex flex-col sm:flex-row">
+          <Button onClick={handleSend} disabled={isPending}>
+            Send it!
+          </Button>
+          <Button onClick={setPreviewDataFunction}>View Preview</Button>
         </div>
-        <textarea
-          value={textBoxData}
-          onChange={(v) => setTextBoxData(v.target.value)}
-          className="border w-full h-12 resize-none rounded"
-        />
-        <TabsContent value="photos">
-          <UploadComponent
-            fileUploadingDivBox={fileUploadingDivBox}
-            fileUploadBox={fileUploadBox}
-            uploadLimit={uploadLimit}
-            onFileSelect={handleFileSelect}
+        <div>
+          <span className="ml-5 mt-3 text-xl font-bold">Preview</span>
+          <PublicPostsAndVideos
+            mode="search"
+            passedData={previewData}
+            key={`${previewData.length}-${crypto.randomUUID()}`}
+            noDisplay={["link", "profileLink"]}
           />
-        </TabsContent>
-        <TabsContent value="video">
-          <UploadComponent
-            fileUploadingDivBox={fileUploadingDivBox}
-            fileUploadBox={fileUploadBox}
-            uploadLimit={uploadLimit}
-            onFileSelect={handleFileSelect}
-          />
-        </TabsContent>
-      </Tabs>
-      <div className="gap-2 flex flex-col sm:flex-row">
-        <Button onClick={handleSend} disabled={isPending}>
-          Send it!
-        </Button>
-        <Button onClick={setPreviewDataFunction}>View Preview</Button>
-      </div>
-      <div>
-        <span className="ml-5 mt-3 text-xl font-bold">Preview</span>
-        <PublicPostsAndVideos
-          mode="search"
-          passedData={previewData}
-          key={`${previewData.length}-${crypto.randomUUID()}`}
-          noDisplay={["link", "profileLink"]}
-        />
+        </div>
       </div>
     </div>
   );

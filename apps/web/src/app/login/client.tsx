@@ -125,6 +125,9 @@ function SignInForm({
           )}
         </form.Subscribe>
       </form>
+      <span className="geint-sans text-sm justify-center text-center align-middle italic">
+        By signing in, you agree on the instance owner's terms.
+      </span>
 
       {registerEnabled && (
         <div className="mt-4 text-center">

@@ -24,39 +24,27 @@ export const GET = async () => {
 };
 
 export const POST = async (request: NextRequest) => {
+  let statusCode = 200;
   try {
     const header = await headers();
     const session = await auth.api.getSession({ headers: header });
     if (!session) {
-      return Response.json(
-        { success: false, msg: "ERR_USR_INVALID_SESSION" },
-        { status: 401 },
-      );
+      statusCode = 401;
+      throw new Error("ERR_USR_INVALID_SESSION");
     }
     const { searchParams } = new URL(request.url);
     const tabAction = searchParams.get("tab");
     const body = await request.json();
     if (!(body && tabAction)) {
-      return Response.json(
-        {
-          success: false,
-          status: 400,
-          msg: "No enough params",
-        },
-        {
-          status: 400,
-          statusText: "No enough params",
-        },
-      );
+      statusCode = 400;
+      throw new Error("ERR_INCORRECT_PARAMS");
     }
 
     // settings tab
     if (tabAction === "settings") {
       if (session.user.role !== "admin") {
-        return Response.json(
-          { success: false, msg: "ERR_USR_INVALID_PERMS", uploadUrl: "" },
-          { status: 403 },
-        );
+        statusCode = 403;
+        throw new Error("ERR_USR_INVALID_PERMS");
       }
       // changes to the site title system
       if (
@@ -84,16 +72,8 @@ export const POST = async (request: NextRequest) => {
             },
           );
         } catch (e: any) {
-          return Response.json(
-            {
-              success: false,
-              status: 500,
-              msg: e.message,
-            },
-            {
-              status: 500,
-            },
-          );
+          statusCode = 500;
+          throw new Error(e.message || "ERR_GENERIC");
         }
       }
       if (body.action === "obtain_toggle_data_for_robotsTxt_and_others") {
@@ -140,17 +120,8 @@ export const POST = async (request: NextRequest) => {
             },
           );
         } catch (e: any) {
-          return Response.json(
-            {
-              success: false,
-              status: 500,
-              msg: e.message,
-              data: {},
-            },
-            {
-              status: 500,
-            },
-          );
+          statusCode = 500;
+          throw new Error(e.message || "ERR_GENERIC");
         }
       }
       if (body.action === "change_home_page_register_robotstxt_toggles") {
@@ -200,16 +171,8 @@ export const POST = async (request: NextRequest) => {
             },
           );
         } catch (e: any) {
-          return Response.json(
-            {
-              success: false,
-              status: 500,
-              msg: e.message,
-            },
-            {
-              status: 500,
-            },
-          );
+          statusCode = 500;
+          throw new Error(e.message || "ERR_GENERIC");
         }
       }
       if (body.action === "site_robots_txt_json") {
@@ -234,16 +197,8 @@ export const POST = async (request: NextRequest) => {
             },
           );
         } catch (e: any) {
-          return Response.json(
-            {
-              success: false,
-              status: 500,
-              msg: e.message,
-            },
-            {
-              status: 500,
-            },
-          );
+          statusCode = 500;
+          throw new Error(e.message || "ERR_GENERIC");
         }
       }
       if (body.action === "pullCurrentRobotsTxt") {
@@ -265,24 +220,21 @@ export const POST = async (request: NextRequest) => {
             },
           );
         } catch (e: any) {
-          return Response.json(
-            {
-              success: false,
-              status: 500,
-              msg: e.message,
-              data: {},
-            },
-            {
-              status: 500,
-            },
-          );
+          statusCode = 500;
+          throw new Error(e.message || "ERR_GENERIC");
         }
       }
       if (body.action === "change_umami") {
+        statusCode = 500;
+        throw new Error("ERR_NO_FEATURE");
       }
       if (body.action === "change_rybbit") {
+        statusCode = 500;
+        throw new Error("ERR_NO_FEATURE");
       }
       if (body.action === "change_custom_scripts") {
+        statusCode = 500;
+        throw new Error("ERR_NO_FEATURE");
       }
     } else if (tabAction === "post_manage") {
       if (body.action === "delete") {
@@ -294,10 +246,8 @@ export const POST = async (request: NextRequest) => {
       }
     } else if (tabAction === "admin_user_actions") {
       if (session.user.role !== "admin") {
-        return Response.json(
-          { success: false, msg: "ERR_USR_INVALID_PERMS", uploadUrl: "" },
-          { status: 403 },
-        );
+        statusCode = 403;
+        throw new Error("ERR_USR_INVALID_PERMS");
       }
       if (body.action === "delete_user") {
         try {
@@ -317,6 +267,7 @@ export const POST = async (request: NextRequest) => {
             headers: header,
           });
           if (!data.success) {
+            statusCode = 500;
             throw new Error("ERR_REMOVE_FAILED");
           }
           return Response.json(
@@ -327,13 +278,8 @@ export const POST = async (request: NextRequest) => {
           );
         } catch (e: any) {
           console.log(e);
-          return Response.json(
-            { success: false, msg: e.msg || "" },
-            {
-              status: 500,
-              statusText: e.msg !== undefined ? e.msg : "Server Side Error",
-            },
-          );
+          statusCode = 403;
+          throw new Error(e.message || "ERR_GENERIC");
         }
       } else if (body.action === "ban_user") {
         try {
@@ -366,14 +312,9 @@ export const POST = async (request: NextRequest) => {
             },
           );
         } catch (e: any) {
-          console.error(e);
-          return Response.json(
-            { success: false, msg: e.msg },
-            {
-              status: 500,
-              statusText: e.msg !== undefined ? e.msg : "Server Side Error",
-            },
-          );
+          console.log(e);
+          statusCode = 500;
+          throw new Error(e.message || "ERR_GENERIC");
         }
       } else if (body.action === "revoke_sessions") {
         try {
@@ -397,23 +338,26 @@ export const POST = async (request: NextRequest) => {
             },
           );
         } catch (e: any) {
-          return Response.json(
-            { success: false, msg: e.msg },
-            {
-              status: 500,
-              statusText: e.msg !== undefined ? e.msg : "Server Side Error",
-            },
-          );
+          console.log(e);
+          statusCode = 500;
+          throw new Error(e.message || "ERR_GENERIC");
+        }
+      } else if (body.action === "change_perms") {
+        try {
+          statusCode = 500;
+          throw new Error("ERR_NO_FEATURE");
+        } catch (e: any) {
+          console.log(e);
+          statusCode = 500;
+          throw new Error(e.message || "ERR_GENERIC");
         }
       }
     } else if (tabAction === "non_admin_user") {
       if (body.action === "profile_pic_update") {
         try {
           if (!body.imageUrl) {
-            return Response.json(
-              { success: false, msg: "No image URL provided" },
-              { status: 400 },
-            );
+            statusCode = 400;
+            throw new Error("ERR_INCORRECT_PARAMSs");
           }
 
           await db
@@ -426,10 +370,9 @@ export const POST = async (request: NextRequest) => {
             { status: 200 },
           );
         } catch (e: any) {
-          return Response.json(
-            { success: false, msg: e.message },
-            { status: 500 },
-          );
+          console.log(e);
+          statusCode = 500;
+          throw new Error(e.message || "ERR_GENERIC");
         }
       }
     }
@@ -448,11 +391,12 @@ export const POST = async (request: NextRequest) => {
     return Response.json(
       {
         success: false,
-        status: 500,
+        status: statusCode,
         msg: e.message,
+        data: {},
       },
       {
-        status: 500,
+        status: statusCode,
       },
     );
   }

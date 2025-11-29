@@ -10,6 +10,7 @@ import {
   SettingsIcon,
   InfoIcon,
   CircleArrowLeftIcon,
+  LibraryIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -42,7 +43,7 @@ import { useTheme } from "next-themes";
 import { useEffect } from "react";
 
 // Menu items.
-const items = [
+const items1 = [
   {
     title: "Home",
     url: "/dashboard",
@@ -52,6 +53,11 @@ const items = [
     title: "Create Post",
     url: "/dashboard/posts/create",
     icon: PlusCircleIcon,
+  },
+  {
+    title: "Collections",
+    url: "/dashboard/collections/",
+    icon: LibraryIcon,
   },
   {
     title: "Your Account",
@@ -75,6 +81,62 @@ const setting_items = [
     title: "About this instance",
     url: "/dashboard/settings/about",
     icon: InfoIcon,
+  },
+];
+
+const items = [
+  {
+    title: "",
+    perm: null,
+    items: [
+      {
+        title: "Home",
+        url: "/dashboard",
+        icon: Home,
+      },
+      {
+        title: "Create Post",
+        url: "/dashboard/posts/create",
+        icon: PlusCircleIcon,
+      },
+      {
+        title: "Your Account",
+        url: "/dashboard/user/account",
+        icon: SettingsIcon,
+      },
+    ],
+  },
+  {
+    title: "Collections",
+    perm: null,
+    items: [
+      {
+        title: "Collections",
+        url: "/dashboard/collections/",
+        icon: LibraryIcon,
+      },
+    ],
+  },
+  {
+    title: "Administration",
+    perm: "admin",
+    items: [
+      {
+        title: "Site Settings",
+        url: "/dashboard/settings#site",
+        icon: PanelTopIcon,
+      },
+      {
+        title: "Manage Users",
+        url: "/dashboard/user/manage_all",
+        icon: UsersIcon,
+      },
+      {
+        title: "About this instance",
+        url: "/dashboard/settings/about",
+        icon: InfoIcon,
+      },
+    ],
   },
 ];
 
@@ -119,42 +181,31 @@ export default function DashboardSidebar({
       </SidebarHeader>
 
       <SidebarContent className="flex flex-col overflow-y-hidden overscroll-y-none no-scrollbar">
-        <SidebarGroup>
-          <SidebarGroupLabel></SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link href={item.url as Route} onClick={handleLinkClick}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {session.user.role === "admin" && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Administration</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {setting_items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <Link href={item.url as Route} onClick={handleLinkClick}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+        {/*New sidebar system */}
+        {items.map((masterItem) =>
+          (masterItem.perm !== null && session.user.role === masterItem.perm) ||
+          masterItem.perm === null ? (
+            <SidebarGroup key={masterItem.title}>
+              <SidebarGroupLabel>{masterItem.title}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {masterItem.items.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <Link
+                          href={item.url as Route}
+                          onClick={handleLinkClick}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ) : null,
         )}
       </SidebarContent>
 
