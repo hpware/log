@@ -2,8 +2,8 @@
 import { Button } from "@/components/ui/button";
 import type { RefObject } from "react";
 import { authClient } from "@/lib/auth-client";
-import { useMutation } from "@tanstack/react-query";
-import { FileUp, XCircleIcon } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FileUp, RotateCcwIcon, XCircleIcon } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -17,7 +17,14 @@ import {
 } from "@/components/ui/tooltip";
 import { PublicPostsAndVideos } from "@/components/publicPostsAndVideos";
 import type { Route } from "next";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 type Post = typeof main_schema.userPosts.$inferSelect;
 
 export default function Dashboard({
@@ -25,6 +32,7 @@ export default function Dashboard({
 }: {
   session: typeof authClient.$Infer.Session;
 }) {
+  const queryClient = useQueryClient();
   const uploadLimit = process.env.NEXT_PUBLIC_UPLOAD_LIMIT;
 
   const [currentOption, setCurrentOption] = useState<
@@ -117,12 +125,6 @@ export default function Dashboard({
 
     await uploadFileToTheServer(file!);
   };
-  // debug use
-  useEffect(() => {
-    console.log(fileUploadBox);
-    console.log(fileUploadBox?.current || "s");
-    console.log(fileUploadBox?.current?.files || "yes");
-  }, [fileUploadBox]);
   const sendDataToServer = useMutation({
     mutationFn: async (data: {
       type: "text" | "photos" | "video";
@@ -207,6 +209,20 @@ export default function Dashboard({
         },
       );
     },
+  });
+
+  const getAllCollectionsFromThisUser = useQuery({
+    queryFn: async () => {
+      const req = await fetch("/api/data/get_all_collections", {
+        method: "GET",
+      });
+      const res = await req.json();
+      if (!req.ok) {
+        toast.error(res.message);
+      }
+      return res.data || [];
+    },
+    queryKey: ["getAllCollections"],
   });
 
   const handleSend = () => {
@@ -340,6 +356,31 @@ export default function Dashboard({
                 </Badge>
               </button>
             ))}
+          </div>
+          <div className="flex flex-row space-x-2 text-center align-middle">
+            <span className="my-auto">Add to a collection</span>
+            <Select>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                {getAllCollectionsFromThisUser.data?.map((collection: any) => (
+                  <SelectItem key={collection.id} value={collection.id}>
+                    {collection.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={() => {
+                queryClient.invalidateQueries({
+                  queryKey: ["collections"],
+                });
+              }}
+              variant="outline"
+            >
+              <RotateCcwIcon />
+            </Button>
           </div>
           <textarea
             value={textBoxData}

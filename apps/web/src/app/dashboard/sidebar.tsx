@@ -74,9 +74,9 @@ const items = [
         icon: LibraryIcon,
       },
       {
-        title: "Collections",
+        title: "Create Collection",
         url: "/dashboard/collections/create",
-        icon: LibraryIcon,
+        icon: PlusCircleIcon,
       },
     ],
   },

@@ -92,6 +92,13 @@
       "when": 1764211270662,
       "tag": "0012_wild_rictor",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1764485135340,
+      "tag": "0013_clear_rockslide",
+      "breakpoints": true
     }
   ]
 }

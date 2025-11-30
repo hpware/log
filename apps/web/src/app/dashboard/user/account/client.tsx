@@ -6,6 +6,16 @@ import type { User as AuthUserType } from "better-auth";
 // import stuff
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogClose,
+  DialogTrigger,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 /*import ReactCrop, {
   type Crop,
   centerCrop,
@@ -146,7 +156,36 @@ export default function Client({ session }: { session: AuthUserType }) {
           </div>
         </div>
       </div>
-      <Button>Submit</Button>
+      <div className="flex flex-row space-x-1 mt-3">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="cursor-pointer">Reset Password</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogTitle>Reset Your Password</DialogTitle>
+            <div className="flex flex-col space-y-2">
+              <div>
+                <span className="ml-3">New Password</span>
+                <Input
+                  type="password"
+                  placeholder="New Password"
+                  onFocus={() => {}}
+                />
+              </div>
+              <div>
+                <span className="ml-3">Confirm Password</span>
+                <Input
+                  type="password"
+                  placeholder="Confirm Password"
+                  onFocus={() => {}}
+                />
+              </div>
+            </div>
+            <Button className="cursor-pointer">Reset</Button>
+          </DialogContent>
+        </Dialog>
+        <Button className="cursor-pointer">Submit</Button>
+      </div>
     </div>
   );
 }
