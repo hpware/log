@@ -52,8 +52,6 @@ export const GET = async (request: NextRequest) => {
   // Remove the trailing newline
   buildRobotsTxt = buildRobotsTxt.trim();
 
-  console.log(buildRobotsTxt);
-
   return new Response(buildRobotsTxt, {
     status: 200,
     headers: {

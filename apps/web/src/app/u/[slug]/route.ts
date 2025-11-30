@@ -23,8 +23,5 @@ export const GET = async (
   if (data.length === 0) {
     return Response.redirect(new URL("/u/404", request.url), 307);
   }
-  return Response.redirect(
-    new URL(`/i/${data[0].linkedItem}`, request.url),
-    301,
-  );
+  return Response.redirect(new URL(data[0].targetUrl, request.url), 301);
 };
