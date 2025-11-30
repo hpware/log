@@ -91,14 +91,12 @@ function UserMenu() {
         <Button variant="outline">{session.user.name}</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-card">
-        <DropdownMenuLabel as Child>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={`/user/${session.user.id}`}
-            >
-          Your Account
-          </Button>
+        <DropdownMenuLabel asChild>
+          <Link href={`/user/${session.user.id}`}>
+            <Button variant="outline" className="w-full">
+              Your Account
+            </Button>
+          </Link>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
