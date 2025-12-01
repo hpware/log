@@ -1,5 +1,6 @@
 import { main_schema, db, dorm } from "../../../../../../../../packages/db/src";
 import Client from "./client";
+import type { Metadata } from "next";
 
 export default async function Page(props: {
   params: Promise<{ slug: string }>;
@@ -17,3 +18,7 @@ export default async function Page(props: {
     );
   return <Client orgPost={pullPost[0]} />;
 }
+
+export const metadata: Metadata = {
+  title: "Edit a post",
+};

@@ -216,13 +216,31 @@ export function Client() {
                           Change Permissions
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="group">
+                        <DropdownMenuItem
+                          className="group"
+                          onSelect={() =>
+                            submitToServer.mutate({
+                              action: "change_perms",
+                              user: row.original.id,
+                              role: "user",
+                            })
+                          }
+                        >
                           <User className="h-4 w-4 group-hover:text-black/70 dark:group-hover:text-white/80 transition-all duration-300" />{" "}
                           <span className="group-hover:text-black/70 dark:group-hover:text-white/80 transition-all duration-300">
                             user
                           </span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="group">
+                        <DropdownMenuItem
+                          className="group"
+                          onSelect={() =>
+                            submitToServer.mutate({
+                              action: "change_perms",
+                              user: row.original.id,
+                              role: "admin",
+                            })
+                          }
+                        >
                           <UserStarIcon className="h-4 w-4 text-yellow-700 dark:text-yellow-300 group-hover:text-yellow-700/80 dark:group-hover:text-yellow-300/80 duration-300 transition-all" />{" "}
                           <span className="text-yellow-700 dark:text-yellow-300 group-hover:text-yellow-700/80 dark:group-hover:text-yellow-300/80 duration-300 transition-all">
                             admin

@@ -344,11 +344,19 @@ export const POST = async (request: NextRequest) => {
         }
       } else if (body.action === "change_perms") {
         try {
-          statusCode = 500;
-          throw new Error("ERR_NO_FEATURE");
+          if (body.user === session.user.id) {
+            statusCode = 401;
+            throw new Error("ERR_CANNOT_CHANGE_SELF");
+          }
+          await auth.api.adminUpdateUser({
+            body: {
+              userId: body.user,
+              data: { role: body.role },
+            },
+            headers: await headers(),
+          });
         } catch (e: any) {
           console.log(e);
-          statusCode = 500;
           throw new Error(e.message || "ERR_GENERIC");
         }
       }

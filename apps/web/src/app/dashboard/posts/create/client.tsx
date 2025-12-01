@@ -404,7 +404,7 @@ export default function Dashboard({
             />
           </TabsContent>
         </Tabs>
-        <div className="gap-2 flex flex-col sm:flex-row">
+        <div className="gap-2 flex flex-col sm:flex-row mt-2">
           <Button onClick={handleSend} disabled={isPending}>
             Send it!
           </Button>

@@ -205,3 +205,9 @@ export default function Client() {
     </div>
   );
 }
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Edit a post",
+};
