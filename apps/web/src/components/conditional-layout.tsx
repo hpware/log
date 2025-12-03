@@ -19,7 +19,7 @@ export default function ConditionalLayout({
   // Regular layout with nav and footer
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="flex-shrink-0">
+      <header className="shrink-0">
         <Navigation />
       </header>
       <main className="flex-1 mt-12 pt-5 overflow-x-hidden">{children}</main>

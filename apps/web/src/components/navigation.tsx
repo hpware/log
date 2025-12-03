@@ -18,7 +18,7 @@ import * as React from "react";
 import { Moon, SearchIcon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 export default function Navigation() {
-  const links = [{ to: "/dashboard", label: "Dashboard" }] as const;
+  const links = [] as const;
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -90,15 +90,25 @@ function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="outline">{session.user.name}</Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-card">
-        <DropdownMenuLabel asChild>
-          <Link href={`/user/${session.user.id}`} className="w-full">
-            <Button variant="outline" className="w-full">
-              Your Account
-            </Button>
-          </Link>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
+      <DropdownMenuContent className="no-scrollbar space-y-2">
+        <DropdownMenuItem asChild>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => router.push("/dashboard")}
+          >
+            Dashboard
+          </Button>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => router.push(`/user/${session.user.id}`)}
+          >
+            Your Account
+          </Button>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Button
             variant="destructive"
