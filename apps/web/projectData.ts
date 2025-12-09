@@ -1,5 +1,5 @@
 const data = {
-  version: "0.1.9-canery-4",
+  version: "0.1.10",
 };
 
 export default data;
