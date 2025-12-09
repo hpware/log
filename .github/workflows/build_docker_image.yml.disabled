@@ -17,6 +17,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    # Only run if not triggered by the auto-increment commit
+    if: "!contains(github.event.head_commit.message, '🤖 Auto-increment version')"
 
     steps:
       - name: Checkout repository

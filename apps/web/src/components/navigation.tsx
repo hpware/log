@@ -29,8 +29,8 @@ import {
 import { useTheme } from "next-themes";
 export default function Navigation() {
   return (
-    <div className="flex flex-col fixed bottom-0 inset-x-0 justify-center text-center items-center align-middle z-50">
-      <div className="flex flex-col mb-2 bg-gray-50/10 backdrop-blur-xl mx-auto justify-center text-center align-middle p-3 rounded pb-1">
+    <div className="flex flex-col fixed bottom-0 inset-x-0 justify-center text-center items-center align-middle z-50 mb-1">
+      <div className="flex flex-col mb-2 bg-gray-50/10 backdrop-blur-xl mx-auto justify-center text-center align-middle p-3 rounded-lg pb-1">
         <div className="flex flex-row items-center gap-2 my-0 py-0">
           <Link href="/">
             <Button variant="outline" size="icon" className="cursor-pointer">
