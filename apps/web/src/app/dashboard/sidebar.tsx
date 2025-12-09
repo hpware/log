@@ -5,8 +5,6 @@ import {
   PanelTopIcon,
   PlusCircleIcon,
   UsersIcon,
-  Sun,
-  Moon,
   SettingsIcon,
   InfoIcon,
   CircleArrowLeftIcon,
@@ -14,15 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { ModeToggleDropdown } from "@/components/mode-toggle";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ModeToggle } from "@/components/mode-toggle";
 import Link from "next/link";
 import {
   Sidebar,
@@ -40,8 +30,6 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
-import { useTheme } from "next-themes";
-import { useEffect } from "react";
 
 const items = [
   {
@@ -140,7 +128,7 @@ export default function DashboardSidebar({
               </span>
             </div>
           </div>
-          <ModeToggleDropdown />
+          <ModeToggle />
         </div>
       </SidebarHeader>
 

@@ -33,12 +33,22 @@ export default function Navigation() {
       <div className="flex flex-col mb-2 bg-gray-50/10 backdrop-blur-xl mx-auto justify-center text-center align-middle p-3 rounded-lg pb-1">
         <div className="flex flex-row items-center gap-2 my-0 py-0">
           <Link href="/">
-            <Button variant="outline" size="icon" className="cursor-pointer">
+            <Button
+              variant="outline"
+              size="icon"
+              className="cursor-pointer"
+              aria-label="Home"
+            >
               <HouseIcon />
             </Button>
           </Link>
           <Link href="/search">
-            <Button variant="outline" size="icon" className="cursor-pointer">
+            <Button
+              variant="outline"
+              size="icon"
+              className="cursor-pointer"
+              aria-label="Search"
+            >
               <SearchIcon />
             </Button>
           </Link>
@@ -57,7 +67,12 @@ function UserMenu() {
 
   if (isPending) {
     return (
-      <Button variant="outline" size="icon" className="cursor-pointer">
+      <Button
+        variant="outline"
+        size="icon"
+        className="cursor-pointer"
+        aria-label="Loading..."
+      >
         <Spinner />
       </Button>
     );
@@ -65,7 +80,13 @@ function UserMenu() {
 
   if (!session) {
     return (
-      <Button variant="outline" size="icon" className="cursor-pointer" asChild>
+      <Button
+        variant="outline"
+        size="icon"
+        className="cursor-pointer"
+        aria-label="Login"
+        asChild
+      >
         <Link href="/login">
           <LogInIcon />
         </Link>
@@ -79,6 +100,7 @@ function UserMenu() {
         variant="outline"
         size="icon"
         className="cursor-pointer"
+        aria-label="Dashboard"
         onClick={() => router.push("/dashboard")}
       >
         <LayoutDashboardIcon />
@@ -87,6 +109,7 @@ function UserMenu() {
         variant="outline"
         size="icon"
         className="cursor-pointer"
+        aria-label="Profile"
         onClick={() => router.push(`/user/${session.user.id}`)}
       >
         <UserIcon />
@@ -95,6 +118,7 @@ function UserMenu() {
         size="icon"
         className="cursor-pointer"
         variant="outline"
+        aria-label="Logout"
         onClick={() => {
           authClient.signOut({
             fetchOptions: {
