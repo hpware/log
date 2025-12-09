@@ -1,0 +1,64 @@
+name: Auto Update Version
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # Skip if the commit message contains the auto-increment marker to prevent infinite loops
+    if: "!contains(github.event.head_commit.message, '🤖 Auto-increment version')"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Update version using Node.js script
+        id: version_update
+        run: |
+          # Make script executable
+          chmod +x .github/scripts/increment-version.js
+
+          # Run the version increment script
+          node .github/scripts/increment-version.js
+
+          # Display updated file
+          echo "Updated projectData.ts:"
+          cat apps/web/projectData.ts
+
+      - name: Check for changes
+        id: git_status
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        if: steps.git_status.outputs.changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add apps/web/projectData.ts
+          git commit -m "🤖 Auto-increment version to ${{ steps.version_update.outputs.new }} [skip ci]"
+          git push
+
+      - name: Output version info
+        run: |
+          echo "Previous version: ${{ steps.version_update.outputs.current }}"
+          echo "New version: ${{ steps.version_update.outputs.new }}"

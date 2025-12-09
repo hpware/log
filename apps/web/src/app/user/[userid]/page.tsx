@@ -46,7 +46,7 @@ export default async function Page(props: {
             alt={`The profile picture for ${content[0].name}`}
             width="100"
             height="100"
-            className="rounded-full border border-black dark:border-white select-none"
+            className="rounded-full border border-black dark:border-white select-none w-[100px] h-[100px]"
             draggable="false"
           />
           <div className="flex flex-col pl-2 pt-5">

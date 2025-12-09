@@ -1,7 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
 import Navigation from "@/components/navigation";
-import Footer from "@/components/footer";
 
 export default function ConditionalLayout({
   children,
@@ -19,11 +18,10 @@ export default function ConditionalLayout({
   // Regular layout with nav and footer
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="shrink-0">
-        <Navigation />
-      </header>
-      <main className="flex-1 mt-12 pt-5 overflow-x-hidden">{children}</main>
-      <Footer />
+      <Navigation />
+      <main className="flex-1 mt-2 mb-12 pb-5 overflow-x-hidden">
+        {children}
+      </main>
     </div>
   );
 }
