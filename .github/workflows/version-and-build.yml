@@ -32,18 +32,21 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Update version using Node.js script
+      - name: Update versions using comprehensive management script
         id: version_update
         run: |
           # Make script executable
-          chmod +x .github/scripts/increment-version.js
+          chmod +x .github/scripts/manage-versions.js
 
-          # Run the version increment script
-          node .github/scripts/increment-version.js
+          # Run the comprehensive version management script
+          node .github/scripts/manage-versions.js
 
-          # Display updated file
+          # Display updated files
           echo "Updated projectData.ts:"
           cat apps/web/projectData.ts
+          echo ""
+          echo "Updated version.json:"
+          cat version.json
 
       - name: Check for changes
         id: git_status
@@ -59,8 +62,16 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add apps/web/projectData.ts
-          git commit -m "🤖 Auto-increment version to ${{ steps.version_update.outputs.new }}"
+
+          # Add all changed files
+          git add apps/web/projectData.ts version.json
+
+          # Add version file if it was created
+          if [ -n "${{ steps.version_update.outputs.version_file }}" ]; then
+            git add "Versions/${{ steps.version_update.outputs.version_file }}"
+          fi
+
+          git commit -m "🤖 Auto-increment version to ${{ steps.version_update.outputs.new_version }} (prod: ${{ steps.version_update.outputs.prod_version }}, dev: ${{ steps.version_update.outputs.dev_version }})"
           git push
 
       - name: Log in to the Container registry
@@ -77,7 +88,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest
-            type=raw,value=${{ steps.version_update.outputs.new }}
+            type=raw,value=${{ steps.version_update.outputs.new_version }}
+            type=raw,value=${{ steps.version_update.outputs.prod_version }},enable={{isBranch 'master'}}
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
@@ -96,11 +108,92 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Create version branch (stable releases only)
+        if: steps.git_status.outputs.changes == 'true' && steps.version_update.outputs.is_stable == 'true' && steps.version_update.outputs.is_master == 'true'
+        run: |
+          # Create a new branch for this stable version
+          git checkout -b "release/v${{ steps.version_update.outputs.new_version }}"
+          git push origin "release/v${{ steps.version_update.outputs.new_version }}"
+
+          # Switch back to main branch
+          git checkout ${{ github.ref_name }}
+
+      - name: Generate release notes (stable releases only)
+        if: steps.git_status.outputs.changes == 'true' && steps.version_update.outputs.is_stable == 'true' && steps.version_update.outputs.is_master == 'true'
+        id: release_notes
+        run: |
+          # Make script executable
+          chmod +x .github/scripts/generate-release-notes.js
+
+          # Generate release notes using the script
+          node .github/scripts/generate-release-notes.js "${{ steps.version_update.outputs.new_version }}"
+
+      - name: Create Git Tag (stable releases only)
+        if: steps.git_status.outputs.changes == 'true' && steps.version_update.outputs.is_stable == 'true' && steps.version_update.outputs.is_master == 'true'
+        run: |
+          git tag v${{ steps.version_update.outputs.new_version }}
+          git push origin v${{ steps.version_update.outputs.new_version }}
+
+      - name: Create GitHub Release (stable releases only)
+        if: steps.git_status.outputs.changes == 'true' && steps.version_update.outputs.is_stable == 'true' && steps.version_update.outputs.is_master == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Use version file if created, otherwise use generated release notes
+          if [ -f "Versions/${{ steps.version_update.outputs.version_file }}" ]; then
+            NOTES_FILE="Versions/${{ steps.version_update.outputs.version_file }}"
+          else
+            NOTES_FILE="release-notes.md"
+          fi
+
+          # Create release using GitHub CLI
+          gh release create v${{ steps.version_update.outputs.new_version }} \
+            --title "Release v${{ steps.version_update.outputs.new_version }}" \
+            --notes-file "$NOTES_FILE" \
+            --latest
+
       - name: Output summary
         run: |
-          echo "## Version Update Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- Previous version: ${{ steps.version_update.outputs.current }}" >> $GITHUB_STEP_SUMMARY
-          echo "- New version: ${{ steps.version_update.outputs.new }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Docker image built with tags:" >> $GITHUB_STEP_SUMMARY
-          echo "  - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_STEP_SUMMARY
-          echo "  - ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version_update.outputs.new }}" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Comprehensive Version Update & Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Previous version:** ${{ steps.version_update.outputs.previous_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **New version:** ${{ steps.version_update.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Production version:** ${{ steps.version_update.outputs.prod_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Development version:** ${{ steps.version_update.outputs.dev_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Stable release:** ${{ steps.version_update.outputs.is_stable }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### 🐳 Docker Images Built" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version_update.outputs.new_version }}\`" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.version_update.outputs.is_master }}" == "true" ]; then
+            echo "- \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version_update.outputs.prod_version }}\`" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### 📁 Files Updated" >> $GITHUB_STEP_SUMMARY
+          echo "- \`apps/web/projectData.ts\` - Updated to ${{ steps.version_update.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- \`version.json\` - prod: ${{ steps.version_update.outputs.prod_version }}, dev: ${{ steps.version_update.outputs.dev_version }}" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "${{ steps.version_update.outputs.version_file }}" ]; then
+            echo "- \`Versions/${{ steps.version_update.outputs.version_file }}\` - New version file created" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.version_update.outputs.is_stable }}" == "true" ] && [ "${{ steps.version_update.outputs.is_master }}" == "true" ]; then
+            echo "### 🏷️ Release Created" >> $GITHUB_STEP_SUMMARY
+            echo "- **Tag:** \`v${{ steps.version_update.outputs.new_version }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Branch:** \`release/v${{ steps.version_update.outputs.new_version }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Release:** [v${{ steps.version_update.outputs.new_version }}](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version_update.outputs.new_version }})" >> $GITHUB_STEP_SUMMARY
+            if [ -n "${{ steps.version_update.outputs.version_file }}" ]; then
+              echo "- **Version File:** \`Versions/${{ steps.version_update.outputs.version_file }}\`" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "### ⚠️ Development Build" >> $GITHUB_STEP_SUMMARY
+            if [ "${{ steps.version_update.outputs.is_master }}" != "true" ]; then
+              echo "This is a development branch build. No GitHub release or version branch created." >> $GITHUB_STEP_SUMMARY
+            else
+              echo "This is a pre-release version (contains alpha, beta, canary, etc.). No GitHub release or version branch created." >> $GITHUB_STEP_SUMMARY
+            fi
+          fi

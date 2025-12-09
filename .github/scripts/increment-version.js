@@ -52,6 +52,14 @@ function incrementVersion(version) {
   return `${version}.1`;
 }
 
+function isStableRelease(version) {
+  // Check if version is a stable release (not alpha, beta, canary, etc.)
+  // Include common typos and variations
+  const prereleasePattern =
+    /-(alpha|beta|canary|canery|rc|dev|pre|snapshot|nightly|test)/i;
+  return !prereleasePattern.test(version);
+}
+
 function updateProjectData() {
   try {
     // Read the current file
@@ -68,6 +76,9 @@ function updateProjectData() {
     const currentVersion = match[1];
     const newVersion = incrementVersion(currentVersion);
 
+    // Check if this is a stable release
+    const isStable = isStableRelease(newVersion);
+
     // Replace the version in the content
     const newContent = content.replace(
       versionPattern,
@@ -78,6 +89,7 @@ function updateProjectData() {
     fs.writeFileSync(PROJECT_DATA_PATH, newContent, "utf8");
 
     console.log(`Version updated from ${currentVersion} to ${newVersion}`);
+    console.log(`Stable release: ${isStable}`);
 
     // Output for GitHub Actions (using modern format)
     if (process.env.GITHUB_OUTPUT) {
@@ -86,10 +98,12 @@ function updateProjectData() {
         `current=${currentVersion}\n`,
       );
       fs.appendFileSync(process.env.GITHUB_OUTPUT, `new=${newVersion}\n`);
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, `is_stable=${isStable}\n`);
     } else {
       // Fallback for local testing
       console.log(`current=${currentVersion}`);
       console.log(`new=${newVersion}`);
+      console.log(`is_stable=${isStable}`);
     }
   } catch (error) {
     console.error("Error updating version:", error.message);
@@ -102,4 +116,4 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   updateProjectData();
 }
 
-export { incrementVersion, updateProjectData };
+export { incrementVersion, updateProjectData, isStableRelease };
