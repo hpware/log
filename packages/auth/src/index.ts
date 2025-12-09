@@ -21,6 +21,8 @@ export const auth = betterAuth({
       secure: true,
       httpOnly: true,
     },
+    disableCSRFCheck: process.env.NODE_ENV === "development" ? true : false,
+    trustedProxyHeaders: true,
   },
   databaseHooks: {
     user: {
