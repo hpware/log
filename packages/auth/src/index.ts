@@ -1,6 +1,6 @@
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { betterAuth } from "better-auth";
-import { db } from "@devlogs_hosting/db";
+import { db, dorm, main_schema } from "@devlogs_hosting/db";
 import * as schema from "@devlogs_hosting/db/schema/auth";
 import { admin } from "better-auth/plugins";
 
@@ -29,6 +29,14 @@ export const auth = betterAuth({
       create: {
         before: async (user, ctx) => {
           try {
+            const checkIfSystemDisabledRegister = await db
+              .select()
+              .from(main_schema.kvData)
+              .where(dorm.eq(main_schema.kvData.key, "registrationStatus"))
+              .limit(1);
+            if (checkIfSystemDisabledRegister[0]?.value === false) {
+              throw new Error("Registration is disabled");
+            }
             // Query database directly using your existing Drizzle connection
             const existingUsers = await db
               .select()
