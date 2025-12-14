@@ -1,7 +1,8 @@
 name: Auto Update Version
 
 on:
-  push:
+  pull_request:
+    types: [opened]
     branches:
       - master
       - main

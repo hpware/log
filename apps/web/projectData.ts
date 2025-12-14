@@ -1,5 +1,5 @@
 const data = {
-  version: "0.1.13-canary-1",
+  version: "0.1.14",
 };
 
 export default data;

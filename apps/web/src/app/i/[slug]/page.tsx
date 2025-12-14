@@ -12,6 +12,8 @@ import type { Metadata } from "next";
 import { CalendarPlusIcon, CalendarSyncIcon, DotIcon } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import Markdown from "marked-react";
+import renderer from "@/components/markdownRender";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +66,9 @@ export default async function Page(props: {
             />
           </div>
         )}
-        <span className="pl-2">{content[0].textData ?? ""}</span>
+        <div className="pl-2">
+          <Markdown renderer={renderer}>{content[0].textData ?? ""}</Markdown>
+        </div>
         <div className="flex flex-row gap-1">
           {(content[0].tags as string[]).map((it: string) => (
             <Link
@@ -91,6 +95,7 @@ export default async function Page(props: {
               height="20"
               className="ml-2 p-1 w-6 h-6 rounded-full border-black dark:border-white select-none"
               draggable="false"
+              loading="lazy"
             />
             <span>{getUserInfo[0].name}</span>
           </Link>
