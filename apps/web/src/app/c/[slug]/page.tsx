@@ -12,10 +12,9 @@ import type { Metadata } from "next";
 import { CalendarPlusIcon, CalendarSyncIcon, DotIcon } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import Client from "./client";
 
 export const dynamic = "force-dynamic";
-
-type Collections = typeof main_schema.collections.$inferSelect;
 
 export default async function Page(props: {
   params: Promise<{ slug: string }>;
@@ -25,7 +24,7 @@ export default async function Page(props: {
   });
   const userId = session?.session.userId;
   const { slug } = await props.params;
-  const content: Collections[] = await db
+  const content: (typeof main_schema.collections.$inferSelect)[] = await db
     .select()
     .from(main_schema.collections)
     .where(dorm.eq(main_schema.userPosts.postId, slug));
@@ -39,7 +38,21 @@ export default async function Page(props: {
     .from(auth_schema.user)
     .where(dorm.eq(auth_schema.user.id, content[0].byUser));
 
-  return <div></div>;
+  return (
+    <Client
+      data={{
+        userInfo: {
+          id: getUserInfo[0].id,
+          name: getUserInfo[0].name,
+          image: getUserInfo[0].image,
+        },
+        slug: content[0].id,
+        title: content[0].title,
+        createdAt: content[0].createdAt,
+        updatedAt: content[0].updatedAt,
+      }}
+    />
+  );
 }
 
 export async function generateMetadata({
@@ -48,7 +61,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const resolvedParams = await params;
-  const content: Collections[] = await db
+  const content: (typeof main_schema.collections.$inferSelect)[] = await db
     .select()
     .from(main_schema.collections)
     .where(dorm.eq(main_schema.userPosts.postId, resolvedParams.slug));

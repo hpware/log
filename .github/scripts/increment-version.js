@@ -53,11 +53,7 @@ function incrementVersion(version) {
 }
 
 function isStableRelease(version) {
-  // Check if version is a stable release (not alpha, beta, canary, etc.)
-  // Include common typos and variations
-  const prereleasePattern =
-    /-(alpha|beta|canary|canery|rc|dev|pre|snapshot|nightly|test)/i;
-  return !prereleasePattern.test(version);
+  return true;
 }
 
 function updateProjectData() {

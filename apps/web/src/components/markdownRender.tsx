@@ -1,6 +1,7 @@
 import Link from "next/link";
 import CodeRender from "./markdownCodeBlock";
 import type { Route } from "next";
+import { Ultra } from "next/font/google";
 
 // Slugify function for heading IDs
 function slugify(text: string) {
@@ -74,6 +75,23 @@ const renderer = {
         {code}
       </code>
     );
+  },
+  list(body: any, ordered: boolean, start?: number) {
+    if (ordered) {
+      return (
+        <ol
+          className="list-decimal pl-4"
+          start={start && start > 1 ? start : 1}
+        >
+          {body}
+        </ol>
+      );
+    }
+
+    return <ul className="list-disc pl-4">{body}</ul>;
+  },
+  listitem(text: any) {
+    return <li className="my-1">{text}</li>;
   },
 };
 

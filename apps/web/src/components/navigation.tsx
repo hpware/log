@@ -16,6 +16,7 @@ import { Spinner } from "./ui/spinner";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { ModeToggle } from "./mode-toggle";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   HouseIcon,
   LayoutDashboardIcon,
@@ -26,12 +27,20 @@ import {
   Sun,
   UserIcon,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 export default function Navigation() {
+  const queryClient = useQueryClient();
+  const querySystemData = useQuery({
+    queryFn: async () => {
+      const req = await fetch("/api/data/system_info");
+      const res = await req.json();
+      return res;
+    },
+    queryKey: ["system_info"],
+  });
   return (
     <div className="flex flex-col fixed bottom-0 inset-x-0 justify-center text-center items-center align-middle z-50 mb-1">
       <div className="flex flex-col mb-2 bg-gray-50/10 backdrop-blur-xl mx-auto justify-center text-center align-middle p-3 rounded-lg pb-1">
-        <div className="flex flex-row items-center gap-2 my-0 py-0">
+        <div className="flex flex-row items-center gap-2 my-0 py-0 justify-center">
           <Link href="/">
             <Button
               variant="outline"
@@ -55,7 +64,13 @@ export default function Navigation() {
           <ModeToggle />
           <UserMenu />
         </div>
-        <span className="text-sm mt-1">&copy; {new Date().getFullYear()} </span>
+        <span className="text-sm mt-1">
+          &copy; {new Date().getFullYear()}{" "}
+          {querySystemData.data?.copyright_owner || ""}{" "}
+          {querySystemData.data?.optionalExposeVersion === true
+            ? `| v${querySystemData.data?.version}`
+            : null}
+        </span>
       </div>
     </div>
   );
