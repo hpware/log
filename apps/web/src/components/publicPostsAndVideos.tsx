@@ -7,6 +7,7 @@ import { main_schema } from "../../../../packages/db/src/index";
 import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "./ui/badge";
+import ImageView from "./imageView";
 import {
   CircleUserIcon,
   ExternalLink,
@@ -34,6 +35,10 @@ export function PublicPostsAndVideos({
   noDisplay?: ("profile" | "link" | "profileLink")[];
 }) {
   const [currentOffset, setCurrentOffset] = useState(0);
+  const [imageViewSys, setImageViewSys] = useState({
+    previewOn: false,
+    previewImageUrl: "",
+  });
   const [reloadPost, setReloadPost] = useState(false);
   const [logData, setLogData] = useState<Post[]>([]);
   const [logUserInfo, setLogUserInfo] = useState<
@@ -160,6 +165,14 @@ export function PublicPostsAndVideos({
 
   return (
     <div>
+      {imageViewSys.previewOn && (
+        <ImageView
+          imageSrc={imageViewSys.previewImageUrl}
+          closeState={() =>
+            setImageViewSys({ previewOn: false, previewImageUrl: "" })
+          }
+        />
+      )}
       {mode === "search" ? (
         <>
           <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 p-4">
@@ -197,7 +210,15 @@ export function PublicPostsAndVideos({
                   <span className="break-words">{i.textData}</span>
                 </div>
                 {i.type === "photos" ? (
-                  <div className="w-full overflow-hidden">
+                  <button
+                    className="w-full overflow-hidden"
+                    onClick={() => {
+                      setImageViewSys({
+                        previewOn: true,
+                        previewImageUrl: String(i.imageUrl),
+                      });
+                    }}
+                  >
                     <img
                       src={String(i.imageUrl)}
                       className="w-full h-auto rounded border"
@@ -217,7 +238,7 @@ export function PublicPostsAndVideos({
                         Sorry, we can't display this image right now
                       </p>
                     </div>
-                  </div>
+                  </button>
                 ) : (
                   i.type === "video" && (
                     <div className="w-full overflow-hidden">
@@ -295,7 +316,16 @@ export function PublicPostsAndVideos({
                         <span className="break-words">{i.textData}</span>
                       </div>
                       {i.type === "photos" ? (
-                        <div className="w-full overflow-hidden">
+                        <button
+                          className="w-full overflow-hidden"
+                          onClick={() => {
+                            setImageViewSys({
+                              previewOn: true,
+                              previewImageUrl: String(i.imageUrl),
+                            });
+                          }}
+                        >
+                          {" "}
                           <img
                             src={String(i.imageUrl)}
                             className="w-full h-auto rounded border"
@@ -315,7 +345,7 @@ export function PublicPostsAndVideos({
                               Sorry, we can't display this image right now
                             </p>
                           </div>
-                        </div>
+                        </button>
                       ) : (
                         i.type === "video" && (
                           <div className="w-full overflow-hidden">

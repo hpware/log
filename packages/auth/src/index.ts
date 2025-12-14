@@ -28,6 +28,15 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user, ctx) => {
+          const checkIfSystemDisabledRegister = await db
+            .select()
+            .from(main_schema.kvData)
+            .where(dorm.eq(main_schema.kvData.key, "registrationStatus"))
+            .limit(1);
+          console.log(checkIfSystemDisabledRegister[0]);
+          if (checkIfSystemDisabledRegister[0]?.value === false) {
+            throw new Error("Registration is disabled");
+          }
           try {
             const checkIfSystemDisabledRegister = await db
               .select()

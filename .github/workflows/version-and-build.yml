@@ -1,7 +1,8 @@
 name: Auto Update Version and Build
 
 on:
-  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
     branches:
       - master
       - main
@@ -17,8 +18,11 @@ jobs:
     permissions:
       contents: write
       packages: write
-    # Skip if the commit message contains the auto-increment marker to prevent infinite loops
-    if: "!contains(github.event.head_commit.message, '🤖 Auto-increment version')"
+    # Only run for collaborators or repository owner
+    if: |
+      github.event.pull_request.author_association == 'OWNER' ||
+      github.event.pull_request.author_association == 'COLLABORATOR' ||
+      github.event.pull_request.author_association == 'MEMBER'
 
     steps:
       - name: Checkout repository
@@ -57,7 +61,7 @@ jobs:
             echo "changes=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Commit version changes
+      - name: Commit version changes (PR only - no push)
         if: steps.git_status.outputs.changes == 'true'
         run: |
           git config --local user.email "action@github.com"
@@ -72,7 +76,7 @@ jobs:
           fi
 
           git commit -m "🤖 Auto-increment version to ${{ steps.version_update.outputs.new_version }} (prod: ${{ steps.version_update.outputs.prod_version }}, dev: ${{ steps.version_update.outputs.dev_version }})"
-          git push
+          # Note: Not pushing changes in PR context - they will be available for review
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -87,13 +91,10 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest
-            type=raw,value=${{ steps.version_update.outputs.new_version }}
-            type=raw,value=${{ steps.version_update.outputs.prod_version }},enable={{isBranch 'master'}}
-            type=ref,event=branch
+            type=raw,value=pr-${{ github.event.number }}
+            type=raw,value=${{ steps.version_update.outputs.new_version }}-pr-${{ github.event.number }}
             type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=sha,prefix=
+            type=sha,prefix=pr-${{ github.event.number }}-
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -108,68 +109,46 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Create version branch (stable releases only)
-        if: steps.git_status.outputs.changes == 'true' && steps.version_update.outputs.is_stable == 'true' && steps.version_update.outputs.is_master == 'true'
-        run: |
-          # Create a new branch for this stable version
-          git checkout -b "release/v${{ steps.version_update.outputs.new_version }}"
-          git push origin "release/v${{ steps.version_update.outputs.new_version }}"
+      - name: Add PR comment with build info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `## 🚀 CI/CD Build Summary for PR #${{ github.event.number }}
 
-          # Switch back to main branch
-          git checkout ${{ github.ref_name }}
+            **Build Status:** ✅ Success
+            **Version:** ${{ steps.version_update.outputs.new_version }}
+            **Docker Images Built:**
+            - \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}\`
+            - \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version_update.outputs.new_version }}-pr-${{ github.event.number }}\`
 
-      - name: Generate release notes (stable releases only)
-        if: steps.git_status.outputs.changes == 'true' && steps.version_update.outputs.is_stable == 'true' && steps.version_update.outputs.is_master == 'true'
-        id: release_notes
-        run: |
-          # Make script executable
-          chmod +x .github/scripts/generate-release-notes.js
+            **Files Updated:**
+            - \`apps/web/projectData.ts\` - Updated to ${{ steps.version_update.outputs.new_version }}
+            - \`version.json\` - prod: ${{ steps.version_update.outputs.prod_version }}, dev: ${{ steps.version_update.outputs.dev_version }}
+            ${steps.version_update.outputs.version_file ? `- \`Versions/${{ steps.version_update.outputs.version_file }}\` - New version file created` : ''}
 
-          # Generate release notes using the script
-          node .github/scripts/generate-release-notes.js "${{ steps.version_update.outputs.new_version }}"
+            > **Note:** This is a PR build. No releases or version branches will be created until the PR is merged.`;
 
-      - name: Create Git Tag (stable releases only)
-        if: steps.git_status.outputs.changes == 'true' && steps.version_update.outputs.is_stable == 'true' && steps.version_update.outputs.is_master == 'true'
-        run: |
-          git tag v${{ steps.version_update.outputs.new_version }}
-          git push origin v${{ steps.version_update.outputs.new_version }}
-
-      - name: Create GitHub Release (stable releases only)
-        if: steps.git_status.outputs.changes == 'true' && steps.version_update.outputs.is_stable == 'true' && steps.version_update.outputs.is_master == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Use version file if created, otherwise use generated release notes
-          if [ -f "Versions/${{ steps.version_update.outputs.version_file }}" ]; then
-            NOTES_FILE="Versions/${{ steps.version_update.outputs.version_file }}"
-          else
-            NOTES_FILE="release-notes.md"
-          fi
-
-          # Create release using GitHub CLI
-          gh release create v${{ steps.version_update.outputs.new_version }} \
-            --title "Release v${{ steps.version_update.outputs.new_version }}" \
-            --notes-file "$NOTES_FILE" \
-            --latest
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
 
       - name: Output summary
         run: |
-          echo "## 🚀 Comprehensive Version Update & Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 PR Build Summary for #${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Previous version:** ${{ steps.version_update.outputs.previous_version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **New version:** ${{ steps.version_update.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Production version:** ${{ steps.version_update.outputs.prod_version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Development version:** ${{ steps.version_update.outputs.dev_version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Stable release:** ${{ steps.version_update.outputs.is_stable }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **PR Author:** ${{ github.event.pull_request.user.login }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Author Association:** ${{ github.event.pull_request.author_association }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           echo "### 🐳 Docker Images Built" >> $GITHUB_STEP_SUMMARY
-          echo "- \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version_update.outputs.new_version }}\`" >> $GITHUB_STEP_SUMMARY
-
-          if [ "${{ steps.version_update.outputs.is_master }}" == "true" ]; then
-            echo "- \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version_update.outputs.prod_version }}\`" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "- \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version_update.outputs.new_version }}-pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           echo "### 📁 Files Updated" >> $GITHUB_STEP_SUMMARY
@@ -181,19 +160,7 @@ jobs:
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ "${{ steps.version_update.outputs.is_stable }}" == "true" ] && [ "${{ steps.version_update.outputs.is_master }}" == "true" ]; then
-            echo "### 🏷️ Release Created" >> $GITHUB_STEP_SUMMARY
-            echo "- **Tag:** \`v${{ steps.version_update.outputs.new_version }}\`" >> $GITHUB_STEP_SUMMARY
-            echo "- **Branch:** \`release/v${{ steps.version_update.outputs.new_version }}\`" >> $GITHUB_STEP_SUMMARY
-            echo "- **Release:** [v${{ steps.version_update.outputs.new_version }}](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version_update.outputs.new_version }})" >> $GITHUB_STEP_SUMMARY
-            if [ -n "${{ steps.version_update.outputs.version_file }}" ]; then
-              echo "- **Version File:** \`Versions/${{ steps.version_update.outputs.version_file }}\`" >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "### ⚠️ Development Build" >> $GITHUB_STEP_SUMMARY
-            if [ "${{ steps.version_update.outputs.is_master }}" != "true" ]; then
-              echo "This is a development branch build. No GitHub release or version branch created." >> $GITHUB_STEP_SUMMARY
-            else
-              echo "This is a pre-release version (contains alpha, beta, canary, etc.). No GitHub release or version branch created." >> $GITHUB_STEP_SUMMARY
-            fi
-          fi
+          echo "### ℹ️ PR Build Notes" >> $GITHUB_STEP_SUMMARY
+          echo "This is a pull request build. No releases, tags, or version branches will be created." >> $GITHUB_STEP_SUMMARY
+          echo "Version changes are committed locally for review but not pushed to the repository." >> $GITHUB_STEP_SUMMARY
+          echo "Once the PR is merged, you may want to run a separate workflow for production deployments." >> $GITHUB_STEP_SUMMARY
