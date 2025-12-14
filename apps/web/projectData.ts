@@ -1,5 +1,5 @@
 const data = {
-  version: "0.1.12",
+  version: "0.1.14",
 };
 
 export default data;

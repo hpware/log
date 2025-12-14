@@ -95,6 +95,7 @@ export default async function Page(props: {
               height="20"
               className="ml-2 p-1 w-6 h-6 rounded-full border-black dark:border-white select-none"
               draggable="false"
+              loading="lazy"
             />
             <span>{getUserInfo[0].name}</span>
           </Link>
