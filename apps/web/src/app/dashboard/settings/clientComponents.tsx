@@ -19,13 +19,16 @@ type RobotsParsedJson = Record<string, { allow: string[]; disallow: string[] }>;
 export function ChangeSiteSettings({
   serverTitleData,
   serverDescriptionData,
+  serverOwnerData,
 }: {
   serverTitleData: string;
   serverDescriptionData: string;
+  serverOwnerData: string;
 }) {
   const [siteSettings, setSiteSettings] = useState({
     title: serverTitleData || "",
     description: serverDescriptionData || "",
+    server_owner: serverOwnerData || "",
   });
 
   const [statusSystemPull, setStatusSystemPull] = useState<{
@@ -34,12 +37,14 @@ export function ChangeSiteSettings({
     robotsTxt: boolean;
     search: boolean;
     sysFailed: boolean;
+    displayVersion: boolean;
   }>({
     homePage: false,
     registration: false,
     robotsTxt: false,
     search: true,
     sysFailed: true,
+    displayVersion: false,
   });
 
   const getToggleData = useMutation({
@@ -64,6 +69,7 @@ export function ChangeSiteSettings({
           robotsTxt: res.data.robotsTxt,
           search: res.data.search,
           sysFailed: false,
+          displayVersion: res.data.displayVersion,
         });
         return;
       } catch (e: any) {
@@ -73,6 +79,7 @@ export function ChangeSiteSettings({
           robotsTxt: statusSystemPull.robotsTxt,
           search: statusSystemPull.search,
           sysFailed: true,
+          displayVersion: statusSystemPull.displayVersion,
         });
         console.error(e);
         toast.error(`Fetch Failed: ${e.message}`);
@@ -121,6 +128,7 @@ export function ChangeSiteSettings({
                   setSiteSettings({
                     title: e.target.value,
                     description: siteSettings.description,
+                    server_owner: siteSettings.server_owner,
                   });
                 }}
               />
@@ -138,6 +146,25 @@ export function ChangeSiteSettings({
                   setSiteSettings({
                     title: siteSettings.title,
                     description: e.target.value,
+                    server_owner: siteSettings.server_owner,
+                  });
+                }}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <span>
+                Server Owner:{" "}
+                <span className="text-red-500 dark:text-red-400">*</span>
+              </span>
+              <input
+                type="text"
+                className="p-1 border border-gray-300 dark:border-gray-700 rounded bg-gray-200 dark:bg-gray-950"
+                value={siteSettings.server_owner}
+                onChange={(e) => {
+                  setSiteSettings({
+                    title: siteSettings.title,
+                    description: siteSettings.description,
+                    server_owner: e.target.value,
                   });
                 }}
               />
@@ -157,6 +184,7 @@ export function ChangeSiteSettings({
                   action: "site_title_description",
                   title: siteSettings.title,
                   description: siteSettings.description,
+                  server_owner: siteSettings.server_owner,
                 })
               }
             >
@@ -177,6 +205,7 @@ export function ChangeSiteSettings({
                 registration: statusSystemPull.registration,
                 robotsTxt: statusSystemPull.robotsTxt,
                 search: statusSystemPull.search,
+                displayVersion: statusSystemPull.displayVersion,
                 sysFailed: statusSystemPull.sysFailed,
               });
               sendData.mutate({
@@ -184,8 +213,9 @@ export function ChangeSiteSettings({
                 data: {
                   homePage: checked,
                   registration: statusSystemPull.registration,
-                  robotsTxt: statusSystemPull.robotsTxt,
+                  robotsTxt: statusSystemPull.homePage,
                   search: statusSystemPull.search,
+                  displayVersion: statusSystemPull.displayVersion,
                 },
               });
               getToggleData.mutate();
@@ -206,6 +236,7 @@ export function ChangeSiteSettings({
                 robotsTxt: statusSystemPull.robotsTxt,
                 search: statusSystemPull.search,
                 sysFailed: statusSystemPull.sysFailed,
+                displayVersion: statusSystemPull.displayVersion,
               });
               sendData.mutate({
                 action: "change_home_page_register_robotstxt_toggles",
@@ -214,6 +245,7 @@ export function ChangeSiteSettings({
                   registration: checked,
                   robotsTxt: statusSystemPull.robotsTxt,
                   search: statusSystemPull.search,
+                  displayVersion: statusSystemPull.displayVersion,
                 },
               });
               getToggleData.mutate();
@@ -234,6 +266,7 @@ export function ChangeSiteSettings({
                 robotsTxt: checked,
                 search: statusSystemPull.search,
                 sysFailed: statusSystemPull.sysFailed,
+                displayVersion: statusSystemPull.displayVersion,
               });
               sendData.mutate({
                 action: "change_home_page_register_robotstxt_toggles",
@@ -242,6 +275,7 @@ export function ChangeSiteSettings({
                   registration: statusSystemPull.registration,
                   robotsTxt: checked,
                   search: statusSystemPull.search,
+                  displayVersion: statusSystemPull.displayVersion,
                 },
               });
               getToggleData.mutate();
@@ -262,14 +296,16 @@ export function ChangeSiteSettings({
                 robotsTxt: statusSystemPull.robotsTxt,
                 search: checked,
                 sysFailed: statusSystemPull.sysFailed,
+                displayVersion: statusSystemPull.displayVersion,
               });
               sendData.mutate({
                 action: "change_home_page_register_robotstxt_toggles",
                 data: {
                   homePage: statusSystemPull.homePage,
                   registration: statusSystemPull.registration,
-                  robotsTxt: statusSystemPull.robotsTxt,
-                  search: checked,
+                  robotsTxt: checked,
+                  search: statusSystemPull.search,
+                  displayVersion: statusSystemPull.displayVersion,
                 },
               });
               getToggleData.mutate();
@@ -277,6 +313,36 @@ export function ChangeSiteSettings({
             disabled={statusSystemPull.sysFailed}
           />
           <Label htmlFor="search-enable">Enable search</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="expose-server-version"
+            checked={statusSystemPull.displayVersion}
+            onCheckedChange={(checked) => {
+              console.log(`Home Page: ${checked}`);
+              setStatusSystemPull({
+                homePage: checked,
+                registration: statusSystemPull.registration,
+                robotsTxt: statusSystemPull.robotsTxt,
+                search: statusSystemPull.search,
+                displayVersion: checked,
+                sysFailed: statusSystemPull.sysFailed,
+              });
+              sendData.mutate({
+                action: "change_home_page_register_robotstxt_toggles",
+                data: {
+                  homePage: statusSystemPull.homePage,
+                  registration: statusSystemPull.registration,
+                  robotsTxt: checked,
+                  search: statusSystemPull.search,
+                  displayVersion: checked,
+                },
+              });
+              getToggleData.mutate();
+            }}
+            disabled={statusSystemPull.sysFailed}
+          />
+          <Label htmlFor="home-page-enable">Expose Server Version</Label>
         </div>
       </div>
     </>

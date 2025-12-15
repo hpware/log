@@ -50,7 +50,8 @@ export const POST = async (request: NextRequest) => {
       if (
         body.action === "site_title_description" &&
         body.title &&
-        body.description
+        body.description &&
+        body.server_owner
       ) {
         try {
           await db
@@ -61,16 +62,15 @@ export const POST = async (request: NextRequest) => {
             .update(main_schema.kvData)
             .set({ value: body.description })
             .where(dorm.eq(main_schema.kvData.key, "description"));
-          return Response.json(
-            {
-              success: true,
-              status: 200,
-              msg: "",
-            },
-            {
-              status: 200,
-            },
-          );
+          await db
+            .update(main_schema.kvData)
+            .set({ value: body.server_owner })
+            .where(dorm.eq(main_schema.kvData.key, "copyrightOwner"));
+          return Response.json({
+            success: true,
+            status: 200,
+            msg: "",
+          });
         } catch (e: any) {
           statusCode = 500;
           throw new Error(e.message || "ERR_GENERIC");
@@ -103,22 +103,24 @@ export const POST = async (request: NextRequest) => {
               .from(main_schema.kvData)
               .where(dorm.eq(main_schema.kvData.key, "searchStatus"))
           )[0].value;
-          return Response.json(
-            {
-              success: true,
-              status: 200,
-              msg: "",
-              data: {
-                homePage,
-                registration,
-                robotsTxt,
-                search,
-              },
+          const displayVersion = (
+            await db
+              .select()
+              .from(main_schema.kvData)
+              .where(dorm.eq(main_schema.kvData.key, "exposeVersion"))
+          )[0].value;
+          return Response.json({
+            success: true,
+            status: 200,
+            msg: "",
+            data: {
+              homePage,
+              registration,
+              robotsTxt,
+              search,
+              displayVersion,
             },
-            {
-              status: 200,
-            },
-          );
+          });
         } catch (e: any) {
           statusCode = 500;
           throw new Error(e.message || "ERR_GENERIC");
@@ -134,12 +136,14 @@ export const POST = async (request: NextRequest) => {
             registration: boolean;
             robotsTxt: boolean;
             search: boolean;
+            displayVersion: boolean;
           };
           if (
             typeof data.homePage !== "boolean" ||
             typeof data.registration !== "boolean" ||
             typeof data.robotsTxt !== "boolean" ||
-            typeof data.search !== "boolean"
+            typeof data.search !== "boolean" ||
+            typeof data.displayVersion !== "boolean"
           ) {
             throw new Error("ERR_INVALID_BODY_TYPE");
           }
@@ -159,23 +163,20 @@ export const POST = async (request: NextRequest) => {
             .update(main_schema.kvData)
             .set({ value: body.data.search })
             .where(dorm.eq(main_schema.kvData.key, "searchStatus"));
-
-          return Response.json(
-            {
-              success: true,
-              status: 200,
-              msg: "",
-            },
-            {
-              status: 200,
-            },
-          );
+          await db
+            .update(main_schema.kvData)
+            .set({ value: body.data.displayVersion })
+            .where(dorm.eq(main_schema.kvData.key, "exposeVersion"));
+          return Response.json({
+            success: true,
+            status: 200,
+            msg: "",
+          });
         } catch (e: any) {
           statusCode = 500;
           throw new Error(e.message || "ERR_GENERIC");
         }
-      }
-      if (body.action === "site_robots_txt_json") {
+      } else if (body.action === "site_robots_txt_json") {
         try {
           if (!body.data || typeof body.data !== "object") {
             throw new Error("ERR_INVALID_BODY_DATA_OBJ");
@@ -186,16 +187,11 @@ export const POST = async (request: NextRequest) => {
             .set({ value: body.data })
             .where(dorm.eq(main_schema.kvData.key, "robotsTxtList"));
 
-          return Response.json(
-            {
-              success: true,
-              status: 200,
-              msg: "",
-            },
-            {
-              status: 200,
-            },
-          );
+          return Response.json({
+            success: true,
+            status: 200,
+            msg: "",
+          });
         } catch (e: any) {
           statusCode = 500;
           throw new Error(e.message || "ERR_GENERIC");
@@ -208,17 +204,12 @@ export const POST = async (request: NextRequest) => {
             .from(main_schema.kvData)
             .where(dorm.eq(main_schema.kvData.key, "robotsTxtList"));
 
-          return Response.json(
-            {
-              success: true,
-              status: 200,
-              msg: "",
-              data: currentList[0].value,
-            },
-            {
-              status: 200,
-            },
-          );
+          return Response.json({
+            success: true,
+            status: 200,
+            msg: "",
+            data: currentList[0].value,
+          });
         } catch (e: any) {
           statusCode = 500;
           throw new Error(e.message || "ERR_GENERIC");
@@ -270,12 +261,7 @@ export const POST = async (request: NextRequest) => {
             statusCode = 500;
             throw new Error("ERR_REMOVE_FAILED");
           }
-          return Response.json(
-            { success: true, msg: "Deleted User" },
-            {
-              status: 200,
-            },
-          );
+          return Response.json({ success: true, msg: "Deleted User" });
         } catch (e: any) {
           console.log(e);
           statusCode = 403;
@@ -305,12 +291,7 @@ export const POST = async (request: NextRequest) => {
             .update(main_schema.userPosts)
             .set({ status: "draft" }) // making every post a "draft" instaed of making it unlisted
             .where(dorm.eq(main_schema.userPosts.byUser, body.user));
-          return Response.json(
-            { success: true, msg: "Banned User" },
-            {
-              status: 200,
-            },
-          );
+          return Response.json({ success: true, msg: "Banned User" });
         } catch (e: any) {
           console.log(e);
           statusCode = 500;
@@ -331,12 +312,10 @@ export const POST = async (request: NextRequest) => {
           if (!data.success) {
             throw new Error("Failed to revoke the user's sessions");
           }
-          return Response.json(
-            { success: true, msg: "Revoked the user's sessions" },
-            {
-              status: 200,
-            },
-          );
+          return Response.json({
+            success: true,
+            msg: "Revoked the user's sessions",
+          });
         } catch (e: any) {
           console.log(e);
           statusCode = 500;

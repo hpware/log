@@ -26,10 +26,10 @@ export const GET = async (request: NextRequest) => {
   return Response.json({
     copyright_owner: getCopyrightOwner[0].value,
     feature_status: {
-      homePage: getHomePageStatus[0].value !== "false",
-      search: getSearchPageStatus[0].value !== "false",
+      homePage: getHomePageStatus[0].value,
+      search: getSearchPageStatus[0].value,
     },
-    optionalExposeVersion: exposeVersion[0].value !== "false",
+    optionalExposeVersion: exposeVersion[0].value,
     version: exposeVersion[0].value !== "false" ? projectData.version : null,
   });
 };

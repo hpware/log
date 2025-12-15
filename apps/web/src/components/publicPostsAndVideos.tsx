@@ -8,6 +8,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "./ui/badge";
 import ImageView from "./imageView";
+import { motion, AnimatePresence } from "motion/react";
+
 import {
   CircleUserIcon,
   ExternalLink,
@@ -165,14 +167,22 @@ export function PublicPostsAndVideos({
 
   return (
     <div>
-      {imageViewSys.previewOn && (
-        <ImageView
-          imageSrc={imageViewSys.previewImageUrl}
-          closeState={() =>
-            setImageViewSys({ previewOn: false, previewImageUrl: "" })
-          }
-        />
-      )}
+      <AnimatePresence>
+        {imageViewSys.previewOn ? (
+          <motion.div
+            key="box"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <ImageView
+              imageSrc={imageViewSys.previewImageUrl}
+              closeState={() =>
+                setImageViewSys({ previewOn: false, previewImageUrl: "" })
+              }
+            />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
       {mode === "search" ? (
         <>
           <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 p-4">

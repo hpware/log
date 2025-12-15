@@ -47,6 +47,11 @@ export default function Navigation() {
               size="icon"
               className="cursor-pointer"
               aria-label="Home"
+              disabled={
+                querySystemData.isLoading
+                  ? false
+                  : querySystemData.data?.feature_status.home !== true
+              }
             >
               <HouseIcon />
             </Button>
@@ -57,6 +62,11 @@ export default function Navigation() {
               size="icon"
               className="cursor-pointer"
               aria-label="Search"
+              disabled={
+                querySystemData.isLoading
+                  ? false
+                  : querySystemData.data?.feature_status.search !== true
+              }
             >
               <SearchIcon />
             </Button>
