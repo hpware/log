@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
@@ -33,6 +34,9 @@ export default function Navigation() {
     queryFn: async () => {
       const req = await fetch("/api/data/system_info");
       const res = await req.json();
+      if (!req.ok) {
+        toast.error("Failed to fetch system info");
+      }
       return res;
     },
     queryKey: ["system_info"],
@@ -47,6 +51,11 @@ export default function Navigation() {
               size="icon"
               className="cursor-pointer"
               aria-label="Home"
+              /**              disabled={
+  querySystemData.isLoading
+    ? false
+    : querySystemData.data?.feature_status.home !== true
+} */
             >
               <HouseIcon />
             </Button>
@@ -57,6 +66,11 @@ export default function Navigation() {
               size="icon"
               className="cursor-pointer"
               aria-label="Search"
+              /**              disabled={
+  querySystemData.isLoading
+    ? false
+    : querySystemData.data?.feature_status.search !== true
+} */
             >
               <SearchIcon />
             </Button>

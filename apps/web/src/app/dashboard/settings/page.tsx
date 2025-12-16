@@ -35,12 +35,17 @@ export default async function DashboardPage() {
     .select()
     .from(main_schema.kvData)
     .where(dorm.eq(main_schema.kvData.key, "robotsTxtList"));
+  const kvOwner = await db
+    .select()
+    .from(main_schema.kvData)
+    .where(dorm.eq(main_schema.kvData.key, "copyrightOwner"));
 
   return (
     <div className="ml-4 space-y-4">
       <Cc.ChangeSiteSettings
         serverTitleData={String(kvTitle[0]?.value || "")}
         serverDescriptionData={String(kvDescription[0]?.value || "")}
+        serverOwnerData={String(kvOwner[0]?.value || "")}
       />
       <Cc.ChangeRobotsTxt currentRobotsTxt={getRobotsTxtList[0]} />
     </div>
