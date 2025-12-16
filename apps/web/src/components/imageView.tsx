@@ -22,15 +22,14 @@ export default function ImageView({
         >
           <div className="flex flex-row justify-between px-3 pb-3">
             <span>Image</span>
-            <button onClick={closeState}>
-              <motion.button
-                whileHover={{ scale: 1.3 }}
-                whileTap={{ scale: 0.9 }}
-                className="cursor-pointer"
-              >
-                <XIcon />
-              </motion.button>
-            </button>
+            <motion.button
+              onClick={closeState}
+              whileHover={{ scale: 1.3 }}
+              whileTap={{ scale: 0.9 }}
+              className="cursor-pointer"
+            >
+              <XIcon />
+            </motion.button>
           </div>
           <div>
             <img

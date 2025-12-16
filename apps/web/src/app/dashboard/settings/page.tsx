@@ -38,7 +38,7 @@ export default async function DashboardPage() {
   const kvOwner = await db
     .select()
     .from(main_schema.kvData)
-    .where(dorm.eq(main_schema.kvData.key, "owner"));
+    .where(dorm.eq(main_schema.kvData.key, "copyrightOwner"));
 
   return (
     <div className="ml-4 space-y-4">

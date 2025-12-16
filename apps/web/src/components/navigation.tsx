@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
@@ -33,6 +34,9 @@ export default function Navigation() {
     queryFn: async () => {
       const req = await fetch("/api/data/system_info");
       const res = await req.json();
+      if (!req.ok) {
+        toast.error("Failed to fetch system info");
+      }
       return res;
     },
     queryKey: ["system_info"],
