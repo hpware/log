@@ -1,19 +1,8 @@
 # install
-FROM oven/bun:latest as builder
+FROM oven/bun:latest AS builder
 WORKDIR /app
-COPY package.json bun.lock* ./
-COPY apps/web/package.json ./apps/web/
-COPY packages/*/package.json ./packages/*/
-RUN bun install
-WORKDIR /app/apps/web
-RUN bun install
-WORKDIR /app/packages/db
-RUN bun install
-WORKDIR /app/packages/auth
-RUN bun install
-# build
 COPY . .
-WORKDIR /app
+RUN bun install
 RUN bun run build
 
 # prod
@@ -22,17 +11,14 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
 # Copy built application
-COPY --from=builder /app/apps/web/.next/standalone ./
-COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
-COPY --from=builder /app/apps/web/public ./apps/web/public
-COPY --from=builder /app/packages/auth  ./packages/auth
-COPY --from=builder /app/packages/db ./packages/db
-RUN chown -R nextjs:nodejs /app
-USER nextjs
+COPY --from=builder /app/apps/web/.next ./.next
+COPY --from=builder /app/apps/web/public ./public
+COPY --from=builder /app/apps/web/package.json ./package.json
+COPY --from=builder /app/apps/web/next.config.ts ./next.config.ts
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 EXPOSE 3000
 
 ENV PORT=3000
