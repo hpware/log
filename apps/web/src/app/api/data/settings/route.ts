@@ -263,7 +263,7 @@ export const POST = async (request: NextRequest) => {
           }
           return Response.json({ success: true, msg: "Deleted User" });
         } catch (e: any) {
-          console.log(e);
+          console.error(e);
           statusCode = 403;
           throw new Error(e.message || "ERR_GENERIC");
         }
@@ -293,7 +293,7 @@ export const POST = async (request: NextRequest) => {
             .where(dorm.eq(main_schema.userPosts.byUser, body.user));
           return Response.json({ success: true, msg: "Banned User" });
         } catch (e: any) {
-          console.log(e);
+          console.error(e);
           statusCode = 500;
           throw new Error(e.message || "ERR_GENERIC");
         }
@@ -317,7 +317,7 @@ export const POST = async (request: NextRequest) => {
             msg: "Revoked the user's sessions",
           });
         } catch (e: any) {
-          console.log(e);
+          console.error(e);
           statusCode = 500;
           throw new Error(e.message || "ERR_GENERIC");
         }
@@ -335,7 +335,7 @@ export const POST = async (request: NextRequest) => {
             headers: await headers(),
           });
         } catch (e: any) {
-          console.log(e);
+          console.error(e);
           throw new Error(e.message || "ERR_GENERIC");
         }
       }
@@ -357,7 +357,7 @@ export const POST = async (request: NextRequest) => {
             { status: 200 },
           );
         } catch (e: any) {
-          console.log(e);
+          console.error(e);
           statusCode = 500;
           throw new Error(e.message || "ERR_GENERIC");
         }

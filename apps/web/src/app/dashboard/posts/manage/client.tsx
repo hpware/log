@@ -33,7 +33,7 @@ export default function Client() {
         const req = await fetch("/api/data/modify/posts?tab=post_manage", {
           method: "POST",
           headers: {
-            "Content-Type": "appilcation/json",
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(data),
         });
@@ -205,9 +205,3 @@ export default function Client() {
     </div>
   );
 }
-
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Edit a post",
-};

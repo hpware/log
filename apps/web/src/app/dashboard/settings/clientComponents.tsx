@@ -53,7 +53,7 @@ export function ChangeSiteSettings({
         const req = await fetch("/api/data/settings?tab=settings", {
           method: "POST",
           headers: {
-            "Content-Type": "appilcation/json",
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             action: "obtain_toggle_data_for_robotsTxt_and_others",
@@ -199,7 +199,6 @@ export function ChangeSiteSettings({
             id="home-page-enable"
             checked={statusSystemPull.homePage}
             onCheckedChange={(checked) => {
-              console.log(`Home Page: ${checked}`);
               setStatusSystemPull({
                 homePage: checked,
                 registration: statusSystemPull.registration,
@@ -213,12 +212,11 @@ export function ChangeSiteSettings({
                 data: {
                   homePage: checked,
                   registration: statusSystemPull.registration,
-                  robotsTxt: statusSystemPull.homePage,
+                  robotsTxt: statusSystemPull.robotsTxt,
                   search: statusSystemPull.search,
                   displayVersion: statusSystemPull.displayVersion,
                 },
               });
-              getToggleData.mutate();
             }}
             disabled={statusSystemPull.sysFailed}
           />
@@ -229,7 +227,6 @@ export function ChangeSiteSettings({
             id="registration-enable"
             checked={statusSystemPull.registration}
             onCheckedChange={(checked) => {
-              console.log(`Reg: ${checked}`);
               setStatusSystemPull({
                 homePage: statusSystemPull.homePage,
                 registration: checked,
@@ -248,7 +245,6 @@ export function ChangeSiteSettings({
                   displayVersion: statusSystemPull.displayVersion,
                 },
               });
-              getToggleData.mutate();
             }}
             disabled={statusSystemPull.sysFailed}
           />
@@ -259,7 +255,6 @@ export function ChangeSiteSettings({
             id="robots-enable"
             checked={statusSystemPull.robotsTxt}
             onCheckedChange={(checked) => {
-              console.log(`Robots: ${checked}`);
               setStatusSystemPull({
                 homePage: statusSystemPull.homePage,
                 registration: statusSystemPull.registration,
@@ -278,7 +273,6 @@ export function ChangeSiteSettings({
                   displayVersion: statusSystemPull.displayVersion,
                 },
               });
-              getToggleData.mutate();
             }}
             disabled={statusSystemPull.sysFailed}
           />
@@ -289,7 +283,6 @@ export function ChangeSiteSettings({
             id="search-enable"
             checked={statusSystemPull.search}
             onCheckedChange={(checked) => {
-              console.log(`Search: ${checked}`);
               setStatusSystemPull({
                 homePage: statusSystemPull.homePage,
                 registration: statusSystemPull.registration,
@@ -303,12 +296,11 @@ export function ChangeSiteSettings({
                 data: {
                   homePage: statusSystemPull.homePage,
                   registration: statusSystemPull.registration,
-                  robotsTxt: checked,
-                  search: statusSystemPull.search,
+                  robotsTxt: statusSystemPull.robotsTxt,
+                  search: checked,
                   displayVersion: statusSystemPull.displayVersion,
                 },
               });
-              getToggleData.mutate();
             }}
             disabled={statusSystemPull.sysFailed}
           />
@@ -319,9 +311,8 @@ export function ChangeSiteSettings({
             id="expose-server-version"
             checked={statusSystemPull.displayVersion}
             onCheckedChange={(checked) => {
-              console.log(`Home Page: ${checked}`);
               setStatusSystemPull({
-                homePage: checked,
+                homePage: statusSystemPull.homePage,
                 registration: statusSystemPull.registration,
                 robotsTxt: statusSystemPull.robotsTxt,
                 search: statusSystemPull.search,
@@ -333,16 +324,15 @@ export function ChangeSiteSettings({
                 data: {
                   homePage: statusSystemPull.homePage,
                   registration: statusSystemPull.registration,
-                  robotsTxt: checked,
+                  robotsTxt: statusSystemPull.robotsTxt,
                   search: statusSystemPull.search,
                   displayVersion: checked,
                 },
               });
-              getToggleData.mutate();
             }}
             disabled={statusSystemPull.sysFailed}
           />
-          <Label htmlFor="home-page-enable">Expose Server Version</Label>
+          <Label htmlFor="expose-server-version">Expose Server Version</Label>
         </div>
       </div>
     </>

@@ -17,6 +17,7 @@ export const GET = async (request: NextRequest) => {
     }
 
     if (!/^\d+$/.test(offset)) {
+      throw new Error("ERR_OFFSET_PARAM_NOT_A_NUMBER");
     }
     if (!Number.isSafeInteger(Number(offset))) {
       throw new Error("ERR_OFFSET_PARAM_NOT_A_SAFE_INTEGER");

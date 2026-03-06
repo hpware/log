@@ -28,7 +28,7 @@ export default function DisplayPosts({
   try {
     if (filters !== null) {
       const parsed = JSON.parse(String(filters));
-      if (isValidFilterObject(parsed)) {
+      if (!isValidFilterObject(parsed)) {
         throw new Error("ERR_FILTER_NOT_VALID_JSON");
       }
       parsedResult = parsed;
@@ -37,9 +37,6 @@ export default function DisplayPosts({
     console.error("Filter is not valid json!");
     toast.error("Filter is not valid json!");
   }
-  console.log({
-    filters: parsedResult,
-  });
 
   return (
     <div>

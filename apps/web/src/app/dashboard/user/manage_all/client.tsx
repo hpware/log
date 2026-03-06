@@ -53,7 +53,7 @@ export function Client() {
         const req = await fetch("/api/data/settings?tab=admin_user_actions", {
           method: "POST",
           headers: {
-            "Content-Type": "appilcation/json",
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(sendData),
         });
@@ -342,7 +342,7 @@ export function Client() {
                         <AlertDialogDescription>
                           This action cannot be undone. This will permanently
                           delete this account and remove this user's data from
-                          this instence.
+                          this instance.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter className="flex gap-3 sm:justify-end">

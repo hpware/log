@@ -18,7 +18,6 @@ import {
   ImageOff,
   VideoOff,
 } from "lucide-react";
-import { truncate } from "fs/promises";
 import { toast } from "sonner";
 
 type Post = typeof main_schema.userPosts.$inferSelect;
@@ -98,7 +97,6 @@ export function PublicPostsAndVideos({
             return;
           }
           setLogUserInfo((prev) => [...prev, res.content]);
-          console.log(logUserInfo);
           checkedUserInfo.push(item.byUser);
         } catch (error: any) {
           console.error(`Failed to fetch user ${item.byUser}:`, error);

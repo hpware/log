@@ -160,7 +160,6 @@ export default function Dashboard({
               }),
             });
             const res = await req.json();
-            console.log(res);
             if (!res.success) {
               setIsPending(false);
               console.error(`ERR_SERVER_RESPOSE: ${res.msg}`);

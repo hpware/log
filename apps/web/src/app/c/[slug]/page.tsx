@@ -27,7 +27,7 @@ export default async function Page(props: {
   const content: (typeof main_schema.collections.$inferSelect)[] = await db
     .select()
     .from(main_schema.collections)
-    .where(dorm.eq(main_schema.userPosts.postId, slug));
+    .where(dorm.eq(main_schema.collections.slug, slug));
 
   if (content.length === 0) {
     notFound();
@@ -64,7 +64,7 @@ export async function generateMetadata({
   const content: (typeof main_schema.collections.$inferSelect)[] = await db
     .select()
     .from(main_schema.collections)
-    .where(dorm.eq(main_schema.userPosts.postId, resolvedParams.slug));
+    .where(dorm.eq(main_schema.collections.slug, resolvedParams.slug));
 
   if (content.length === 0) {
     return {

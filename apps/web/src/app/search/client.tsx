@@ -56,7 +56,7 @@ export default function SearchFunction() {
           <SearchIcon className="justifty-center mx-auto w-12 h-12 transition-all duration-300 ease-in-out" />
         )}
         <span
-          className={`text-center justify-center text-2xl font-bold geint-sans transition-all duration-300 ease-in-out ${searchBox.length === 0 ? "mb-4" : "mb-1"}`}
+          className={`text-center justify-center text-2xl font-bold geist-sans transition-all duration-300 ease-in-out ${searchBox.length === 0 ? "mb-4" : "mb-1"}`}
         >
           Search anything!
         </span>

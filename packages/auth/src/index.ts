@@ -33,7 +33,6 @@ export const auth = betterAuth({
             .from(main_schema.kvData)
             .where(dorm.eq(main_schema.kvData.key, "registrationStatus"))
             .limit(1);
-          console.log(checkIfSystemDisabledRegister[0]);
           if (checkIfSystemDisabledRegister[0]?.value === false) {
             throw new Error("Registration is disabled");
           }

@@ -94,8 +94,6 @@ export const POST = async (request: NextRequest) => {
       },
     });
     const result = await upload.done();
-    console.log(result);
-    console.log(`Successfully uploaded: ${fsName}`);
 
     return Response.json({
       msg: "File uploaded successfully",

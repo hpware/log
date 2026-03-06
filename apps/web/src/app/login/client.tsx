@@ -45,7 +45,7 @@ function SignInForm({
     },
     validators: {
       onSubmit: z.object({
-        email: z.email("Invalid email address"),
+        email: z.string().email("Invalid email address"),
         password: z.string().min(8, "Password must be at least 8 characters"),
       }),
     },
@@ -125,7 +125,7 @@ function SignInForm({
           )}
         </form.Subscribe>
       </form>
-      <span className="geint-sans text-sm justify-center text-center align-middle italic">
+      <span className="geist-sans text-sm justify-center text-center align-middle italic">
         By signing in, you agree on the instance owner's terms.
       </span>
 
@@ -171,7 +171,7 @@ function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
     validators: {
       onSubmit: z.object({
         name: z.string().min(2, "Name must be at least 2 characters"),
-        email: z.email("Invalid email address"),
+        email: z.string().email("Invalid email address"),
         password: z.string().min(8, "Password must be at least 8 characters"),
       }),
     },

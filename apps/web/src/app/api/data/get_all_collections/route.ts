@@ -22,9 +22,9 @@ export const GET = async () => {
       .from(main_schema.collections)
       .where(dorm.eq(main_schema.collections.byUser, session.user.id));
     return Response.json({
-      data: getCollections.map((i) => {
-        (i.collectionId, i.slug, i.title);
-      }),
+      data: getCollections.map((i) => ({
+        collectionId: i.collectionId, slug: i.slug, title: i.title,
+      })),
       message: "",
     });
   } catch (e: any) {

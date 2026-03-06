@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { authClient } from "@/lib/auth-client";
 /*import ReactCrop, {
   type Crop,
   centerCrop,
@@ -27,6 +28,14 @@ export default function Client({ session }: { session: AuthUserType }) {
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(
     session.image || null,
   );
+  const [name, setName] = useState(session.name);
+  const email = session.email;
+  const [saving, setSaving] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const fileUploadBox = useRef<HTMLInputElement | null>(null);
   const fileUploadingDivBox = useRef<HTMLInputElement | null>(null);
 
@@ -99,6 +108,61 @@ export default function Client({ session }: { session: AuthUserType }) {
     await uploadImageToServer(file);
   };
 
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    try {
+      const { error } = await authClient.updateUser({
+        name,
+      });
+      if (error) {
+        throw new Error(error.message || "Failed to update profile");
+      }
+      toast.success("Profile updated successfully!");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!currentPassword) {
+      toast.error("Please enter your current password");
+      return;
+    }
+    if (!newPassword) {
+      toast.error("Please enter a new password");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+    setResettingPassword(true);
+    try {
+      const { error } = await authClient.changePassword({
+        currentPassword,
+        newPassword,
+      });
+      if (error) {
+        throw new Error(error.message || "Failed to reset password");
+      }
+      toast.success("Password reset successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordDialogOpen(false);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to reset password");
+    } finally {
+      setResettingPassword(false);
+    }
+  };
+
   return (
     <div>
       <span className="text-lg italic">Your Account</span>
@@ -148,16 +212,16 @@ export default function Client({ session }: { session: AuthUserType }) {
         <div>
           <div>
             <span>Your Name:</span>
-            <Input type="text" defaultValue={session.name} />
+            <Input type="text" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
             <span>Your Email:</span>
-            <Input type="text" defaultValue={session.email} />
+            <Input type="text" value={email} disabled />
           </div>
         </div>
       </div>
       <div className="flex flex-row space-x-1 mt-3">
-        <Dialog>
+        <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
           <DialogTrigger asChild>
             <Button className="cursor-pointer">Reset Password</Button>
           </DialogTrigger>
@@ -165,11 +229,21 @@ export default function Client({ session }: { session: AuthUserType }) {
             <DialogTitle>Reset Your Password</DialogTitle>
             <div className="flex flex-col space-y-2">
               <div>
+                <span className="ml-3">Current Password</span>
+                <Input
+                  type="password"
+                  placeholder="Current Password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                />
+              </div>
+              <div>
                 <span className="ml-3">New Password</span>
                 <Input
                   type="password"
                   placeholder="New Password"
-                  onFocus={() => {}}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
                 />
               </div>
               <div>
@@ -177,14 +251,19 @@ export default function Client({ session }: { session: AuthUserType }) {
                 <Input
                   type="password"
                   placeholder="Confirm Password"
-                  onFocus={() => {}}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </div>
             </div>
-            <Button className="cursor-pointer">Reset</Button>
+            <Button className="cursor-pointer" onClick={handleResetPassword} disabled={resettingPassword}>
+              {resettingPassword ? "Resetting..." : "Reset"}
+            </Button>
           </DialogContent>
         </Dialog>
-        <Button className="cursor-pointer">Submit</Button>
+        <Button className="cursor-pointer" onClick={handleSaveProfile} disabled={saving}>
+          {saving ? "Saving..." : "Submit"}
+        </Button>
       </div>
     </div>
   );

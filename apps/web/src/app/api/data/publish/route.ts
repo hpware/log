@@ -34,7 +34,7 @@ export const POST = async (request: NextRequest) => {
       return Response.json(
         {
           success: false,
-          msg: "You have been banned by the instence admins.",
+          msg: "You have been banned by the instance admins.",
         },
         { status: 403 },
       );
