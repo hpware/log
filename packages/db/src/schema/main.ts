@@ -78,3 +78,16 @@ export const collections = pgTable("collections", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export const videoEncodingJobs = pgTable("video_encoding_jobs", {
+  jobId: text("job_id").primaryKey(),
+  sourceUrl: text("source_url").notNull(),
+  outputUrl: text("output_url"),
+  status: text("status").notNull().default("pending"),
+  progress: integer("progress").default(0),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+}, (table) => [
+  check("status_check", sql`${table.status} IN ('pending', 'processing', 'completed', 'failed')`),
+]);

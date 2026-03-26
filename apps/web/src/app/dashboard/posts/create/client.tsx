@@ -53,8 +53,12 @@ export default function Dashboard({
     tags: [],
     inputBox: "",
   });
+  const [selectedCollection, setSelectedCollection] = useState<string>("");
   const [isPending, setIsPending] = useState(false);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
+  const [encodingJobId, setEncodingJobId] = useState<string | null>(null);
+  const [isEncoding, setIsEncoding] = useState(false);
+  const [encodingProgress, setEncodingProgress] = useState(0);
   const [previewData, setPreviewData] = useState<Post[]>([]);
   const fileUploadBox = useRef<HTMLInputElement | null>(null);
   const fileUploadingDivBox = useRef<HTMLInputElement | null>(null);
@@ -78,11 +82,61 @@ export default function Dashboard({
       const res = await req.json();
       setUploadedFileUrl(res.uploadUrl);
       toast.success("File uploaded successfully!");
+
+      if (res.needsEncoding) {
+        toast.info("Video encoding started in background...");
+        setIsEncoding(true);
+        setEncodingProgress(0);
+
+        const encodingReq = await fetch("/api/data/encoding/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sourceUrl: res.uploadUrl }),
+        });
+
+        if (encodingReq.ok) {
+          const encodingRes = await encodingReq.json();
+          setEncodingJobId(encodingRes.jobId);
+          pollEncodingStatus(encodingRes.jobId);
+        }
+      }
+
       return res.uploadUrl;
     } catch (e: any) {
       toast.error(`Upload failed: ${e.message}`);
       throw e;
     }
+  };
+
+  const pollEncodingStatus = async (jobId: string) => {
+    const poll = async () => {
+      try {
+        const req = await fetch(`/api/data/encoding/status?jobId=${jobId}`);
+        const res = await req.json();
+
+        if (res.success && res.status) {
+          setEncodingProgress(res.status.progress);
+
+          if (res.status.status === "completed") {
+            setIsEncoding(false);
+            setEncodingJobId(null);
+            if (res.status.outputUrl) {
+              setUploadedFileUrl(res.status.outputUrl);
+              toast.success("Video encoding completed!");
+            }
+          } else if (res.status.status === "failed") {
+            setIsEncoding(false);
+            setEncodingJobId(null);
+            toast.error("Video encoding failed. Using original file.");
+          } else if (res.status.status === "processing") {
+            setTimeout(poll, 2000);
+          }
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
+      }
+    };
+    poll();
   };
 
   const handleFileSelect = async (files: FileList | null) => {
@@ -157,10 +211,10 @@ export default function Dashboard({
                 ...(data.type === "video" && { videoUrl: data.fileUrl }),
                 status: currentPublishOption,
                 ...(tagData.tags?.length > 0 && { tags: tagData.tags }),
+                ...(selectedCollection && { collectionId: selectedCollection }),
               }),
             });
             const res = await req.json();
-            console.log(res);
             if (!res.success) {
               setIsPending(false);
               console.error(`ERR_SERVER_RESPOSE: ${res.msg}`);
@@ -213,11 +267,11 @@ export default function Dashboard({
 
   const getAllCollectionsFromThisUser = useQuery({
     queryFn: async () => {
-      const req = await fetch("/api/data/get_all_collections", {
+      const req = await fetch("/api/data/collections", {
         method: "GET",
       });
       const res = await req.json();
-      if (!req.ok) {
+      if (!res.success) {
         toast.error(res.message);
       }
       return res.data || [];
@@ -230,6 +284,15 @@ export default function Dashboard({
       failed: false,
       msg: "",
     });
+
+    if (isEncoding) {
+      setHandleStatus({
+        failed: true,
+        msg: "Video is still encoding.",
+      });
+      toast.error("Please wait for video encoding to complete.");
+      return;
+    }
 
     if (currentOption === "text" && !textBoxData) {
       setHandleStatus({
@@ -359,14 +422,14 @@ export default function Dashboard({
           </div>
           <div className="flex flex-row space-x-2 text-center align-middle">
             <span className="my-auto">Add to a collection</span>
-            <Select>
+            <Select value={selectedCollection} onValueChange={setSelectedCollection}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent>
                 {getAllCollectionsFromThisUser.data?.map((collection: any) => (
-                  <SelectItem key={collection.id} value={collection.id}>
-                    {collection.name}
+                  <SelectItem key={collection.collectionId} value={collection.collectionId}>
+                    {collection.title}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -402,6 +465,19 @@ export default function Dashboard({
               uploadLimit={uploadLimit}
               onFileSelect={handleFileSelect}
             />
+            {isEncoding && (
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm font-medium text-blue-700">
+                  Encoding video... {encodingProgress}%
+                </p>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all"
+                    style={{ width: `${encodingProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
         <div className="gap-2 flex flex-col sm:flex-row mt-2">

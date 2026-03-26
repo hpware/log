@@ -94,14 +94,17 @@ export const POST = async (request: NextRequest) => {
       },
     });
     const result = await upload.done();
-    console.log(result);
-    console.log(`Successfully uploaded: ${fsName}`);
+
+    const isVideo = file.type.startsWith("video/");
+    const needsEncoding = isVideo && file.type !== "video/mp4";
 
     return Response.json({
       msg: "File uploaded successfully",
       uploadUrl: `/api/data/files/${fsName}`,
       fileSize: file.size,
       contentType: file.type,
+      isVideo,
+      needsEncoding,
     });
   } catch (e: any) {
     console.error("Upload error:", e);

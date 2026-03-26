@@ -54,6 +54,29 @@ export const POST = async (request: NextRequest) => {
       ...(body.status && { status: body.status }),
     });
 
+    if (body.collectionId) {
+      const collection = await db
+        .select()
+        .from(main_schema.collections)
+        .where(
+          dorm.and(
+            dorm.eq(main_schema.collections.collectionId, body.collectionId),
+            dorm.eq(main_schema.collections.byUser, userId)
+          )
+        );
+
+      if (collection.length > 0) {
+        const currentItems = collection[0].items as { postIds: string[] };
+        await db
+          .update(main_schema.collections)
+          .set({
+            items: { postIds: [...currentItems.postIds, id] },
+            updatedAt: new Date(),
+          })
+          .where(dorm.eq(main_schema.collections.collectionId, body.collectionId));
+      }
+    }
+
     return Response.json({ success: true, msg: "", postId: id });
   } catch (e: any) {
     console.error(e);
