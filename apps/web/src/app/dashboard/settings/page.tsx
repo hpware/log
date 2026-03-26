@@ -40,6 +40,31 @@ export default async function DashboardPage() {
     .from(main_schema.kvData)
     .where(dorm.eq(main_schema.kvData.key, "copyrightOwner"));
 
+  const getUmamiEnabled = await db
+    .select()
+    .from(main_schema.kvData)
+    .where(dorm.eq(main_schema.kvData.key, "umamiEnabled"));
+  const getUmamiScriptUrl = await db
+    .select()
+    .from(main_schema.kvData)
+    .where(dorm.eq(main_schema.kvData.key, "umamiScriptUrl"));
+  const getRybbitEnabled = await db
+    .select()
+    .from(main_schema.kvData)
+    .where(dorm.eq(main_schema.kvData.key, "rybbitEnabled"));
+  const getRybbitSiteId = await db
+    .select()
+    .from(main_schema.kvData)
+    .where(dorm.eq(main_schema.kvData.key, "rybbitSiteId"));
+  const getCustomScriptsEnabled = await db
+    .select()
+    .from(main_schema.kvData)
+    .where(dorm.eq(main_schema.kvData.key, "customScriptsEnabled"));
+  const getCustomScripts = await db
+    .select()
+    .from(main_schema.kvData)
+    .where(dorm.eq(main_schema.kvData.key, "customScripts"));
+
   return (
     <div className="ml-4 space-y-4">
       <Cc.ChangeSiteSettings
@@ -48,6 +73,14 @@ export default async function DashboardPage() {
         serverOwnerData={String(kvOwner[0]?.value || "")}
       />
       <Cc.ChangeRobotsTxt currentRobotsTxt={getRobotsTxtList[0]} />
+      <Cc.ChangeAnalyticsSettings
+        serverUmamiEnabled={Boolean(getUmamiEnabled[0]?.value)}
+        serverUmamiScriptUrl={String(getUmamiScriptUrl[0]?.value || "")}
+        serverRybbitEnabled={Boolean(getRybbitEnabled[0]?.value)}
+        serverRybbitSiteId={String(getRybbitSiteId[0]?.value || "")}
+        serverCustomScriptsEnabled={Boolean(getCustomScriptsEnabled[0]?.value)}
+        serverCustomScripts={String(getCustomScripts[0]?.value || "")}
+      />
     </div>
   );
 }

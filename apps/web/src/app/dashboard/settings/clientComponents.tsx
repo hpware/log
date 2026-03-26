@@ -11,6 +11,8 @@ import Link from "next/link";
 import DataTable from "@/components/table";
 import robotsTxtParseToJson from "@/components/robotsTxtParser";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 // types
 type KeyValue = typeof main_schema.kvData.$inferSelect;
@@ -199,7 +201,6 @@ export function ChangeSiteSettings({
             id="home-page-enable"
             checked={statusSystemPull.homePage}
             onCheckedChange={(checked) => {
-              console.log(`Home Page: ${checked}`);
               setStatusSystemPull({
                 homePage: checked,
                 registration: statusSystemPull.registration,
@@ -229,7 +230,6 @@ export function ChangeSiteSettings({
             id="registration-enable"
             checked={statusSystemPull.registration}
             onCheckedChange={(checked) => {
-              console.log(`Reg: ${checked}`);
               setStatusSystemPull({
                 homePage: statusSystemPull.homePage,
                 registration: checked,
@@ -259,7 +259,6 @@ export function ChangeSiteSettings({
             id="robots-enable"
             checked={statusSystemPull.robotsTxt}
             onCheckedChange={(checked) => {
-              console.log(`Robots: ${checked}`);
               setStatusSystemPull({
                 homePage: statusSystemPull.homePage,
                 registration: statusSystemPull.registration,
@@ -289,7 +288,6 @@ export function ChangeSiteSettings({
             id="search-enable"
             checked={statusSystemPull.search}
             onCheckedChange={(checked) => {
-              console.log(`Search: ${checked}`);
               setStatusSystemPull({
                 homePage: statusSystemPull.homePage,
                 registration: statusSystemPull.registration,
@@ -319,7 +317,6 @@ export function ChangeSiteSettings({
             id="expose-server-version"
             checked={statusSystemPull.displayVersion}
             onCheckedChange={(checked) => {
-              console.log(`Home Page: ${checked}`);
               setStatusSystemPull({
                 homePage: checked,
                 registration: statusSystemPull.registration,
@@ -586,6 +583,210 @@ export function ChangeRobotsTxt({
             >
               Submit
             </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export function ChangeAnalyticsSettings({
+  serverUmamiEnabled,
+  serverUmamiScriptUrl,
+  serverRybbitEnabled,
+  serverRybbitSiteId,
+  serverCustomScriptsEnabled,
+  serverCustomScripts,
+}: {
+  serverUmamiEnabled: boolean;
+  serverUmamiScriptUrl: string;
+  serverRybbitEnabled: boolean;
+  serverRybbitSiteId: string;
+  serverCustomScriptsEnabled: boolean;
+  serverCustomScripts: string;
+}) {
+  const [analyticsSettings, setAnalyticsSettings] = useState({
+    umamiEnabled: serverUmamiEnabled,
+    umamiScriptUrl: serverUmamiScriptUrl,
+    rybbitEnabled: serverRybbitEnabled,
+    rybbitSiteId: serverRybbitSiteId,
+    customScriptsEnabled: serverCustomScriptsEnabled,
+    customScripts: serverCustomScripts,
+  });
+
+  const sendData = useMutation({
+    mutationFn: async (sendData2: any) => {
+      const query = await fetch("/api/data/settings?tab=settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(sendData2),
+      });
+      const res = await query.json();
+      if (res.success) {
+        toast.success("Settings Updated!");
+      } else {
+        toast.error(`Save failed: ${res.msg}`);
+      }
+      return;
+    },
+  });
+
+  return (
+    <>
+      <section id="analytics"></section>
+      <div className="ml-8">
+        <h1 className="text-2xl text-bold ml-1 mb-1">Analytics & Scripts</h1>
+        <div className="bg-gray-100 dark:bg-gray-900 p-4 rounded space-y-6">
+          <div className="border-b pb-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-semibold">Umami Analytics</h2>
+              <Switch
+                id="umami-enable"
+                checked={analyticsSettings.umamiEnabled}
+                onCheckedChange={(checked) => {
+                  setAnalyticsSettings({
+                    ...analyticsSettings,
+                    umamiEnabled: checked,
+                  });
+                }}
+              />
+            </div>
+            {analyticsSettings.umamiEnabled && (
+              <div className="ml-4 space-y-2">
+                <div>
+                  <Label htmlFor="umami-script-url">Script URL</Label>
+                  <Input
+                    id="umami-script-url"
+                    type="text"
+                    value={analyticsSettings.umamiScriptUrl}
+                    onChange={(e) =>
+                      setAnalyticsSettings({
+                        ...analyticsSettings,
+                        umamiScriptUrl: e.target.value,
+                      })
+                    }
+                    placeholder="https://analytics.example.com/script.js"
+                    className="mt-1"
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    sendData.mutate({
+                      action: "change_umami",
+                      data: {
+                        enabled: analyticsSettings.umamiEnabled,
+                        scriptUrl: analyticsSettings.umamiScriptUrl,
+                      },
+                    })
+                  }
+                >
+                  <SaveIcon /> Save
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div className="border-b pb-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-semibold">Rybbit Analytics</h2>
+              <Switch
+                id="rybbit-enable"
+                checked={analyticsSettings.rybbitEnabled}
+                onCheckedChange={(checked) => {
+                  setAnalyticsSettings({
+                    ...analyticsSettings,
+                    rybbitEnabled: checked,
+                  });
+                }}
+              />
+            </div>
+            {analyticsSettings.rybbitEnabled && (
+              <div className="ml-4 space-y-2">
+                <div>
+                  <Label htmlFor="rybbit-site-id">Site ID</Label>
+                  <Input
+                    id="rybbit-site-id"
+                    type="text"
+                    value={analyticsSettings.rybbitSiteId}
+                    onChange={(e) =>
+                      setAnalyticsSettings({
+                        ...analyticsSettings,
+                        rybbitSiteId: e.target.value,
+                      })
+                    }
+                    placeholder="your-site-id"
+                    className="mt-1"
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    sendData.mutate({
+                      action: "change_rybbit",
+                      data: {
+                        enabled: analyticsSettings.rybbitEnabled,
+                        siteId: analyticsSettings.rybbitSiteId,
+                      },
+                    })
+                  }
+                >
+                  <SaveIcon /> Save
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-semibold">Custom Scripts</h2>
+              <Switch
+                id="custom-scripts-enable"
+                checked={analyticsSettings.customScriptsEnabled}
+                onCheckedChange={(checked) => {
+                  setAnalyticsSettings({
+                    ...analyticsSettings,
+                    customScriptsEnabled: checked,
+                  });
+                }}
+              />
+            </div>
+            {analyticsSettings.customScriptsEnabled && (
+              <div className="ml-4 space-y-2">
+                <div>
+                  <Label htmlFor="custom-scripts">Script Content</Label>
+                  <Textarea
+                    id="custom-scripts"
+                    value={analyticsSettings.customScripts}
+                    onChange={(e) =>
+                      setAnalyticsSettings({
+                        ...analyticsSettings,
+                        customScripts: e.target.value,
+                      })
+                    }
+                    placeholder="<script>...</script>"
+                    className="mt-1 font-mono text-sm"
+                    rows={6}
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    sendData.mutate({
+                      action: "change_custom_scripts",
+                      data: {
+                        enabled: analyticsSettings.customScriptsEnabled,
+                        script: analyticsSettings.customScripts,
+                      },
+                    })
+                  }
+                >
+                  <SaveIcon /> Save
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

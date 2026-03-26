@@ -9,6 +9,7 @@ import {
   InfoIcon,
   CircleArrowLeftIcon,
   LibraryIcon,
+  LinkIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -66,6 +67,17 @@ const items = [
         title: "Create Collection",
         url: "/dashboard/collections/create",
         icon: PlusCircleIcon,
+      },
+    ],
+  },
+  {
+    title: "URL Shortener",
+    perm: null,
+    items: [
+      {
+        title: "Short URLs",
+        url: "/dashboard/urls",
+        icon: LinkIcon,
       },
     ],
   },

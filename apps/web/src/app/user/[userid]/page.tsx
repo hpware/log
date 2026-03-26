@@ -34,7 +34,7 @@ export default async function Page(props: {
   const isSameUser = sessionUserId === userid ? true : false;
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto">
       <div className="flex flex-col pl-2">
         <div className="flex flex-row">
           <Image

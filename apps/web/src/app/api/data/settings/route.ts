@@ -216,16 +216,135 @@ export const POST = async (request: NextRequest) => {
         }
       }
       if (body.action === "change_umami") {
-        statusCode = 500;
-        throw new Error("ERR_NO_FEATURE");
+        try {
+          const data = body.data as { enabled: boolean; scriptUrl?: string };
+          if (typeof data.enabled !== "boolean") {
+            throw new Error("ERR_INVALID_BODY_TYPE");
+          }
+          await db
+            .update(main_schema.kvData)
+            .set({ value: data.enabled })
+            .where(dorm.eq(main_schema.kvData.key, "umamiEnabled"));
+          if (data.enabled && data.scriptUrl) {
+            await db
+              .update(main_schema.kvData)
+              .set({ value: data.scriptUrl })
+              .where(dorm.eq(main_schema.kvData.key, "umamiScriptUrl"));
+          }
+          return Response.json({
+            success: true,
+            status: 200,
+            msg: "",
+          });
+        } catch (e: any) {
+          statusCode = 500;
+          throw new Error(e.message || "ERR_GENERIC");
+        }
       }
       if (body.action === "change_rybbit") {
-        statusCode = 500;
-        throw new Error("ERR_NO_FEATURE");
+        try {
+          const data = body.data as { enabled: boolean; siteId?: string };
+          if (typeof data.enabled !== "boolean") {
+            throw new Error("ERR_INVALID_BODY_TYPE");
+          }
+          await db
+            .update(main_schema.kvData)
+            .set({ value: data.enabled })
+            .where(dorm.eq(main_schema.kvData.key, "rybbitEnabled"));
+          if (data.enabled && data.siteId) {
+            await db
+              .update(main_schema.kvData)
+              .set({ value: data.siteId })
+              .where(dorm.eq(main_schema.kvData.key, "rybbitSiteId"));
+          }
+          return Response.json({
+            success: true,
+            status: 200,
+            msg: "",
+          });
+        } catch (e: any) {
+          statusCode = 500;
+          throw new Error(e.message || "ERR_GENERIC");
+        }
       }
       if (body.action === "change_custom_scripts") {
-        statusCode = 500;
-        throw new Error("ERR_NO_FEATURE");
+        try {
+          const data = body.data as { enabled: boolean; script?: string };
+          if (typeof data.enabled !== "boolean") {
+            throw new Error("ERR_INVALID_BODY_TYPE");
+          }
+          await db
+            .update(main_schema.kvData)
+            .set({ value: data.enabled })
+            .where(dorm.eq(main_schema.kvData.key, "customScriptsEnabled"));
+          if (data.enabled && data.script) {
+            await db
+              .update(main_schema.kvData)
+              .set({ value: data.script })
+              .where(dorm.eq(main_schema.kvData.key, "customScripts"));
+          }
+          return Response.json({
+            success: true,
+            status: 200,
+            msg: "",
+          });
+        } catch (e: any) {
+          statusCode = 500;
+          throw new Error(e.message || "ERR_GENERIC");
+        }
+      }
+      if (body.action === "obtain_analytics_settings") {
+        try {
+          const umamiEnabled = (
+            await db
+              .select()
+              .from(main_schema.kvData)
+              .where(dorm.eq(main_schema.kvData.key, "umamiEnabled"))
+          )[0].value;
+          const umamiScriptUrl = (
+            await db
+              .select()
+              .from(main_schema.kvData)
+              .where(dorm.eq(main_schema.kvData.key, "umamiScriptUrl"))
+          )[0].value;
+          const rybbitEnabled = (
+            await db
+              .select()
+              .from(main_schema.kvData)
+              .where(dorm.eq(main_schema.kvData.key, "rybbitEnabled"))
+          )[0].value;
+          const rybbitSiteId = (
+            await db
+              .select()
+              .from(main_schema.kvData)
+              .where(dorm.eq(main_schema.kvData.key, "rybbitSiteId"))
+          )[0].value;
+          const customScriptsEnabled = (
+            await db
+              .select()
+              .from(main_schema.kvData)
+              .where(dorm.eq(main_schema.kvData.key, "customScriptsEnabled"))
+          )[0].value;
+          const customScripts = (
+            await db
+              .select()
+              .from(main_schema.kvData)
+              .where(dorm.eq(main_schema.kvData.key, "customScripts"))
+          )[0].value;
+          return Response.json({
+            success: true,
+            status: 200,
+            msg: "",
+            data: {
+              umami: { enabled: umamiEnabled, scriptUrl: umamiScriptUrl },
+              rybbit: { enabled: rybbitEnabled, siteId: rybbitSiteId },
+              customScripts: { enabled: customScriptsEnabled, script: customScripts },
+            },
+          });
+        } catch (e: any) {
+          statusCode = 500;
+          throw new Error(e.message || "ERR_GENERIC");
+        }
       }
     } else if (tabAction === "post_manage") {
       if (body.action === "delete") {
@@ -263,7 +382,6 @@ export const POST = async (request: NextRequest) => {
           }
           return Response.json({ success: true, msg: "Deleted User" });
         } catch (e: any) {
-          console.log(e);
           statusCode = 403;
           throw new Error(e.message || "ERR_GENERIC");
         }
@@ -293,7 +411,6 @@ export const POST = async (request: NextRequest) => {
             .where(dorm.eq(main_schema.userPosts.byUser, body.user));
           return Response.json({ success: true, msg: "Banned User" });
         } catch (e: any) {
-          console.log(e);
           statusCode = 500;
           throw new Error(e.message || "ERR_GENERIC");
         }
@@ -317,7 +434,6 @@ export const POST = async (request: NextRequest) => {
             msg: "Revoked the user's sessions",
           });
         } catch (e: any) {
-          console.log(e);
           statusCode = 500;
           throw new Error(e.message || "ERR_GENERIC");
         }
@@ -335,7 +451,6 @@ export const POST = async (request: NextRequest) => {
             headers: await headers(),
           });
         } catch (e: any) {
-          console.log(e);
           throw new Error(e.message || "ERR_GENERIC");
         }
       }
@@ -357,7 +472,6 @@ export const POST = async (request: NextRequest) => {
             { status: 200 },
           );
         } catch (e: any) {
-          console.log(e);
           statusCode = 500;
           throw new Error(e.message || "ERR_GENERIC");
         }

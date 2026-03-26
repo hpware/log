@@ -8,6 +8,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "./ui/badge";
 import ImageView from "./imageView";
+import VideoView from "./videoView";
+import VideoPlayer from "./videoPlayer";
 import { motion, AnimatePresence } from "motion/react";
 
 import {
@@ -18,7 +20,7 @@ import {
   ImageOff,
   VideoOff,
 } from "lucide-react";
-import { truncate } from "fs/promises";
+import { truncateText } from "@/lib/utils";
 import { toast } from "sonner";
 
 type Post = typeof main_schema.userPosts.$inferSelect;
@@ -40,6 +42,10 @@ export function PublicPostsAndVideos({
   const [imageViewSys, setImageViewSys] = useState({
     previewOn: false,
     previewImageUrl: "",
+  });
+  const [videoViewSys, setVideoViewSys] = useState({
+    previewOn: false,
+    previewVideoUrl: "",
   });
   const [reloadPost, setReloadPost] = useState(false);
   const [logData, setLogData] = useState<Post[]>([]);
@@ -98,7 +104,6 @@ export function PublicPostsAndVideos({
             return;
           }
           setLogUserInfo((prev) => [...prev, res.content]);
-          console.log(logUserInfo);
           checkedUserInfo.push(item.byUser);
         } catch (error: any) {
           console.error(`Failed to fetch user ${item.byUser}:`, error);
@@ -182,6 +187,20 @@ export function PublicPostsAndVideos({
             />
           </motion.div>
         ) : null}
+        {videoViewSys.previewOn ? (
+          <motion.div
+            key="video-box"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <VideoView
+              videoSrc={videoViewSys.previewVideoUrl}
+              closeState={() =>
+                setVideoViewSys({ previewOn: false, previewVideoUrl: "" })
+              }
+            />
+          </motion.div>
+        ) : null}
       </AnimatePresence>
       {mode === "search" ? (
         <>
@@ -217,7 +236,14 @@ export function PublicPostsAndVideos({
                   </Link>
                 )}
                 <div className="p-2">
-                  <span className="break-words">{i.textData}</span>
+                  {(() => {
+                    const { displayText, isTruncated } = truncateText(i.textData || "", 150);
+                    return (
+                      <span className="break-words">
+                        {displayText}{isTruncated && <span className="text-blue-500">... read more</span>}
+                      </span>
+                    );
+                  })()}
                 </div>
                 {i.type === "photos" ? (
                   <button
@@ -252,25 +278,10 @@ export function PublicPostsAndVideos({
                 ) : (
                   i.type === "video" && (
                     <div className="w-full overflow-hidden">
-                      <video
+                      <VideoPlayer
                         src={String(i.videoUrl)}
-                        controls
-                        className="w-full h-auto rounded border"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                          const fallback =
-                            e.currentTarget.parentElement?.querySelector(
-                              ".video-fallback",
-                            ) as HTMLElement;
-                          if (fallback) fallback.style.display = "flex";
-                        }}
+                        className="w-full aspect-video"
                       />
-                      <div className="video-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
-                        <VideoOff className="w-8 h-8 mb-2" />
-                        <p className="text-sm text-center">
-                          Sorry, we can't play this video right now
-                        </p>
-                      </div>
                     </div>
                   )
                 )}
@@ -323,7 +334,14 @@ export function PublicPostsAndVideos({
                         />
                       </Link>
                       <div className="mb-2">
-                        <span className="break-words">{i.textData}</span>
+                        {(() => {
+                          const { displayText, isTruncated } = truncateText(i.textData || "", 150);
+                          return (
+                            <span className="break-words">
+                              {displayText}{isTruncated && <span className="text-blue-500">... read more</span>}
+                            </span>
+                          );
+                        })()}
                       </div>
                       {i.type === "photos" ? (
                         <button
@@ -358,27 +376,20 @@ export function PublicPostsAndVideos({
                         </button>
                       ) : (
                         i.type === "video" && (
-                          <div className="w-full overflow-hidden">
-                            <video
+                          <button
+                            className="w-full overflow-hidden"
+                            onClick={() => {
+                              setVideoViewSys({
+                                previewOn: true,
+                                previewVideoUrl: String(i.videoUrl),
+                              });
+                            }}
+                          >
+                            <VideoPlayer
                               src={String(i.videoUrl)}
-                              controls
-                              className="w-full h-auto rounded border"
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                                const fallback =
-                                  e.currentTarget.parentElement?.querySelector(
-                                    ".video-fallback",
-                                  ) as HTMLElement;
-                                if (fallback) fallback.style.display = "flex";
-                              }}
+                              className="w-full aspect-video"
                             />
-                            <div className="video-fallback hidden w-full h-48 bg-gray-100 border-2 border-dashed border-gray-300 flex-col items-center justify-center text-gray-500 rounded">
-                              <VideoOff className="w-8 h-8 mb-2" />
-                              <p className="text-sm text-center">
-                                Sorry, we can't play this video right now
-                              </p>
-                            </div>
-                          </div>
+                          </button>
                         )
                       )}
                       <Link href={`/i/${i.postId}`}>
@@ -466,6 +477,6 @@ export function UserData({
   );
 }
 export interface FilterFormat {
-  by: "tag";
+  by: "tag" | "text";
   filter: string;
 }

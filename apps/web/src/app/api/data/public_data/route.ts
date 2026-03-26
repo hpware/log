@@ -11,7 +11,17 @@ export const GET = async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
     const offset = searchParams.get("offset");
     const pullFromUserId = searchParams.get("user");
-    const filter = searchParams.get("filters");
+    const filterParam = searchParams.get("filters");
+    
+    let filters: { by: string; filter: string }[] = [];
+    if (filterParam) {
+      try {
+        filters = JSON.parse(decodeURIComponent(filterParam));
+      } catch (e) {
+        console.error("Failed to parse filters:", e);
+      }
+    }
+    
     if (offset === null) {
       throw new Error("ERR_NO_PARAMS_TO_USE");
     }
@@ -24,7 +34,6 @@ export const GET = async (request: NextRequest) => {
 
     let query;
     if (pullFromUserId === null) {
-      // Get all public posts
       query = dorm.eq(main_schema.userPosts.status, "public");
       const homePageStatus = await db
         .select()
@@ -46,6 +55,59 @@ export const GET = async (request: NextRequest) => {
         dorm.eq(main_schema.userPosts.byUser, pullFromUserId),
       );
     }
+
+    if (filters.length > 0) {
+      const tagFilters = filters.filter(f => f.by === "tag");
+      const textFilters = filters.filter(f => f.by === "text");
+      
+      if (tagFilters.length > 0 || textFilters.length > 0) {
+        const tagValues = tagFilters.map(f => f.filter);
+        const textValues = textFilters.map(f => f.filter);
+        
+        let conditions: string[] = [];
+        const params: any[] = [];
+        
+        if (tagValues.length > 0) {
+          const placeholders = tagValues.map((_, i) => `$${i + 1}`).join(", ");
+          conditions.push(`tags && ARRAY[${placeholders}]::text[]`);
+          params.push(...tagValues);
+        }
+        
+        if (textValues.length > 0) {
+          const textSearchTerm = textValues.join(" ");
+          const paramIndex = params.length + 1;
+          conditions.push(`to_tsvector('english', text_data) @@ plainto_tsquery('english', $${paramIndex})`);
+          params.push(textSearchTerm);
+        }
+        
+        const conditionStr = conditions.join(" AND ");
+        const rawSql = `SELECT * FROM user_posts WHERE status = 'public' ${pullFromUserId ? `AND by_user = '${pullFromUserId}'` : ''} AND ${conditionStr} ORDER BY created_at DESC LIMIT 50 OFFSET ${Number(offset)}`;
+        
+        const dbResult = await db.execute(dorm.sql(rawSql), params);
+        
+        const transformedRows = dbResult.rows.map((row: any) => ({
+          postId: row.post_id,
+          type: row.type,
+          createdAt: row.created_at,
+          byUser: row.by_user,
+          textData: row.text_data,
+          imageUrl: row.image_url,
+          videoUrl: row.video_url,
+          status: row.status,
+          tags: row.tags,
+          updatedAt: row.updated_at,
+        }));
+
+        return Response.json({
+          success: true,
+          msg: "",
+          result: transformedRows,
+          nextOffset: transformedRows.length < 50 ? undefined : Number(offset) + 50,
+          featDisabled: false,
+        });
+      }
+    }
+
     const dbResult = await db
       .select()
       .from(main_schema.userPosts)

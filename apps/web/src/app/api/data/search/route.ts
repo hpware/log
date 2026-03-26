@@ -4,7 +4,6 @@ import { dorm, db, main_schema } from "../../../../../../../packages/db/src";
 export const GET = async (request: NextRequest) => {
   const startPerf = performance.now();
   try {
-    // Check if search is enabled
     const searchStatus = await db
       .select()
       .from(main_schema.kvData)
@@ -22,7 +21,18 @@ export const GET = async (request: NextRequest) => {
 
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("query");
-    if (query == null) {
+    const filterParam = searchParams.get("filters");
+    
+    let filters: { by: string; filter: string }[] = [];
+    if (filterParam) {
+      try {
+        filters = JSON.parse(decodeURIComponent(filterParam));
+      } catch (e) {
+        console.error("Failed to parse filters:", e);
+      }
+    }
+
+    if (query == null && filters.length === 0) {
       return NextResponse.json({
         success: false,
         msg: "No query.",
@@ -31,18 +41,44 @@ export const GET = async (request: NextRequest) => {
         disabled: false,
       });
     }
-    const searchData = await db.execute(
-      dorm.sql`
-        SELECT *,
-               ts_rank(to_tsvector('english', text_data),
-                       plainto_tsquery('english', ${query})) AS rank
-                       FROM user_posts
-                       WHERE to_tsvector('english', text_data)
-                             @@ plainto_tsquery('english', ${query})
-                       AND status IN ('public')
-                       ORDER BY rank DESC;
-    `,
-    );
+    
+    let whereClause = "status IN ('public')";
+    const params: any[] = [];
+    
+    if (query && query.trim()) {
+      whereClause += ` AND to_tsvector('english', text_data) @@ plainto_tsquery('english', $1)`;
+      params.push(query);
+    }
+    
+    if (filters.length > 0) {
+      const tagFilters = filters.filter(f => f.by === "tag");
+      const textFilters = filters.filter(f => f.by === "text");
+      
+      if (tagFilters.length > 0) {
+        const tagValues = tagFilters.map(f => f.filter);
+        const placeholders = tagValues.map((_, i) => `$${params.length + i + 1}`).join(", ");
+        whereClause += ` AND tags && ARRAY[${placeholders}]::text[]`;
+        params.push(...tagValues);
+      }
+      
+      if (textFilters.length > 0) {
+        const textSearchTerm = textFilters.map(f => f.filter).join(" ");
+        const paramIndex = params.length + 1;
+        whereClause += ` AND to_tsvector('english', text_data) @@ plainto_tsquery('english', $${paramIndex})`;
+        params.push(textSearchTerm);
+      }
+    }
+    
+    const orderBy = query || (filters.filter(f => f.by === "text").length > 0) ? "ORDER BY rank DESC" : "ORDER BY created_at DESC";
+    const rankSelect = (query || (filters.filter(f => f.by === "text").length > 0)) ? "ts_rank(to_tsvector('english', text_data), plainto_tsquery('english', COALESCE($1, ''))) AS rank," : "";
+    const searchData = params.length > 0 
+      ? await db.execute(
+          dorm.sql`SELECT *, ${dorm.sql(rankSelect)} FROM user_posts WHERE ${dorm.sql(whereClause)} ${dorm.sql(orderBy)}`,
+          params,
+        )
+      : await db.execute(
+          dorm.sql`SELECT * FROM user_posts WHERE ${dorm.sql(whereClause)} ${dorm.sql(orderBy)}`,
+        );
 
     // Transform snake_case PostgreSQL results to camelCase to match Drizzle schema
     const transformedRows = searchData.rows.map((row: any) => ({
