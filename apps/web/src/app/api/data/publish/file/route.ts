@@ -17,9 +17,9 @@ export const POST = async (request: NextRequest) => {
     }
 
     const body = await request.formData();
-    const file = body.get("file") as File;
+    const file = body.get("file");
 
-    if (!file) {
+    if (!(file instanceof File)) {
       return Response.json(
         { success: false, msg: "No file provided", uploadUrl: "" },
         { status: 400 },
@@ -45,8 +45,11 @@ export const POST = async (request: NextRequest) => {
     }
 
     // Validate file size
-    const uploadLimit = process.env.NEXT_PUBLIC_UPLOAD_LIMIT || "50"; // Default 50MB
-    const maxSizeInBytes = Number(uploadLimit) * 1024 * 1024;
+    const uploadLimit =
+      process.env.UPLOAD_LIMIT || process.env.NEXT_PUBLIC_UPLOAD_LIMIT || "50"; // Default 50MB
+    const limit = Number(uploadLimit);
+    const maxSizeInBytes =
+      (Number.isFinite(limit) && limit > 0 ? limit : 50) * 1024 * 1024;
 
     if (file.size > maxSizeInBytes) {
       return Response.json(
@@ -94,8 +97,6 @@ export const POST = async (request: NextRequest) => {
       },
     });
     const result = await upload.done();
-    console.log(result);
-    console.log(`Successfully uploaded: ${fsName}`);
 
     return Response.json({
       msg: "File uploaded successfully",

@@ -30,6 +30,6 @@ export const GET = async (request: NextRequest) => {
       search: getSearchPageStatus[0].value,
     },
     optionalExposeVersion: exposeVersion[0].value,
-    version: exposeVersion[0].value !== "false" ? projectData.version : null,
+    version: exposeVersion[0]?.value === true ? projectData.version : null,
   });
 };

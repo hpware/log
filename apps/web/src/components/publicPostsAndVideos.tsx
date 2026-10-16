@@ -3,7 +3,7 @@ import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { Button } from "./ui/button";
 import { useEffect, useState, useRef } from "react";
 import { Spinner } from "@/components/ui/spinner";
-import { main_schema } from "../../../../packages/db/src/index";
+import type { main_schema } from "../../../../packages/db/src/index";
 import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "./ui/badge";
@@ -18,7 +18,6 @@ import {
   ImageOff,
   VideoOff,
 } from "lucide-react";
-import { truncate } from "fs/promises";
 import { toast } from "sonner";
 
 type Post = typeof main_schema.userPosts.$inferSelect;
@@ -51,10 +50,11 @@ export function PublicPostsAndVideos({
       banned: boolean;
     }[]
   >([]);
-  const checkedUserInfo: string[] = [];
+  const checkedUserInfo = useRef(new Set<string>());
   const fetchData = async ({ pageParam }: { pageParam: any }) => {
     if (mode === "index") {
       const req = await fetch("/api/data/public_data?offset=" + pageParam);
+      if (!req.ok) throw new Error("Failed to load posts");
       const res = await req.json();
       findUserInfo(res);
       return res;
@@ -75,6 +75,7 @@ export function PublicPostsAndVideos({
           String(userInfo) +
           String(finalFilter),
       );
+      if (!req.ok) throw new Error("Failed to load posts");
       const res = await req.json();
       findUserInfo(res);
       return res;
@@ -87,7 +88,8 @@ export function PublicPostsAndVideos({
 
   const pullUserInfo = async (data: Post[]) => {
     for (const item of data) {
-      if (!checkedUserInfo.includes(item.byUser)) {
+      if (!checkedUserInfo.current.has(item.byUser)) {
+        checkedUserInfo.current.add(item.byUser);
         try {
           const req = await fetch(
             `/api/data/get_user_basic_info/${item.byUser}`,
@@ -98,9 +100,8 @@ export function PublicPostsAndVideos({
             return;
           }
           setLogUserInfo((prev) => [...prev, res.content]);
-          console.log(logUserInfo);
-          checkedUserInfo.push(item.byUser);
         } catch (error: any) {
+          checkedUserInfo.current.delete(item.byUser);
           console.error(`Failed to fetch user ${item.byUser}:`, error);
           toast.error(`Failed to fetch user details: ${error.message}`);
         }
@@ -117,7 +118,8 @@ export function PublicPostsAndVideos({
     isFetchingNextPage,
     status,
   } = useInfiniteQuery({
-    queryKey: ["content", mode, userInfo, filters],
+    queryKey: ["content", mode, userInfo, filters, reloadPost],
+    enabled: mode !== "search",
     queryFn: fetchData,
     initialPageParam: 0,
     getNextPageParam: (lastPage, pages) => lastPage.nextOffset,
@@ -195,7 +197,7 @@ export function PublicPostsAndVideos({
                   {(i.tags as string[]).map((it: string) => (
                     <Link
                       key={crypto.randomUUID()}
-                      href={`/user/${i.byUser}?filters=${encodeURIComponent(JSON.stringify({ by: "tag", filter: it }))}`}
+                      href={`/user/${i.byUser}?filters=${encodeURIComponent(JSON.stringify([{ by: "tag", filter: it }]))}`}
                     >
                       <Badge variant="default">{it}</Badge>
                     </Link>
@@ -217,7 +219,7 @@ export function PublicPostsAndVideos({
                   </Link>
                 )}
                 <div className="p-2">
-                  <span className="break-words">{i.textData}</span>
+                  <span className="break-words line-clamp-4">{i.textData}</span>
                 </div>
                 {i.type === "photos" ? (
                   <button
@@ -302,13 +304,13 @@ export function PublicPostsAndVideos({
                   .map((i: Post) => (
                     <div
                       className="border shadow text-wrap flex flex-col rounded dark:border-gray-100/50 p-2 break-inside-avoid mb-4"
-                      key={crypto.randomUUID()}
+                      key={i.postId}
                     >
                       <div className="grid grid-flow-col-dense auto-cols-max gap-2 overflow-x-auto pb-1">
                         {(i.tags as string[]).map((it: string) => (
                           <Link
-                            key={crypto.randomUUID()}
-                            href={`/user/${i.byUser}?filters=${encodeURIComponent(JSON.stringify({ by: "tag", filter: it }))}`}
+                            key={it}
+                            href={`/user/${i.byUser}?filters=${encodeURIComponent(JSON.stringify([{ by: "tag", filter: it }]))}`}
                             className="whitespace-nowrap overflow-hidden text-ellipsis block"
                           >
                             <Badge variant="default">{it}</Badge>
@@ -323,7 +325,9 @@ export function PublicPostsAndVideos({
                         />
                       </Link>
                       <div className="mb-2">
-                        <span className="break-words">{i.textData}</span>
+                        <span className="break-words line-clamp-4">
+                          {i.textData}
+                        </span>
                       </div>
                       {i.type === "photos" ? (
                         <button
@@ -454,7 +458,7 @@ export function UserData({
 
   return (
     <div className="flex flex-row gap-1">
-      <Image
+      <img
         src={user.image || "/user/default_pfp.png"}
         alt={`${user.name || "User"}'s profile picture`}
         width={35}

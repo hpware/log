@@ -2,18 +2,13 @@
 ## Why make this project?
 Me personally, after HC's neighborhood ended, I just felt the need of a platform where I can log my dev process. And yap about what I've done during the video. And I dearly miss that. And other things happened in life, that made me more connected to Retro, and app that you can upload & remember your memories, however, that app has a paid tier, and it is not based in my (super unstable) home infra. So, I'm making this!
 
-## Future changes
-1. The text will be Markdown.
-2. Adding image & video overlay view when users touch it.
-3. Fixing the broken user page (maybe I'll work on it when I have time)
-4. Remove Debug text.
-5. Bring filtering to life. Including tags, and text (although the postgres index is a bit shotty). This will also include home, search and profile as well.
-6. Videos should have a custom UI to it.
-7. Short text previews on the home page instead of paragraphs of text taking over user's profile page, edit previews, search previews, and public feed previews.
-8. Adding video encoding if possible.
-9. Add more stuff that the administrator can just customize.
-10. Collections, users can create collections of their trip for example. The home page and search would not include the collection searching.
-11. URL Shortening. This software should have an auto url shorting thingy built right in (using /u/[slug]) or byo your own shlink server.
+## Maintenance status
+
+Post editing checks the signed-in owner and supports text, tags, and visibility. Profile tag links filter public posts. Collections can be created and deleted in the dashboard, populated when publishing posts, and viewed at `/c/[slug]`; visitors only see public entries. The post editor can copy a short share link for a saved public or link-only post.
+
+Private posts, their metadata, and uploaded media require ownership. Drafts can be previewed by their owner. Public profile pictures remain public. Media streams support video seeking, and previews truncate long text. Admin feature toggles save independently.
+
+See [roadmap.md](roadmap.md) for remaining product ideas.
 
 ## What does this project use?
 This project uses a lot of libraries (and frameworks)
@@ -27,33 +22,44 @@ This project uses a lot of libraries (and frameworks)
 - shadcn/ui
 - Sonnar
 
-## Currently known issues
-Most of the known issues are in GH issues (as a issue tracker)
-But some of it I'm going to list here:
-- The admin toggles will just move around for some reason
-- The edit system is still broken
+## Development
 
-## Auth
-You must pull the GitHub Repo in order to recompile it. This guide assumes that you've using Linux and already got bun (or npm, yarn, pnpm, deno), git and docker buildx installed.
+Use Bun 1.4.2 and PostgreSQL. Copy `apps/web/.env.example` to `apps/web/.env`, set `DATABASE_URL`, `BETTER_AUTH_URL` (for local development, `http://localhost:3001`), and a random `BETTER_AUTH_SECRET` of at least 32 characters.
 
-1. Pull the project
 ```bash
-git clone https://github.com/hpware/logs
-cd logs
+bun install --frozen-lockfile
+bun run db:migrate
+bun run dev:web
 ```
 
-2. Go to Better-Auth config file.
+The first registered account becomes an administrator. Subsequent accounts are regular users. Registration can be disabled in Site Settings. Additional trusted origins use comma-separated `CORS_ORIGINS`; the original `CORS_ORIGIN` name is also supported. Authentication uses same-site cookies and keeps CSRF checks enabled.
+
+S3-compatible storage is optional for text posts. Configure the S3 variables in the example file to enable image/video uploads. `UPLOAD_LIMIT` is in MiB and defaults to 50. Keep the bucket private so media requests go through the application's visibility checks. Existing external media URLs retain the access policy of their host. If an earlier deployment cached media through a CDN or reverse proxy, purge that cache when upgrading: older responses allowed public caching for one year.
+
 ```bash
-nano packages/db/src/index.ts
+bun run check-types
+bun test
+bun audit
+bun run build
+bun start
 ```
 
-3. View the Better-Auth docs [here](https://www.better-auth.com/docs/authentication/email-password), and change from the docs.
+`bun start` applies database migrations and starts the production web server on port 3000. The Docker image preserves the workspace layout, uses a frozen lockfile, and excludes local environment files. Supply runtime environment variables when starting the container.
 
-4. Modify the login page to include your link to signin.
+The lockfile updates Next.js to 16.4.2, React to 19.3.1, and Better Auth to 1.7.10. An esbuild override patches the older transitive version used by Drizzle Kit. Fonts are bundled locally so builds do not fetch Google Fonts.
 
-5. Build the image
+## Integration tests
+
+`bun test` runs validation tests; API integration tests are enabled only when `TEST_BASE_URL` is set. Use a **fresh, migrated test database** and a server configured with that database; the suite creates users, posts, and collections and expects the first user to be the administrator.
+
 ```bash
-docker build . logs-hosting-custom-image
+# Terminal 1: configure DATABASE_URL, BETTER_AUTH_SECRET, and BETTER_AUTH_URL
+# for the isolated test instance before starting it.
+bun run db:migrate
+bun run dev:web
+
+# Terminal 2:
+TEST_BASE_URL=http://localhost:3001 bun test
 ```
 
-6. Then change your docker compose to your image.
+Integration coverage includes forged-author edits, anonymous access, private uploads, collection ownership and visibility, tag filters, share redirects, and administrator toggles. Live S3 uploads require a configured storage service and are not covered by this suite.

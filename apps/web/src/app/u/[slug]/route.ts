@@ -23,5 +23,8 @@ export const GET = async (
   if (data.length === 0) {
     return Response.redirect(new URL("/u/404", request.url), 307);
   }
-  return Response.redirect(new URL(data[0].targetUrl, request.url), 301);
+  const target = new URL(data[0].targetUrl, request.url);
+  if (!["http:", "https:"].includes(target.protocol))
+    return new Response(null, { status: 404 });
+  return Response.redirect(target, 307);
 };

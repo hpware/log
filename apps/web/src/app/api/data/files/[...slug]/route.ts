@@ -1,95 +1,80 @@
 import type { NextRequest } from "next/server";
 import * as s3 from "@/lib/s3";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { auth } from "@devlogs_hosting/auth";
+import { db, dorm, main_schema, auth_schema } from "@devlogs_hosting/db";
+import { canReadPost } from "@/lib/post-validation";
 
-type Props = {
-  params: Promise<{
-    slug: string[];
-  }>;
-};
-
-export const GET = async (request: NextRequest, context: Props) => {
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ slug: string[] }> },
+) {
   try {
-    // Check if S3 is configured
-    if (!s3.s3Config.isConfigured) {
-      return new Response(
-        JSON.stringify({ error: "S3 storage not configured" }),
-        {
-          status: 503,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
-
     const { slug } = await context.params;
-    let buildUrl: string = "";
-    for (let i = 0; i < slug.length; i++) {
-      buildUrl += slug[i];
-      if (i < slug.length - 1) {
-        buildUrl += "/";
-      }
+    if (
+      slug.some((part) => part === "." || part === ".." || part.includes("/"))
+    )
+      return new Response(null, { status: 400 });
+    const key = slug.join("/");
+    const mediaUrl = `/api/data/files/${key}`;
+    const session = await auth.api.getSession({ headers: request.headers });
+    // Uploaded files inherit the visibility of posts that reference them. The uploader
+    // can also preview an upload before saving it to a post or their profile.
+    if (!session || slug[0] !== session.user.id) {
+      const posts = await db
+        .select({
+          status: main_schema.userPosts.status,
+          byUser: main_schema.userPosts.byUser,
+        })
+        .from(main_schema.userPosts)
+        .where(
+          dorm.or(
+            dorm.eq(main_schema.userPosts.imageUrl, mediaUrl),
+            dorm.eq(main_schema.userPosts.videoUrl, mediaUrl),
+          ),
+        );
+      const [avatar] = await db
+        .select({ id: auth_schema.user.id })
+        .from(auth_schema.user)
+        .where(dorm.eq(auth_schema.user.image, mediaUrl))
+        .limit(1);
+      if (!avatar && !posts.some((post) => canReadPost(post, session?.user.id)))
+        return new Response(null, { status: 404 });
     }
-    const finalBuildUrl = buildUrl; // makeing it a static value
-
+    if (!s3.s3Config.isConfigured)
+      return Response.json(
+        { error: "S3 storage not configured" },
+        { status: 503 },
+      );
+    const range = request.headers.get("range");
     const response = await s3.s3Client.send(
       new GetObjectCommand({
         Bucket: process.env.S3_BUCKET_NAME!,
-        Key: finalBuildUrl,
+        Key: key,
+        ...(range && { Range: range }),
       }),
     );
-    // Check if the response body exists
-    if (!response.Body) {
-      return new Response(JSON.stringify({ error: "File content not found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Convert the stream to a buffer
-    const chunks: Uint8Array[] = [];
-    const reader = response.Body.transformToWebStream().getReader();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-    }
-
-    // Combine all chunks into a single buffer
-    const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-    const buffer = new Uint8Array(totalLength);
-    let offset = 0;
-
-    for (const chunk of chunks) {
-      buffer.set(chunk, offset);
-      offset += chunk.length;
-    }
-
-    // Return the file with proper headers
-    return new Response(buffer, {
-      status: 200,
+    if (!response.Body) return new Response(null, { status: 404 });
+    return new Response(response.Body.transformToWebStream(), {
+      status: response.ContentRange ? 206 : 200,
       headers: {
         "Content-Type": response.ContentType || "application/octet-stream",
-        "Content-Length":
-          response.ContentLength?.toString() || buffer.length.toString(),
-        "Cache-Control": "public, max-age=31536000", // Cache for 1 year
-        ETag: response.ETag || "",
-        ...(response.LastModified && {
-          "Last-Modified": response.LastModified.toUTCString(),
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+        "Accept-Ranges": "bytes",
+        ...(response.ContentLength !== undefined && {
+          "Content-Length": String(response.ContentLength),
         }),
+        ...(response.ContentRange && {
+          "Content-Range": response.ContentRange,
+        }),
+        ...(response.ETag && { ETag: response.ETag }),
       },
     });
-  } catch (e: any) {
-    console.error(e);
-    return Response.json(
-      { trace: e, failback: "500 Server Error" },
-      {
-        status: e.status || 500,
-        statusText: e.statusText || "Server Error",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
+  } catch (error: any) {
+    const status = error.$metadata?.httpStatusCode;
+    if (status === 404 || status === 416) return new Response(null, { status });
+    console.error("File request failed", error);
+    return Response.json({ error: "Could not retrieve file" }, { status: 500 });
   }
-};
+}

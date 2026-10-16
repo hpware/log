@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 
 export default function SearchFunction() {
   const [searchBox, setSearchBox] = useState("");
-  const [displayingData, setDisplayingData] = useState<any>();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -26,23 +25,27 @@ export default function SearchFunction() {
     if (paramSearchData !== null) {
       setSearchBox(paramSearchData);
     }
-  }, []);
+  }, [paramSearchData]);
   const updateSearchBox = (value: string) => {
     setSearchBox(value);
     if (value.length !== 0) {
-      router.push(`/search?query=${value.replaceAll(" ", "+")}`);
+      router.push(`/search?query=${encodeURIComponent(value)}`);
     } else {
       router.push("/search");
     }
   };
-  const { error, isPending, status } = useQuery({
+  const {
+    error,
+    isPending,
+    status,
+    data: displayingData,
+  } = useQuery({
     queryKey: ["searchData", String(searchBox)],
     queryFn: async () => {
       const query = encodeURIComponent(String(searchBox).trim());
       const res = await fetch(`/api/data/search?query=${query}`);
       if (!res.ok) throw new Error("Failed to fetch search results");
       const data1 = await res.json();
-      setDisplayingData(data1);
       return data1;
     },
     enabled: searchBox.length > 0,

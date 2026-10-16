@@ -1,3 +1,4 @@
+import { filtersSchema } from "@/lib/post-validation";
 import type { NextRequest } from "next/server";
 import {
   db,
@@ -17,6 +18,10 @@ export const GET = async (request: NextRequest) => {
     }
 
     if (!/^\d+$/.test(offset)) {
+      return Response.json(
+        { success: false, msg: "Invalid offset", result: [] },
+        { status: 400 },
+      );
     }
     if (!Number.isSafeInteger(Number(offset))) {
       throw new Error("ERR_OFFSET_PARAM_NOT_A_SAFE_INTEGER");
@@ -31,7 +36,7 @@ export const GET = async (request: NextRequest) => {
         .from(main_schema.kvData)
         .where(dorm.eq(main_schema.kvData.key, "homePageStatus"));
 
-      if (String(homePageStatus[0].value) === "false") {
+      if (String(homePageStatus[0]?.value) === "false") {
         return Response.json({
           success: true,
           msg: "",
@@ -46,11 +51,32 @@ export const GET = async (request: NextRequest) => {
         dorm.eq(main_schema.userPosts.byUser, pullFromUserId),
       );
     }
+    if (filter) {
+      let parsed;
+      try {
+        parsed = filtersSchema.safeParse(JSON.parse(filter));
+      } catch {}
+      if (!parsed?.success)
+        return Response.json(
+          { success: false, msg: "Invalid filters", result: [] },
+          { status: 400 },
+        );
+      query = dorm.and(
+        query,
+        ...parsed.data.map(
+          (item) =>
+            dorm.sql`${main_schema.userPosts.tags} @> ${JSON.stringify([item.filter])}::jsonb`,
+        ),
+      );
+    }
     const dbResult = await db
       .select()
       .from(main_schema.userPosts)
       .where(query)
-      .orderBy(dorm.desc(main_schema.userPosts.createdAt))
+      .orderBy(
+        dorm.desc(main_schema.userPosts.createdAt),
+        dorm.desc(main_schema.userPosts.postId),
+      )
       .limit(50)
       .offset(Number(offset));
     return Response.json({

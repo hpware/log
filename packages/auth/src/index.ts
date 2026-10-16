@@ -10,19 +10,20 @@ export const auth = betterAuth({
 
     schema: schema,
   }),
-  trustedOrigins: JSON.parse(JSON.stringify(process.env.CORS_ORIGINS || [])),
+  trustedOrigins: (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   emailAndPassword: {
     enabled: true,
   },
   plugins: [admin()],
   advanced: {
     defaultCookieAttributes: {
-      sameSite: "none",
-      secure: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
     },
-    disableCSRFCheck: process.env.NODE_ENV === "development" ? true : false,
-    trustedProxyHeaders: true,
   },
   databaseHooks: {
     user: {
@@ -33,50 +34,31 @@ export const auth = betterAuth({
             .from(main_schema.kvData)
             .where(dorm.eq(main_schema.kvData.key, "registrationStatus"))
             .limit(1);
-          console.log(checkIfSystemDisabledRegister[0]);
           if (checkIfSystemDisabledRegister[0]?.value === false) {
             throw new Error("Registration is disabled");
           }
-          try {
-            const checkIfSystemDisabledRegister = await db
-              .select()
-              .from(main_schema.kvData)
-              .where(dorm.eq(main_schema.kvData.key, "registrationStatus"))
-              .limit(1);
-            if (checkIfSystemDisabledRegister[0]?.value === false) {
-              throw new Error("Registration is disabled");
-            }
-            // Query database directly using your existing Drizzle connection
-            const existingUsers = await db
-              .select()
-              .from(schema.user)
-              .limit(1)
-              .execute();
+          // Query database directly using your existing Drizzle connection
+          const existingUsers = await db
+            .select()
+            .from(schema.user)
+            .limit(1)
+            .execute();
 
-            // If no users exist, make this user an admin
-            if (existingUsers.length === 0) {
-              return {
-                data: {
-                  ...user,
-                  role: "admin",
-                },
-              };
-            }
+          // If no users exist, make this user an admin
+          if (existingUsers.length === 0) {
             return {
               data: {
                 ...user,
-                role: "user",
-              },
-            };
-          } catch (error) {
-            // Fallback on error
-            return {
-              data: {
-                ...user,
-                role: "user",
+                role: "admin",
               },
             };
           }
+          return {
+            data: {
+              ...user,
+              role: "user",
+            },
+          };
         },
       },
     },

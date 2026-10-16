@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { main_schema } from "../../../../../../packages/db/src";
+import type { main_schema } from "../../../../../../packages/db/src";
 import Link from "next/link";
 import DataTable from "@/components/table";
 import robotsTxtParseToJson from "@/components/robotsTxtParser";
@@ -53,7 +53,7 @@ export function ChangeSiteSettings({
         const req = await fetch("/api/data/settings?tab=settings", {
           method: "POST",
           headers: {
-            "Content-Type": "appilcation/json",
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             action: "obtain_toggle_data_for_robotsTxt_and_others",
@@ -193,157 +193,41 @@ export function ChangeSiteSettings({
           </div>
         </div>
       </div>
-      <div className="ml-8 mt-3 flex flex-row gap-4">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="home-page-enable"
-            checked={statusSystemPull.homePage}
-            onCheckedChange={(checked) => {
-              console.log(`Home Page: ${checked}`);
-              setStatusSystemPull({
-                homePage: checked,
-                registration: statusSystemPull.registration,
-                robotsTxt: statusSystemPull.robotsTxt,
-                search: statusSystemPull.search,
-                displayVersion: statusSystemPull.displayVersion,
-                sysFailed: statusSystemPull.sysFailed,
-              });
-              sendData.mutate({
-                action: "change_home_page_register_robotstxt_toggles",
-                data: {
-                  homePage: checked,
-                  registration: statusSystemPull.registration,
-                  robotsTxt: statusSystemPull.homePage,
-                  search: statusSystemPull.search,
-                  displayVersion: statusSystemPull.displayVersion,
-                },
-              });
-              getToggleData.mutate();
-            }}
-            disabled={statusSystemPull.sysFailed}
-          />
-          <Label htmlFor="home-page-enable">Enable home page</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="registration-enable"
-            checked={statusSystemPull.registration}
-            onCheckedChange={(checked) => {
-              console.log(`Reg: ${checked}`);
-              setStatusSystemPull({
-                homePage: statusSystemPull.homePage,
-                registration: checked,
-                robotsTxt: statusSystemPull.robotsTxt,
-                search: statusSystemPull.search,
-                sysFailed: statusSystemPull.sysFailed,
-                displayVersion: statusSystemPull.displayVersion,
-              });
-              sendData.mutate({
-                action: "change_home_page_register_robotstxt_toggles",
-                data: {
-                  homePage: statusSystemPull.homePage,
-                  registration: checked,
-                  robotsTxt: statusSystemPull.robotsTxt,
-                  search: statusSystemPull.search,
-                  displayVersion: statusSystemPull.displayVersion,
-                },
-              });
-              getToggleData.mutate();
-            }}
-            disabled={statusSystemPull.sysFailed}
-          />
-          <Label htmlFor="registration-enable">Enable registration</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="robots-enable"
-            checked={statusSystemPull.robotsTxt}
-            onCheckedChange={(checked) => {
-              console.log(`Robots: ${checked}`);
-              setStatusSystemPull({
-                homePage: statusSystemPull.homePage,
-                registration: statusSystemPull.registration,
-                robotsTxt: checked,
-                search: statusSystemPull.search,
-                sysFailed: statusSystemPull.sysFailed,
-                displayVersion: statusSystemPull.displayVersion,
-              });
-              sendData.mutate({
-                action: "change_home_page_register_robotstxt_toggles",
-                data: {
-                  homePage: statusSystemPull.homePage,
-                  registration: statusSystemPull.registration,
-                  robotsTxt: checked,
-                  search: statusSystemPull.search,
-                  displayVersion: statusSystemPull.displayVersion,
-                },
-              });
-              getToggleData.mutate();
-            }}
-            disabled={statusSystemPull.sysFailed}
-          />
-          <Label htmlFor="robots-enable">Enable robots.txt</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="search-enable"
-            checked={statusSystemPull.search}
-            onCheckedChange={(checked) => {
-              console.log(`Search: ${checked}`);
-              setStatusSystemPull({
-                homePage: statusSystemPull.homePage,
-                registration: statusSystemPull.registration,
-                robotsTxt: statusSystemPull.robotsTxt,
-                search: checked,
-                sysFailed: statusSystemPull.sysFailed,
-                displayVersion: statusSystemPull.displayVersion,
-              });
-              sendData.mutate({
-                action: "change_home_page_register_robotstxt_toggles",
-                data: {
-                  homePage: statusSystemPull.homePage,
-                  registration: statusSystemPull.registration,
-                  robotsTxt: checked,
-                  search: statusSystemPull.search,
-                  displayVersion: statusSystemPull.displayVersion,
-                },
-              });
-              getToggleData.mutate();
-            }}
-            disabled={statusSystemPull.sysFailed}
-          />
-          <Label htmlFor="search-enable">Enable search</Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="expose-server-version"
-            checked={statusSystemPull.displayVersion}
-            onCheckedChange={(checked) => {
-              console.log(`Home Page: ${checked}`);
-              setStatusSystemPull({
-                homePage: checked,
-                registration: statusSystemPull.registration,
-                robotsTxt: statusSystemPull.robotsTxt,
-                search: statusSystemPull.search,
-                displayVersion: checked,
-                sysFailed: statusSystemPull.sysFailed,
-              });
-              sendData.mutate({
-                action: "change_home_page_register_robotstxt_toggles",
-                data: {
-                  homePage: statusSystemPull.homePage,
-                  registration: statusSystemPull.registration,
-                  robotsTxt: checked,
-                  search: statusSystemPull.search,
-                  displayVersion: checked,
-                },
-              });
-              getToggleData.mutate();
-            }}
-            disabled={statusSystemPull.sysFailed}
-          />
-          <Label htmlFor="home-page-enable">Expose Server Version</Label>
-        </div>
+      <div className="ml-8 mt-3 flex flex-wrap gap-4">
+        {(
+          [
+            ["homePage", "Enable home page"],
+            ["registration", "Enable registration"],
+            ["robotsTxt", "Enable robots.txt"],
+            ["search", "Enable search"],
+            ["displayVersion", "Expose Server Version"],
+          ] as const
+        ).map(([key, label]) => (
+          <div className="flex items-center space-x-2" key={key}>
+            <Switch
+              id={`setting-${key}`}
+              checked={statusSystemPull[key]}
+              disabled={
+                statusSystemPull.sysFailed ||
+                sendData.isPending ||
+                getToggleData.isPending
+              }
+              onCheckedChange={async (checked) => {
+                const next = { ...statusSystemPull, [key]: checked };
+                setStatusSystemPull(next);
+                try {
+                  await sendData.mutateAsync({
+                    action: "change_home_page_register_robotstxt_toggles",
+                    data: next,
+                  });
+                } finally {
+                  getToggleData.mutate();
+                }
+              }}
+            />
+            <Label htmlFor={`setting-${key}`}>{label}</Label>
+          </div>
+        ))}
       </div>
     </>
   );
@@ -415,12 +299,10 @@ export function ChangeRobotsTxt({
   });
   const getRobotsTxtAndConvert = async () => {
     try {
-      if (
-        !(
-          remoteListURL.startsWith("https://") ||
-          remoteListURL.startsWith("http://")
-        )
-      ) {
+      if (!(
+        remoteListURL.startsWith("https://") ||
+        remoteListURL.startsWith("http://")
+      )) {
         throw new Error("Not an valid URL!");
       }
       const req = await fetch(remoteListURL);

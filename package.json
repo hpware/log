@@ -9,38 +9,42 @@
     ],
     "catalog": {
       "zod": "^4.0.2",
-      "better-auth": "^1.3.13",
+      "better-auth": "^1.7.10",
       "dotenv": "^17.2.2",
-      "tsdown": "^0.15.5"
+      "tsdown": "^0.23.1"
     }
   },
   "scripts": {
     "appi": "bun run --filter @devlogs_hosting/apps/web appi",
     "dev": "bun run --filter '*' dev",
-    "build": "bun run --filter '*' build",
+    "build": "bun run --filter @devlogs_hosting/db build && bun run --filter @devlogs_hosting/auth build && bun run --filter web build",
     "start": "bun run db:migrate && bun run --filter '*' start",
-    "check-types": "bun run --filter '*' check-types",
+    "check-types": "bun run --filter web check-types",
     "dev:native": "bun run --filter native dev",
     "dev:web": "bun run --filter web dev",
     "db:push": "bun run --filter @devlogs_hosting/db db:push",
     "db:studio": "bun run --filter @devlogs_hosting/db db:studio",
     "db:generate": "bun run --filter @devlogs_hosting/db db:generate",
     "db:migrate": "bun run --filter @devlogs_hosting/db db:migrate",
-    "package:update": "taze -r"
+    "package:update": "taze -r",
+    "test": "bun test"
   },
-  "packageManager": "bun@1.2.22",
+  "packageManager": "bun@1.4.2",
   "dependencies": {
-    "dotenv": "^17.2.3",
-    "geist": "^1.5.1",
-    "motion": "^12.23.26",
-    "next": "^16.0.10",
-    "pg": "^8.16.3",
-    "zod": "^4.1.12"
+    "dotenv": "^17.4.2",
+    "geist": "^1.8.1",
+    "motion": "^12.43.0",
+    "next": "^16.4.2",
+    "pg": "^8.23.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@types/node": "^22.19.1",
+    "@types/node": "^22.20.5",
     "globals": "^16.5.0",
-    "tsdown": "^0.15.12"
+    "tsdown": "^0.23.1"
   },
-  "version": "0.0.1"
+  "version": "0.0.1",
+  "overrides": {
+    "esbuild": "^0.25.12"
+  }
 }

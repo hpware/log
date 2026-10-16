@@ -7,7 +7,7 @@ import { FileUp, RotateCcwIcon, XCircleIcon } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { main_schema } from "../../../../../../../packages/db/src";
+import type { main_schema } from "../../../../../../../packages/db/src";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import {
@@ -156,6 +156,7 @@ export default function Dashboard({
                 ...(data.type === "photos" && { imageUrl: data.fileUrl }),
                 ...(data.type === "video" && { videoUrl: data.fileUrl }),
                 status: currentPublishOption,
+                ...(collectionId !== "none" && { collectionId }),
                 ...(tagData.tags?.length > 0 && { tags: tagData.tags }),
               }),
             });
@@ -211,6 +212,7 @@ export default function Dashboard({
     },
   });
 
+  const [collectionId, setCollectionId] = useState("none");
   const getAllCollectionsFromThisUser = useQuery({
     queryFn: async () => {
       const req = await fetch("/api/data/get_all_collections", {
@@ -359,14 +361,18 @@ export default function Dashboard({
           </div>
           <div className="flex flex-row space-x-2 text-center align-middle">
             <span className="my-auto">Add to a collection</span>
-            <Select>
+            <Select value={collectionId} onValueChange={setCollectionId}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">No collection</SelectItem>
                 {getAllCollectionsFromThisUser.data?.map((collection: any) => (
-                  <SelectItem key={collection.id} value={collection.id}>
-                    {collection.name}
+                  <SelectItem
+                    key={collection.collectionId}
+                    value={collection.collectionId}
+                  >
+                    {collection.title}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -374,7 +380,7 @@ export default function Dashboard({
             <Button
               onClick={() => {
                 queryClient.invalidateQueries({
-                  queryKey: ["collections"],
+                  queryKey: ["getAllCollections"],
                 });
               }}
               variant="outline"

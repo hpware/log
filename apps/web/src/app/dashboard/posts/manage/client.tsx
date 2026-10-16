@@ -1,6 +1,6 @@
 "use client";
 import { useMemo } from "react";
-import { auth_schema } from "../../../../../../../packages/db/src/index";
+import type { auth_schema } from "../../../../../../../packages/db/src/index";
 import {
   useInfiniteQuery,
   useMutation,

@@ -1,3 +1,4 @@
+import { editSchema } from "@/lib/post-validation";
 import type { NextRequest } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@devlogs_hosting/auth";
@@ -42,6 +43,10 @@ export const POST = async (request: NextRequest) => {
           .select()
           .from(main_schema.userPosts)
           .where(dorm.eq(main_schema.userPosts.postId, body.postId));
+        if (!data[0]) {
+          statusCode = 404;
+          throw new Error("ERR_NO_POST_FOUND");
+        }
         if (data[0].byUser !== session.user.id) {
           statusCode = 403;
           throw new Error("ERR_NO_PERMS");
@@ -71,31 +76,12 @@ export const POST = async (request: NextRequest) => {
         });
       }
     } else if (tabAction === "edit" && body.action === "change_post") {
-      if (!/^_ITM[A-Za-z0-9]{20}$/.test(body.postId)) {
+      const parsed = editSchema.safeParse(body);
+      if (!parsed.success) {
         statusCode = 400;
-        throw new Error("ERR_WRONG_POSTID");
+        throw new Error("ERR_INVALID_POST");
       }
-      if (!body.postStatus) {
-        statusCode = 400;
-        throw new Error("ERR_NO_CORRECT_BODY");
-      }
-
-      const postData: {
-        status: "draft" | "private" | "public" | "unlisted";
-        postId: string;
-        type: "photos" | "text" | "video";
-        createdAt: Date;
-        updatedAt: Date;
-        byUser: string;
-        textData: string | null;
-        imageUrl: string | null;
-        videoUrl: string | null;
-        tags: unknown;
-      } = body.postStatus;
-
-      if (postData.postId !== body.postId) {
-        throw new Error("ERR_NO_MATCH");
-      }
+      const postData = parsed.data.postStatus;
 
       const getPost = await db
         .select()
@@ -107,7 +93,7 @@ export const POST = async (request: NextRequest) => {
         throw new Error("ERR_NO_POST_FOUND");
       }
 
-      if (getPost[0].byUser !== postData.byUser) {
+      if (getPost[0].byUser !== session.user.id) {
         statusCode = 403;
         throw new Error("ERR_NO_PERMS");
       }
@@ -139,7 +125,7 @@ export const POST = async (request: NextRequest) => {
         message: e.message || "ERR_UNKNOWN",
       },
       {
-        status: statusCode || 500,
+        status: statusCode || (e instanceof SyntaxError ? 400 : 500),
         statusText: e.message || "ERR_UNKNOWN",
       },
     );

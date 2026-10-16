@@ -1,27 +1,19 @@
-# install
-FROM oven/bun:latest AS builder
+FROM oven/bun:1.4.2 AS builder
 WORKDIR /app
 COPY . .
-RUN bun install
+RUN bun install --frozen-lockfile
 RUN bun run build
 
-# prod
-FROM oven/bun:latest
+FROM oven/bun:1.4.2
 WORKDIR /app
-
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-# Copy built application
-COPY --from=builder /app/apps/web/.next ./.next
-COPY --from=builder /app/apps/web/public ./public
-COPY --from=builder /app/apps/web/package.json ./package.json
-COPY --from=builder /app/apps/web/next.config.ts ./next.config.ts
-COPY --from=builder /app/packages ./packages
+# Preserve the workspace layout and Bun's workspace dependency symlinks.
+COPY --from=builder /app/package.json /app/bun.lock ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/apps/web ./apps/web
 EXPOSE 3000
-
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-
 CMD ["bun", "start"]

@@ -14,7 +14,7 @@ export const GET = async (request: NextRequest) => {
       return NextResponse.json({
         success: false,
         msg: "Search functionality is currently disabled.",
-        data: [],
+        data: { rows: [] },
         queryTime: 0,
         disabled: true,
       });
@@ -26,7 +26,7 @@ export const GET = async (request: NextRequest) => {
       return NextResponse.json({
         success: false,
         msg: "No query.",
-        data: [],
+        data: { rows: [] },
         queryTime: 0,
         disabled: false,
       });
@@ -70,12 +70,15 @@ export const GET = async (request: NextRequest) => {
   } catch (e: any) {
     console.error(e);
     const endPerf = performance.now();
-    return NextResponse.json({
-      success: false,
-      msg: e.message,
-      data: [],
-      queryTime: endPerf - startPerf,
-      disabled: false,
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        msg: e.message,
+        data: { rows: [] },
+        queryTime: endPerf - startPerf,
+        disabled: false,
+      },
+      { status: 500 },
+    );
   }
 };
