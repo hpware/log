@@ -5,6 +5,11 @@ import { Pool } from "pg";
 const base = process.env.REVIEW_TEST_BASE_URL;
 const databaseUrl = process.env.REVIEW_TEST_DATABASE_URL;
 const enabled = Boolean(base && databaseUrl);
+if (!enabled && process.env.CI) {
+  throw new Error(
+    "REVIEW_TEST_BASE_URL and REVIEW_TEST_DATABASE_URL are required in CI",
+  );
+}
 const integration = test.skipIf(!enabled);
 const pool = enabled ? new Pool({ connectionString: databaseUrl }) : undefined;
 const suffix = crypto.randomUUID();
@@ -114,6 +119,8 @@ afterAll(async () => {
   }
 });
 
+// These tests are intentionally sequential: they share target state, and the
+// final test removes that user. Keep successful removal last.
 integration(
   "missing version setting returns a response without exposing the version",
   async () => {
