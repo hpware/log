@@ -6,7 +6,7 @@ Me personally, after HC's neighborhood ended, I just felt the need of a platform
 
 Post editing checks the signed-in owner and supports text, tags, and visibility. Profile tag links filter public posts. Collections can be created and deleted in the dashboard, populated when publishing posts, and viewed at `/c/[slug]`; visitors only see public entries. The post editor can copy a short share link for a saved public or link-only post.
 
-Private posts, their metadata, and uploaded media require ownership. Drafts can be previewed by their owner. Public profile pictures remain public. Media streams support video seeking, and previews truncate long text. Admin feature toggles save independently.
+Private posts and their metadata require ownership. Media referenced by public or unlisted posts is accessible to any requester; other uploads require ownership unless used as a public profile picture. Drafts can be previewed by their owner. Public profile pictures remain public. Media streams support video seeking, and previews truncate long text. Admin feature toggles save independently.
 
 See [roadmap.md](roadmap.md) for remaining product ideas.
 

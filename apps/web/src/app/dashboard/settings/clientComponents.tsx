@@ -220,6 +220,10 @@ export function ChangeSiteSettings({
                     action: "change_home_page_register_robotstxt_toggles",
                     data: next,
                   });
+                } catch (error) {
+                  toast.error(
+                    `Save failed: ${error instanceof Error ? error.message : "Unable to save settings"}`,
+                  );
                 } finally {
                   getToggleData.mutate();
                 }

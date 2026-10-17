@@ -225,15 +225,8 @@ export const POST = async (request: NextRequest) => {
           if (body.user === session.user.id) {
             throw new Error("You cannot delete yourself");
           }
-          await db
-            .delete(main_schema.userPosts)
-            .where(dorm.eq(main_schema.userPosts.byUser, body.user));
-          await db
-            .delete(main_schema.collections)
-            .where(dorm.eq(main_schema.collections.byUser, body.user));
-          await db
-            .delete(main_schema.urlShorter)
-            .where(dorm.eq(main_schema.urlShorter.byUser, body.user));
+          // User-owned records cascade from the user DELETE in removeUser.
+          // Never delete content before the auth operation succeeds.
           const data = await auth.api.removeUser({
             body: {
               userId: body.user,

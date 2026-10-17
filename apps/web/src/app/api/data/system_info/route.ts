@@ -29,7 +29,7 @@ export const GET = async (request: NextRequest) => {
       homePage: getHomePageStatus[0].value,
       search: getSearchPageStatus[0].value,
     },
-    optionalExposeVersion: exposeVersion[0].value,
+    optionalExposeVersion: exposeVersion[0]?.value,
     version: exposeVersion[0]?.value === true ? projectData.version : null,
   });
 };

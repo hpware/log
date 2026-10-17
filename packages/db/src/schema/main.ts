@@ -18,7 +18,7 @@ export const userPosts = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
     byUser: text("by_user")
       .notNull()
-      .references(() => user.id),
+      .references(() => user.id, { onDelete: "cascade" }),
     textData: text("text_data"),
     imageUrl: text("image_url"),
     videoUrl: text("video_url"),
@@ -61,7 +61,7 @@ export const urlShorter = pgTable("url_shorter", {
   targetUrl: text("target_url").notNull(),
   byUser: text("by_user")
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -74,7 +74,7 @@ export const collections = pgTable("collections", {
   items: jsonb("items").notNull().default({}),
   byUser: text("by_user")
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
