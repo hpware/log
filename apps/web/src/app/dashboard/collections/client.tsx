@@ -28,6 +28,12 @@ export default function Collections({ initial }: { initial: Collection[] }) {
           <Link href={`/c/${collection.slug}`} className="underline">
             {collection.title}
           </Link>
+          <Link
+            href={`/dashboard/collections/edit/${collection.collectionId}`}
+            className="underline"
+          >
+            Edit
+          </Link>
           <Button
             variant="destructive"
             disabled={pending}

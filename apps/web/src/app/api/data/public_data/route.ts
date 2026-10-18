@@ -1,4 +1,5 @@
-import { filtersSchema } from "@/lib/post-validation";
+import { postConditions } from "@/lib/post-query";
+import { browseSchema, filtersSchema } from "@/lib/post-validation";
 import type { NextRequest } from "next/server";
 import {
   db,
@@ -69,6 +70,13 @@ export const GET = async (request: NextRequest) => {
         ),
       );
     }
+    const browse = browseSchema.safeParse(Object.fromEntries(searchParams));
+    if (!browse.success)
+      return Response.json(
+        { success: false, msg: "Invalid filters", result: [] },
+        { status: 400 },
+      );
+    query = dorm.and(query, postConditions(browse.data));
     const dbResult = await db
       .select()
       .from(main_schema.userPosts)

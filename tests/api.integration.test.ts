@@ -240,6 +240,116 @@ integration(
   },
 );
 
+integration(
+  "collections can be renamed and populated with existing owned posts",
+  async () => {
+    const outsider = await request("/api/data/publish", otherCookie, {
+      type: "text",
+      text: "Someone else's post",
+      status: "public",
+    });
+    const outsiderId = (await outsider.json()).postId;
+    const body = {
+      collectionId,
+      title: "Renamed trip",
+      slug: `trip-${suffix}`,
+      items: [postId, privateId],
+    };
+    expect(
+      (await request("/api/data/collections", otherCookie, body, "PUT")).status,
+    ).toBe(404);
+    expect(
+      (
+        await request(
+          "/api/data/collections",
+          ownerCookie,
+          { ...body, items: [outsiderId] },
+          "PUT",
+        )
+      ).status,
+    ).toBe(400);
+    expect(
+      (await request("/api/data/collections", ownerCookie, body, "PUT")).status,
+    ).toBe(200);
+    const page = await request(`/c/trip-${suffix}`);
+    const html = await page.text();
+    expect(html).toContain("Renamed trip");
+    expect(html).not.toContain("PRIVATE-CAPTION");
+    expect(
+      (
+        await request(
+          `/dashboard/collections/edit/${collectionId}`,
+          otherCookie,
+        )
+      ).status,
+    ).toBe(404);
+    expect(
+      (
+        await request(
+          `/dashboard/collections/edit/${collectionId}`,
+          ownerCookie,
+        )
+      ).status,
+    ).toBe(200);
+    await request("/api/data/collections", otherCookie, {
+      title: "Taken",
+      slug: `taken-${suffix}`,
+    });
+    expect(
+      (
+        await request(
+          "/api/data/collections",
+          ownerCookie,
+          { ...body, slug: `taken-${suffix}` },
+          "PUT",
+        )
+      ).status,
+    ).toBe(409);
+    expect(
+      (
+        await request(
+          "/api/data/collections",
+          ownerCookie,
+          { ...body, items: [] },
+          "PUT",
+        )
+      ).status,
+    ).toBe(200);
+    const emptyPage = await request(`/c/trip-${suffix}`);
+    expect(await emptyPage.text()).toContain("No public posts");
+  },
+  30000,
+);
+
+integration(
+  "text, tag, and media filters combine on the feed and search",
+  async () => {
+    const params = new URLSearchParams({
+      query: "tampered",
+      tag: suffix,
+      type: "text",
+    });
+    const feed = await (
+      await request(`/api/data/public_data?offset=0&${params}`)
+    ).json();
+    expect(feed.result.map((post: any) => post.postId)).toEqual([postId]);
+    const search = await (await request(`/api/data/search?${params}`)).json();
+    expect(search.data.rows.map((post: any) => post.postId)).toEqual([postId]);
+    params.set("type", "video");
+    expect(
+      (await (await request(`/api/data/search?${params}`)).json()).data.rows,
+    ).toEqual([]);
+    params.delete("query");
+    params.set("type", "text");
+    expect(
+      (
+        await (await request(`/api/data/search?${params}`)).json()
+      ).data.rows.map((post: any) => post.postId),
+    ).toEqual([postId]);
+    expect((await request("/api/data/search?type=invalid")).status).toBe(400);
+  },
+);
+
 integration("collections cannot be deleted by another user", async () => {
   expect(
     (
@@ -262,3 +372,54 @@ integration("collections cannot be deleted by another user", async () => {
     ).status,
   ).toBe(200);
 });
+
+integration(
+  "account names save and password changes require the current password and revoke old sessions",
+  async () => {
+    expect(
+      (
+        await request("/api/auth/update-user", otherCookie, {
+          name: "Updated name",
+        })
+      ).status,
+    ).toBe(200);
+    const session = await (
+      await request("/api/auth/get-session", otherCookie)
+    ).json();
+    expect(session.user.name).toBe("Updated name");
+    expect(
+      (
+        await request("/api/auth/change-password", otherCookie, {
+          currentPassword: "wrong-password",
+          newPassword: "New-password-12345",
+          revokeOtherSessions: true,
+        })
+      ).ok,
+    ).toBe(false);
+    const response = await request("/api/auth/change-password", otherCookie, {
+      currentPassword: "Test-password-12345",
+      newPassword: "New-password-12345",
+      revokeOtherSessions: true,
+    });
+    expect(response.status).toBe(200);
+    expect(
+      await (await request("/api/auth/get-session", otherCookie)).json(),
+    ).toBeNull();
+    expect(
+      (
+        await request("/api/auth/sign-in/email", "", {
+          email: `other-${suffix}@example.com`,
+          password: "Test-password-12345",
+        })
+      ).ok,
+    ).toBe(false);
+    expect(
+      (
+        await request("/api/auth/sign-in/email", "", {
+          email: `other-${suffix}@example.com`,
+          password: "New-password-12345",
+        })
+      ).status,
+    ).toBe(200);
+  },
+);

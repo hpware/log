@@ -1,84 +1,60 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { dorm, db, main_schema } from "../../../../../../../packages/db/src";
+import type { NextRequest } from "next/server";
+import { db, dorm, main_schema } from "@devlogs_hosting/db";
+import { browseSchema } from "@/lib/post-validation";
+import { postConditions } from "@/lib/post-query";
 
-export const GET = async (request: NextRequest) => {
-  const startPerf = performance.now();
+export async function GET(request: NextRequest) {
+  const start = performance.now();
+  const result = (rows: unknown[], extra = {}) => ({
+    success: true,
+    msg: "",
+    data: { rows },
+    queryTime: performance.now() - start,
+    disabled: false,
+    ...extra,
+  });
   try {
-    // Check if search is enabled
-    const searchStatus = await db
+    const [setting] = await db
       .select()
       .from(main_schema.kvData)
       .where(dorm.eq(main_schema.kvData.key, "searchStatus"));
-
-    if (searchStatus.length > 0 && searchStatus[0].value === false) {
-      return NextResponse.json({
-        success: false,
-        msg: "Search functionality is currently disabled.",
-        data: { rows: [] },
-        queryTime: 0,
-        disabled: true,
-      });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get("query");
-    if (query == null) {
-      return NextResponse.json({
-        success: false,
-        msg: "No query.",
-        data: { rows: [] },
-        queryTime: 0,
-        disabled: false,
-      });
-    }
-    const searchData = await db.execute(
-      dorm.sql`
-        SELECT *,
-               ts_rank(to_tsvector('english', text_data),
-                       plainto_tsquery('english', ${query})) AS rank
-                       FROM user_posts
-                       WHERE to_tsvector('english', text_data)
-                             @@ plainto_tsquery('english', ${query})
-                       AND status IN ('public')
-                       ORDER BY rank DESC;
-    `,
+    if (setting?.value === false)
+      return Response.json(
+        result([], { disabled: true, msg: "Search is disabled" }),
+      );
+    const parsed = browseSchema.safeParse(
+      Object.fromEntries(new URL(request.url).searchParams),
     );
-
-    // Transform snake_case PostgreSQL results to camelCase to match Drizzle schema
-    const transformedRows = searchData.rows.map((row: any) => ({
-      postId: row.post_id,
-      type: row.type,
-      createdAt: row.created_at,
-      byUser: row.by_user,
-      textData: row.text_data,
-      imageUrl: row.image_url,
-      videoUrl: row.video_url,
-      status: row.status,
-      tags: row.tags,
-      updatedAt: row.updated_at,
-      rank: row.rank,
-    }));
-
-    const endPerf = performance.now();
-    return NextResponse.json({
-      success: true,
-      msg: "",
-      data: { ...searchData, rows: transformedRows },
-      queryTime: endPerf - startPerf,
-      disabled: false,
-    });
-  } catch (e: any) {
-    console.error(e);
-    const endPerf = performance.now();
-    return NextResponse.json(
-      {
-        success: false,
-        msg: e.message,
-        data: { rows: [] },
-        queryTime: endPerf - startPerf,
-        disabled: false,
-      },
+    if (!parsed.success)
+      return Response.json(
+        result([], { success: false, msg: "Invalid filters" }),
+        { status: 400 },
+      );
+    const filters = parsed.data;
+    if (!filters.query && !filters.tag && filters.type === "all")
+      return Response.json(result([]));
+    const rank = dorm.sql`ts_rank(to_tsvector('english', coalesce(${main_schema.userPosts.textData}, '')), plainto_tsquery('english', ${filters.query}))`;
+    const rows = await db
+      .select()
+      .from(main_schema.userPosts)
+      .where(
+        dorm.and(
+          dorm.eq(main_schema.userPosts.status, "public"),
+          postConditions(filters),
+        ),
+      )
+      .orderBy(
+        ...(filters.query ? [dorm.desc(rank)] : []),
+        dorm.desc(main_schema.userPosts.createdAt),
+        dorm.desc(main_schema.userPosts.postId),
+      )
+      .limit(100);
+    return Response.json(result(rows));
+  } catch (error) {
+    console.error(error);
+    return Response.json(
+      result([], { success: false, msg: "Could not search posts" }),
       { status: 500 },
     );
   }
-};
+}

@@ -4,9 +4,11 @@ Me personally, after HC's neighborhood ended, I just felt the need of a platform
 
 ## Maintenance status
 
-Post editing checks the signed-in owner and supports text, tags, and visibility. Profile tag links filter public posts. Collections can be created and deleted in the dashboard, populated when publishing posts, and viewed at `/c/[slug]`; visitors only see public entries. The post editor can copy a short share link for a saved public or link-only post.
+Post editing checks the signed-in owner and supports text, tags, and visibility. Home, profiles, and search support text, exact-tag, and post-type filters with shareable URLs. Feed previews render Markdown with expandable text. Collections can be created, renamed, edited, and deleted in the dashboard, populated with new or existing posts, and viewed at `/c/[slug]`; visitors only see public entries. The post editor can copy a short share link for a saved public or link-only post.
 
-Private posts and their metadata require ownership. Media referenced by public or unlisted posts is accessible to any requester; other uploads require ownership unless used as a public profile picture. Drafts can be previewed by their owner. Public profile pictures remain public. Media streams support video seeking, and previews truncate long text. Admin feature toggles save independently.
+Private posts and their metadata require ownership. Media referenced by public or unlisted posts is accessible to any requester; other uploads require ownership unless used as a public profile picture. Drafts can be previewed by their owner. Public profile pictures remain public. Media streams support video seeking. Videos have play/pause, mute, seeking, an expanded dialog, and fullscreen controls. Image dialogs support Escape and keyboard focus management. Admin feature toggles save independently.
+
+Account settings save your display name and profile picture. Password changes require the current password and sign out other sessions. The sign-in email is displayed as read-only; email changes require an email verification flow, which is not configured in this project.
 
 See [roadmap.md](roadmap.md) for remaining product ideas.
 
@@ -62,4 +64,4 @@ bun run dev:web
 TEST_BASE_URL=http://localhost:3001 bun test
 ```
 
-Integration coverage includes forged-author edits, anonymous access, private uploads, collection ownership and visibility, tag filters, share redirects, and administrator toggles. Live S3 uploads require a configured storage service and are not covered by this suite.
+Integration coverage includes forged-author edits, anonymous access, private uploads, collection editing and ownership, combined text/tag/type filters, share redirects, administrator toggles, display-name updates, and password changes/session revocation. Markdown rendering tests check formatting, escaped HTML, and unsafe link protocols. Live S3 uploads require a configured storage service and are not covered by this suite.

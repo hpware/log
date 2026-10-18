@@ -1,4 +1,5 @@
-import { PublicPostsAndVideos } from "@/components/publicPostsAndVideos";
+import FilteredFeed from "@/components/filtered-feed";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { db, main_schema, dorm } from "../../../../packages/db/src/index";
 
@@ -7,7 +8,9 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   return (
     <section className="scroll-smooth">
-      <PublicPostsAndVideos mode="index" passedData={[]} />
+      <Suspense fallback={<p>Loading posts...</p>}>
+        <FilteredFeed />
+      </Suspense>
     </section>
   );
 }

@@ -1,191 +1,247 @@
 "use client";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { User } from "better-auth";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// import types
-import type { User as AuthUserType } from "better-auth";
-// import stuff
-import { useRef, useState } from "react";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
-  DialogClose,
   DialogTrigger,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-/*import ReactCrop, {
-  type Crop,
-  centerCrop,
-  makeAspectCrop,
-} from "react-image-crop";
-import "react-image-crop/dist/ReactCrop.css";*/
+import { toast } from "sonner";
 
-export default function Client({ session }: { session: AuthUserType }) {
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(
-    session.image || null,
-  );
-  const fileUploadBox = useRef<HTMLInputElement | null>(null);
-  const fileUploadingDivBox = useRef<HTMLInputElement | null>(null);
+export default function Client({ session }: { session: User }) {
+  const router = useRouter();
+  const [name, setName] = useState(session.name);
+  const [image, setImage] = useState(session.image);
+  const [pending, setPending] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [password, setPassword] = useState({
+    current: "",
+    next: "",
+    confirm: "",
+  });
+  const fileInput = useRef<HTMLInputElement>(null);
 
-  const uploadImageToServer = async (file: File) => {
+  async function upload(file?: File) {
+    if (!file) return;
+    if (
+      !["image/jpeg", "image/png", "image/gif", "image/webp"].includes(
+        file.type,
+      ) ||
+      file.size > 5 * 1024 * 1024
+    ) {
+      toast.error("Choose a JPEG, PNG, GIF, or WebP image under 5 MiB.");
+      return;
+    }
+    setPending(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-
-      const req = await fetch("/api/data/publish/file", {
+      const data = new FormData();
+      data.append("file", file);
+      const response = await fetch("/api/data/publish/file", {
         method: "POST",
-        body: fd,
+        body: data,
       });
-
-      if (!req.ok) {
-        const errorRes = await req.json().catch(() => ({}));
-        throw new Error(
-          errorRes.msg || `Upload failed with status ${req.status}`,
-        );
-      }
-
-      const res = await req.json();
-      setUploadedImageUrl(res.uploadUrl);
-
-      // Update profile picture in database
-      const updateReq = await fetch("/api/data/settings?tab=non_admin_user", {
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.msg || "Upload failed");
+      const update = await fetch("/api/data/settings?tab=non_admin_user", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "profile_pic_update",
-          imageUrl: res.uploadUrl,
+          imageUrl: result.uploadUrl,
         }),
       });
-
-      if (!updateReq.ok) {
-        throw new Error("Failed to update profile picture");
-      }
-
-      toast.success("Profile picture updated successfully!");
-      return res.uploadUrl;
-    } catch (e: any) {
-      toast.error(`Upload failed: ${e.message}`);
-      throw e;
+      const saved = await update.json();
+      if (!update.ok || !saved.success)
+        throw new Error(saved.msg || "Could not save profile picture");
+      setImage(result.uploadUrl);
+      await authClient.getSession({ query: { disableCookieCache: true } });
+      router.refresh();
+      toast.success("Profile picture updated");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed");
+    } finally {
+      setPending(false);
+      if (fileInput.current) fileInput.current.value = "";
     }
-  };
-
-  const handleFileSelect = async (files: FileList | null) => {
-    const file = files?.[0];
-
-    if (file === undefined) {
-      toast.error("No File Included");
-      return;
-    }
-
-    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("File type not allowed. Only images are supported.");
-      return;
-    }
-
-    // Check file size (5MB limit for profile pictures)
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-    if (file.size > maxSize) {
-      toast.error("File size too large. Maximum allowed size is 5MB.");
-      return;
-    }
-
-    await uploadImageToServer(file);
-  };
+  }
 
   return (
-    <div>
-      <span className="text-lg italic">Your Account</span>
-      <hr />
-      <div className="flex xs:flex-col flex-row space-x-2 mb-2 mt-2">
-        <div>
-          <div
-            className="border-2 border-dashed rounded-full border-gray-300 p-2 text-center hover:border-blue-300 transition-colors cursor-pointer"
-            ref={fileUploadingDivBox}
-            onClick={() => fileUploadBox.current?.click()}
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.currentTarget.classList.add("border-blue-500", "bg-blue-50");
-            }}
-            onDragLeave={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.currentTarget.classList.remove("border-blue-500", "bg-blue-50");
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              e.currentTarget.classList.remove("border-blue-500", "bg-blue-50");
-              if (e.dataTransfer.files.length > 0) {
-                handleFileSelect(e.dataTransfer.files);
+    <div className="max-w-xl space-y-6">
+      <h1 className="text-xl">Your account</h1>
+      <div
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          if (!pending) void upload(event.dataTransfer.files[0]);
+        }}
+      >
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => fileInput.current?.click()}
+          className="rounded-full border-2 border-dashed p-2"
+          aria-label="Change profile picture"
+        >
+          <img
+            src={image || "/user/default_pfp.png"}
+            alt="Your profile picture"
+            className="rounded-full w-24 h-24 object-cover"
+          />
+        </button>
+        <input
+          ref={fileInput}
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          className="hidden"
+          onChange={(event) => void upload(event.target.files?.[0])}
+        />
+        <p className="text-sm text-muted-foreground">
+          Click or drop an image to change your picture.
+        </p>
+      </div>
+      <form
+        className="space-y-3"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          setPending(true);
+          try {
+            const result = await authClient.updateUser({ name: name.trim() });
+            if (result.error)
+              throw new Error(result.error.message || "Could not update name");
+            router.refresh();
+            toast.success("Account updated");
+          } catch (error) {
+            toast.error(
+              error instanceof Error
+                ? error.message
+                : "Could not update account",
+            );
+          } finally {
+            setPending(false);
+          }
+        }}
+      >
+        <label className="block">
+          Your name
+          <Input
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            required
+            maxLength={200}
+            autoComplete="name"
+          />
+        </label>
+        <label className="block">
+          Sign-in email
+          <Input type="email" value={session.email} readOnly />
+        </label>
+        <Button disabled={pending || !name.trim()} type="submit">
+          Save account
+        </Button>
+      </form>
+      <Dialog
+        open={passwordOpen}
+        onOpenChange={(open) => {
+          setPasswordOpen(open);
+          if (!open) setPassword({ current: "", next: "", confirm: "" });
+        }}
+      >
+        <DialogTrigger asChild>
+          <Button variant="outline" disabled={pending}>
+            Change password
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogTitle>Change your password</DialogTitle>
+          <DialogDescription>
+            Enter your current password. Other sessions will be signed out.
+          </DialogDescription>
+          <form
+            className="space-y-3"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              if (password.next !== password.confirm) {
+                toast.error("Passwords do not match");
+                return;
+              }
+              setPending(true);
+              try {
+                const result = await authClient.changePassword({
+                  currentPassword: password.current,
+                  newPassword: password.next,
+                  revokeOtherSessions: true,
+                });
+                if (result.error)
+                  throw new Error(
+                    result.error.message || "Could not change password",
+                  );
+                setPassword({ current: "", next: "", confirm: "" });
+                setPasswordOpen(false);
+                toast.success("Password changed");
+                router.refresh();
+              } catch (error) {
+                toast.error(
+                  error instanceof Error
+                    ? error.message
+                    : "Could not change password",
+                );
+              } finally {
+                setPending(false);
               }
             }}
           >
-            <input
-              type="file"
-              ref={fileUploadBox}
-              className="hidden"
-              accept="image/*"
-              onChange={(e) => handleFileSelect(e.target.files)}
-            ></input>
-            <img
-              src={
-                uploadedImageUrl !== null
-                  ? uploadedImageUrl
-                  : "/user/default_pfp.png"
-              }
-              className="rounded-full w-[100px] border"
-            />
-          </div>
-        </div>
-        <div>
-          <div>
-            <span>Your Name:</span>
-            <Input type="text" defaultValue={session.name} />
-          </div>
-          <div>
-            <span>Your Email:</span>
-            <Input type="text" defaultValue={session.email} />
-          </div>
-        </div>
-      </div>
-      <div className="flex flex-row space-x-1 mt-3">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="cursor-pointer">Reset Password</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogTitle>Reset Your Password</DialogTitle>
-            <div className="flex flex-col space-y-2">
-              <div>
-                <span className="ml-3">New Password</span>
-                <Input
-                  type="password"
-                  placeholder="New Password"
-                  onFocus={() => {}}
-                />
-              </div>
-              <div>
-                <span className="ml-3">Confirm Password</span>
-                <Input
-                  type="password"
-                  placeholder="Confirm Password"
-                  onFocus={() => {}}
-                />
-              </div>
-            </div>
-            <Button className="cursor-pointer">Reset</Button>
-          </DialogContent>
-        </Dialog>
-        <Button className="cursor-pointer">Submit</Button>
-      </div>
+            <label className="block">
+              Current password
+              <Input
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password.current}
+                onChange={(event) =>
+                  setPassword({ ...password, current: event.target.value })
+                }
+              />
+            </label>
+            <label className="block">
+              New password
+              <Input
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                maxLength={128}
+                value={password.next}
+                onChange={(event) =>
+                  setPassword({ ...password, next: event.target.value })
+                }
+              />
+            </label>
+            <label className="block">
+              Confirm new password
+              <Input
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                maxLength={128}
+                value={password.confirm}
+                onChange={(event) =>
+                  setPassword({ ...password, confirm: event.target.value })
+                }
+              />
+            </label>
+            <Button disabled={pending} type="submit">
+              Save password
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

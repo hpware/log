@@ -66,3 +66,9 @@ export function canReadPost(
     post.byUser === userId
   );
 }
+
+export const browseSchema = z.object({
+  query: z.string().trim().max(500).default(""),
+  tag: z.string().trim().max(100).default(""),
+  type: z.enum(["all", "text", "photos", "video"]).default("all"),
+});

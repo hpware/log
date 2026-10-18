@@ -15,6 +15,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import Markdown from "marked-react";
 import renderer from "@/components/markdownRender";
+import VideoPlayer from "@/components/video-player";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +51,7 @@ export default async function Page(props: {
       <div className="flex flex-col">
         {content[0].type === "video" && content[0].videoUrl !== null && (
           <div>
-            <video src={content[0].videoUrl} controls preload="metadata" />
+            <VideoPlayer src={content[0].videoUrl} />
           </div>
         )}
         {content[0].type === "photos" && content[0].imageUrl !== null && (
