@@ -4,7 +4,7 @@ Me personally, after HC's neighborhood ended, I just felt the need of a platform
 
 ## Maintenance status
 
-Post editing checks the signed-in owner and supports text, tags, and visibility. Home, profiles, and search support text, exact-tag, and post-type filters with shareable URLs. Feed previews render Markdown with expandable text. Collections can be created, renamed, edited, and deleted in the dashboard, populated with new or existing posts, and viewed at `/c/[slug]`; visitors only see public entries. The post editor can copy a short share link for a saved public or link-only post.
+Post editing checks the signed-in owner and supports text, tags, and visibility. Search uses the original centered input with results updating as you type. Home and profile feeds accept text, exact-tag, and post-type filters through URL parameters. Feed previews render Markdown with expandable text. Collections can be created, renamed, edited, and deleted in the dashboard, populated with new or existing posts, and viewed at `/c/[slug]`; visitors only see public entries. The post editor can copy a short share link for a saved public or link-only post.
 
 Private posts and their metadata require ownership. Media referenced by public or unlisted posts is accessible to any requester; other uploads require ownership unless used as a public profile picture. Drafts can be previewed by their owner. Public profile pictures remain public. Media streams support video seeking. Videos have play/pause, mute, seeking, an expanded dialog, and fullscreen controls. Image dialogs support Escape and keyboard focus management. Admin feature toggles save independently.
 
@@ -34,7 +34,7 @@ bun run db:migrate
 bun run dev:web
 ```
 
-The first registered account becomes an administrator. Subsequent accounts are regular users. Registration can be disabled in Site Settings. Additional trusted origins use comma-separated `CORS_ORIGINS`; the original `CORS_ORIGIN` name is also supported. Authentication uses same-site cookies and keeps CSRF checks enabled.
+The first registered account becomes an administrator. Subsequent accounts are regular users. Registration can be disabled in Site Settings. Additional trusted auth origins accept comma-separated values or arrays with single or double quotes in `CORS_ORIGINS`; the original `CORS_ORIGIN` name is also supported. `CORS_ORIGINS` takes precedence when both are set. For example, `CORS_ORIGIN=['https://pub.log.yachts', 'https://logs.2oo.dev', 'https://logs.pleaseuse.me', 'https://2b6c95.a.srv.yhw.tw']` is valid in `.env`. Restart the server after changing these variables. Authentication uses same-site cookies and keeps CSRF checks enabled.
 
 S3-compatible storage is optional for text posts. Configure the S3 variables in the example file to enable image/video uploads. `UPLOAD_LIMIT` is in MiB and defaults to 50. Keep the bucket private so media requests go through the application's visibility checks. Existing external media URLs retain the access policy of their host. If an earlier deployment cached media through a CDN or reverse proxy, purge that cache when upgrading: older responses allowed public caching for one year.
 
