@@ -1,7 +1,6 @@
 import Link from "next/link";
 import CodeRender from "./markdownCodeBlock";
 import type { Route } from "next";
-import { Ultra } from "next/font/google";
 
 // Slugify function for heading IDs
 function slugify(text: string) {

@@ -24,7 +24,7 @@ export const GET = async () => {
 };
 
 export const POST = async (request: NextRequest) => {
-  let statusCode = 200;
+  let statusCode = 500;
   try {
     const header = await headers();
     const session = await auth.api.getSession({ headers: header });
@@ -147,26 +147,23 @@ export const POST = async (request: NextRequest) => {
           ) {
             throw new Error("ERR_INVALID_BODY_TYPE");
           }
-          await db
-            .update(main_schema.kvData)
-            .set({ value: body.data.homePage })
-            .where(dorm.eq(main_schema.kvData.key, "homePageStatus"));
-          await db
-            .update(main_schema.kvData)
-            .set({ value: body.data.registration })
-            .where(dorm.eq(main_schema.kvData.key, "registrationStatus"));
-          await db
-            .update(main_schema.kvData)
-            .set({ value: body.data.robotsTxt })
-            .where(dorm.eq(main_schema.kvData.key, "robotsTxtStatus"));
-          await db
-            .update(main_schema.kvData)
-            .set({ value: body.data.search })
-            .where(dorm.eq(main_schema.kvData.key, "searchStatus"));
-          await db
-            .update(main_schema.kvData)
-            .set({ value: body.data.displayVersion })
-            .where(dorm.eq(main_schema.kvData.key, "exposeVersion"));
+          await db.transaction(async (tx) => {
+            for (const [key, value] of Object.entries({
+              homePageStatus: data.homePage,
+              registrationStatus: data.registration,
+              robotsTxtStatus: data.robotsTxt,
+              searchStatus: data.search,
+              exposeVersion: data.displayVersion,
+            })) {
+              await tx
+                .insert(main_schema.kvData)
+                .values({ key, value })
+                .onConflictDoUpdate({
+                  target: main_schema.kvData.key,
+                  set: { value, updatedAt: new Date() },
+                });
+            }
+          });
           return Response.json({
             success: true,
             status: 200,
@@ -215,26 +212,6 @@ export const POST = async (request: NextRequest) => {
           throw new Error(e.message || "ERR_GENERIC");
         }
       }
-      if (body.action === "change_umami") {
-        statusCode = 500;
-        throw new Error("ERR_NO_FEATURE");
-      }
-      if (body.action === "change_rybbit") {
-        statusCode = 500;
-        throw new Error("ERR_NO_FEATURE");
-      }
-      if (body.action === "change_custom_scripts") {
-        statusCode = 500;
-        throw new Error("ERR_NO_FEATURE");
-      }
-    } else if (tabAction === "post_manage") {
-      if (body.action === "delete") {
-        try {
-          return Response.json({ success: true, msg: "" }, { status: 200 });
-        } catch (e: any) {
-          return Response.json({ success: false, msg: e.msg }, { status: 500 });
-        }
-      }
     } else if (tabAction === "admin_user_actions") {
       if (session.user.role !== "admin") {
         statusCode = 403;
@@ -248,9 +225,8 @@ export const POST = async (request: NextRequest) => {
           if (body.user === session.user.id) {
             throw new Error("You cannot delete yourself");
           }
-          await db
-            .delete(main_schema.userPosts)
-            .where(dorm.eq(main_schema.userPosts.byUser, body.user));
+          // User-owned records cascade from the user DELETE in removeUser.
+          // Never delete content before the auth operation succeeds.
           const data = await auth.api.removeUser({
             body: {
               userId: body.user,
@@ -334,6 +310,7 @@ export const POST = async (request: NextRequest) => {
             },
             headers: await headers(),
           });
+          return Response.json({ success: true, msg: "Permissions updated" });
         } catch (e: any) {
           console.log(e);
           throw new Error(e.message || "ERR_GENERIC");
@@ -342,7 +319,11 @@ export const POST = async (request: NextRequest) => {
     } else if (tabAction === "non_admin_user") {
       if (body.action === "profile_pic_update") {
         try {
-          if (!body.imageUrl) {
+          if (
+            typeof body.imageUrl !== "string" ||
+            !body.imageUrl.startsWith(`/api/data/files/${session.user.id}/`) ||
+            /[?#]/.test(body.imageUrl)
+          ) {
             statusCode = 400;
             throw new Error("ERR_INCORRECT_PARAMSs");
           }
@@ -367,11 +348,11 @@ export const POST = async (request: NextRequest) => {
     return Response.json(
       {
         success: false,
-        status: 200,
+        status: 404,
         msg: "Cannot find request.",
       },
       {
-        status: 200,
+        status: 404,
       },
     );
   } catch (e: any) {

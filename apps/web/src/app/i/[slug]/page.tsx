@@ -1,3 +1,4 @@
+import { canReadPost } from "@/lib/post-validation";
 import {
   db,
   main_schema,
@@ -14,6 +15,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import Markdown from "marked-react";
 import renderer from "@/components/markdownRender";
+import VideoPlayer from "@/components/video-player";
 
 export const dynamic = "force-dynamic";
 
@@ -30,18 +32,13 @@ export default async function Page(props: {
   const content: Post[] = await db
     .select()
     .from(main_schema.userPosts)
-    .where(
-      dorm.and(
-        dorm.eq(main_schema.userPosts.postId, slug),
-        dorm.ne(main_schema.userPosts.status, "draft"),
-      ),
-    );
+    .where(dorm.eq(main_schema.userPosts.postId, slug));
 
   if (content.length === 0) {
     notFound();
   }
 
-  if (content[0].status === "private" && content[0].byUser !== userId) {
+  if (!canReadPost(content[0], userId)) {
     notFound();
   }
   const getUserInfo = await db
@@ -54,7 +51,7 @@ export default async function Page(props: {
       <div className="flex flex-col">
         {content[0].type === "video" && content[0].videoUrl !== null && (
           <div>
-            <video src={content[0].videoUrl} />
+            <VideoPlayer src={content[0].videoUrl} />
           </div>
         )}
         {content[0].type === "photos" && content[0].imageUrl !== null && (
@@ -73,7 +70,7 @@ export default async function Page(props: {
           {(content[0].tags as string[]).map((it: string) => (
             <Link
               key={it}
-              href={`/user/${content[0].byUser}?filter=by_tag&tag=${it}`}
+              href={`/user/${content[0].byUser}?filters=${encodeURIComponent(JSON.stringify([{ by: "tag", filter: it }]))}`}
             >
               <Badge variant="default">{it}</Badge>
             </Link>
@@ -125,7 +122,8 @@ export async function generateMetadata({
     .select()
     .from(main_schema.userPosts)
     .where(dorm.eq(main_schema.userPosts.postId, resolvedParams.slug));
-  if (content.length === 0) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!content[0] || !canReadPost(content[0], session?.user.id)) {
     return {
       title: "Undefined",
     };

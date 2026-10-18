@@ -1,45 +1,37 @@
-// THIS REALLY NEEDS TO BE DONE :(
 "use client";
 
 import { PublicPostsAndVideos } from "@/components/publicPostsAndVideos";
-import { main_schema, db, dorm } from "../../../../../../../../packages/db/src";
+import type { main_schema } from "../../../../../../../../packages/db/src";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutation } from "@tanstack/react-query";
 
 type Post = typeof main_schema.userPosts.$inferSelect;
 
 export default function Client({ orgPost }: { orgPost: Post }) {
   const [post, setPost] = useState<Post>(orgPost);
+  const [savedStatus, setSavedStatus] = useState(orgPost.status);
   const submitRequest = useMutation({
     mutationFn: async () => {
-      toast.promise(
-        async () => {
-          const req = await fetch("/api/data/modify/posts?tab=edit", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              action: "change_post",
-              postId: post.postId,
-              postStatus: post,
-            }),
-          });
-          if (req.status !== 200) {
-            throw new Error(req.statusText);
-          }
-          return;
-        },
-        {
-          loading: "Editing...",
-          success: "Edited!",
-          error: (error) => `Error editing your post, error: ${error}`,
-        },
-      );
+      const req = await fetch("/api/data/modify/posts?tab=edit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "change_post",
+          postId: post.postId,
+          postStatus: post,
+        }),
+      });
+      const result = await req.json();
+      if (!req.ok) throw new Error(result.message || "Failed to edit post");
     },
+    onSuccess: () => {
+      setSavedStatus(post.status);
+      toast.success("Post saved");
+    },
+    onError: (error) => toast.error(error.message),
   });
   return (
     <div className="flex flex-col md:flex-row">
@@ -73,6 +65,7 @@ export default function Client({ orgPost }: { orgPost: Post }) {
           </Tabs>
         </div>
         <textarea
+          aria-label="Post text"
           className="border shadow rounded mt-2 p-1 ml-1 resize-none h-[200px]"
           value={post.textData || ""}
           onChange={(e) =>
@@ -90,9 +83,55 @@ export default function Client({ orgPost }: { orgPost: Post }) {
             })
           }
         />
+        <label className="mt-2">
+          Tags (comma separated)
+          <input
+            className="border rounded p-1 block"
+            defaultValue={(post.tags as string[]).join(", ")}
+            onChange={(event) =>
+              setPost((prev) => ({
+                ...prev,
+                tags: event.target.value
+                  .split(",")
+                  .map((tag) => tag.trim())
+                  .filter(Boolean),
+              }))
+            }
+          />
+        </label>
         <div className="justify-between flex flex-row mr-3 mt-2">
-          <div></div>
           <Button
+            variant="outline"
+            disabled={
+              submitRequest.isPending ||
+              !["public", "unlisted"].includes(savedStatus)
+            }
+            onClick={async () => {
+              try {
+                const response = await fetch("/api/data/create_share_link", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ postId: post.postId }),
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message);
+                await navigator.clipboard.writeText(
+                  new URL(result.url, window.location.origin).href,
+                );
+                toast.success("Share link copied");
+              } catch (error) {
+                toast.error(
+                  error instanceof Error
+                    ? error.message
+                    : "Could not copy link",
+                );
+              }
+            }}
+          >
+            Copy share link
+          </Button>
+          <Button
+            disabled={submitRequest.isPending}
             variant="outline"
             onClick={() => submitRequest.mutate()}
             className="cursor-pointer"

@@ -1,90 +1,71 @@
-import {
-  db,
-  main_schema,
-  dorm,
-  auth_schema,
-} from "../../../../../../packages/db/src";
+import { db, dorm, main_schema, auth_schema } from "@devlogs_hosting/db";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
 import { auth } from "@devlogs_hosting/auth";
 import { headers } from "next/headers";
-import type { Metadata } from "next";
-import { CalendarPlusIcon, CalendarSyncIcon, DotIcon } from "lucide-react";
+import { PublicPostsAndVideos } from "@/components/publicPostsAndVideos";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import Client from "./client";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
-
-export default async function Page(props: {
+export default async function Page({
+  params,
+}: {
   params: Promise<{ slug: string }>;
 }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  const userId = session?.session.userId;
-  const { slug } = await props.params;
-  const content: (typeof main_schema.collections.$inferSelect)[] = await db
+  const { slug } = await params;
+  const [collection] = await db
     .select()
     .from(main_schema.collections)
-    .where(dorm.eq(main_schema.userPosts.postId, slug));
-
-  if (content.length === 0) {
-    notFound();
-  }
-
-  const getUserInfo = await db
-    .select()
+    .where(dorm.eq(main_schema.collections.slug, slug));
+  if (!collection) notFound();
+  const session = await auth.api.getSession({ headers: await headers() });
+  const [owner] = await db
+    .select({ name: auth_schema.user.name })
     .from(auth_schema.user)
-    .where(dorm.eq(auth_schema.user.id, content[0].byUser));
-
+    .where(dorm.eq(auth_schema.user.id, collection.byUser));
+  const ids = Array.isArray(collection.items)
+    ? collection.items.filter(
+        (item): item is string => typeof item === "string",
+      )
+    : [];
+  const posts = ids.length
+    ? await db
+        .select()
+        .from(main_schema.userPosts)
+        .where(
+          dorm.and(
+            dorm.inArray(main_schema.userPosts.postId, ids),
+            dorm.eq(main_schema.userPosts.byUser, collection.byUser),
+            session?.user.id === collection.byUser
+              ? undefined
+              : dorm.eq(main_schema.userPosts.status, "public"),
+          ),
+        )
+        .orderBy(dorm.desc(main_schema.userPosts.createdAt))
+    : [];
   return (
-    <Client
-      data={{
-        userInfo: {
-          id: getUserInfo[0].id,
-          name: getUserInfo[0].name,
-          image: getUserInfo[0].image,
-        },
-        slug: content[0].id,
-        title: content[0].title,
-        createdAt: content[0].createdAt,
-        updatedAt: content[0].updatedAt,
-      }}
-    />
+    <div className="p-4 space-y-4">
+      <h1 className="text-2xl">{collection.title}</h1>
+      <Link href={`/user/${collection.byUser}`} className="underline">
+        By {owner?.name || "Unknown user"}
+      </Link>
+      {posts.length ? (
+        <PublicPostsAndVideos mode="search" passedData={posts} />
+      ) : (
+        <p>No public posts in this collection yet.</p>
+      )}
+    </div>
   );
 }
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const resolvedParams = await params;
-  const content: (typeof main_schema.collections.$inferSelect)[] = await db
-    .select()
+  const { slug } = await params;
+  const [collection] = await db
+    .select({ title: main_schema.collections.title })
     .from(main_schema.collections)
-    .where(dorm.eq(main_schema.userPosts.postId, resolvedParams.slug));
-
-  if (content.length === 0) {
-    return {
-      title: "Undefined",
-    };
-  }
-  const getUserInfo = await db
-    .select()
-    .from(auth_schema.user)
-    .where(dorm.eq(auth_schema.user.id, content[0].byUser));
-  const kvTitle = await db
-    .select()
-    .from(main_schema.kvData)
-    .where(dorm.eq(main_schema.kvData.key, "title"));
-  const kvDescription = await db
-    .select()
-    .from(main_schema.kvData)
-    .where(dorm.eq(main_schema.kvData.key, "description"));
-  return {
-    title: `A collection by ${getUserInfo[0].name} | ${kvTitle.length !== 0 ? kvTitle[0].value : ""}`,
-    description: `A collection by ${getUserInfo[0].name}, and published at ${content[0].updatedAt}. ${kvDescription.length !== 0 ? kvDescription[0].value : ""}`,
-  };
+    .where(dorm.eq(main_schema.collections.slug, slug));
+  return { title: collection?.title || "Collection not found" };
 }

@@ -1,3 +1,4 @@
+import { publishSchema } from "@/lib/post-validation";
 import type { NextRequest } from "next/server";
 import { auth } from "@devlogs_hosting/auth"; // path to your Better Auth server instance
 import { headers } from "next/headers";
@@ -11,7 +12,6 @@ import generateItemId from "@/components/generateItemId";
 
 export const POST = async (request: NextRequest) => {
   try {
-    const body: any = await request.json();
     const session = await auth.api.getSession({
       headers: await headers(),
     });
@@ -40,27 +40,88 @@ export const POST = async (request: NextRequest) => {
       );
     }
 
+    const parsed = publishSchema.safeParse(await request.json());
+    if (!parsed.success)
+      return Response.json(
+        { success: false, msg: "Invalid post content" },
+        { status: 400 },
+      );
+    const body = parsed.data;
+    for (const url of [body.imageUrl, body.videoUrl]) {
+      if (
+        url?.startsWith("/api/data/files/") &&
+        (!url.startsWith(`/api/data/files/${userId}/`) ||
+          /%|\/\.\.?\//.test(url))
+      ) {
+        return Response.json(
+          { success: false, msg: "You can only attach your own uploads" },
+          { status: 403 },
+        );
+      }
+    }
     const id = generateItemId();
-    await db.insert(main_schema.userPosts).values({
-      postId: id,
-      type: body.type,
-      byUser: userId,
-      ...(body.text?.length > 0 && { textData: body.text }),
-      ...(body.type === "photos" &&
-        body.imageUrl && { imageUrl: body.imageUrl }),
-      ...(body.type === "video" &&
-        body.videoUrl && { videoUrl: body.videoUrl }),
-      ...(body.tags && { tags: body.tags }),
-      ...(body.status && { status: body.status }),
+    await db.transaction(async (tx) => {
+      let collection;
+      if (body.collectionId) {
+        [collection] = await tx
+          .select()
+          .from(main_schema.collections)
+          .where(
+            dorm.and(
+              dorm.eq(main_schema.collections.collectionId, body.collectionId),
+              dorm.eq(main_schema.collections.byUser, userId),
+            ),
+          )
+          .for("update");
+        if (!collection) throw new Error("ERR_COLLECTION_NOT_FOUND");
+      }
+      await tx.insert(main_schema.userPosts).values({
+        postId: id,
+        type: body.type,
+        byUser: userId,
+        textData: body.text,
+        imageUrl: body.type === "photos" ? body.imageUrl : null,
+        videoUrl: body.type === "video" ? body.videoUrl : null,
+        tags: body.tags,
+        status: body.status,
+      });
+      if (collection)
+        await tx
+          .update(main_schema.collections)
+          .set({
+            items: [
+              ...(Array.isArray(collection.items) ? collection.items : []),
+              id,
+            ],
+            updatedAt: new Date(),
+          })
+          .where(
+            dorm.eq(
+              main_schema.collections.collectionId,
+              collection.collectionId,
+            ),
+          );
     });
 
     return Response.json({ success: true, msg: "", postId: id });
   } catch (e: any) {
     console.error(e);
     return Response.json(
-      { success: false, msg: e.message, postId: null },
       {
-        status: 500,
+        success: false,
+        msg:
+          e.message === "ERR_COLLECTION_NOT_FOUND"
+            ? "Collection not found"
+            : "Could not publish post",
+        postId: null,
+      },
+      {
+        status:
+          e instanceof SyntaxError
+            ? 400
+            : e.message === "ERR_COLLECTION_NOT_FOUND"
+              ? 404
+              : 500,
       },
     );
   }

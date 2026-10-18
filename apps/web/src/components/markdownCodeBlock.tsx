@@ -1,12 +1,7 @@
 "use client";
 import { Highlight, themes } from "prism-react-renderer";
 import { useTheme } from "next-themes";
-import { Ubuntu } from "next/font/google";
-const ubuntu = Ubuntu({
-  variable: "--font-ubuntu",
-  subsets: ["latin"],
-  weight: ["400"],
-});
+import "@fontsource/ubuntu/400.css";
 export default function CodeRender({
   code,
   type,
@@ -19,7 +14,7 @@ export default function CodeRender({
     <div className="rounded-lg overflow-hidden my-4 max-h-full max-w-full">
       <div className="flex items-center justify-between px-4 py-2 bg-sky-200 dark:bg-gray-800">
         <span
-          className={`text-sm ${ubuntu.variable} text-black text-gray-800 dark:text-gray-200`}
+          className={`text-sm font-[Ubuntu] text-black text-gray-800 dark:text-gray-200`}
         >
           {type || "text"}
         </span>

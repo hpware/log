@@ -37,7 +37,7 @@ export default async function Page(props: {
     <div>
       <div className="flex flex-col pl-2">
         <div className="flex flex-row">
-          <Image
+          <img
             src={
               content[0]?.image !== null
                 ? content[0].image
@@ -73,7 +73,7 @@ export default async function Page(props: {
             )}
           </div>
         </div>
-        <DisplayPosts user={content[0]} isSameUser={isSameUser} />
+        <DisplayPosts user={{ id: content[0].id }} isSameUser={isSameUser} />
       </div>
     </div>
   );

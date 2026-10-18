@@ -148,7 +148,7 @@ body {
 }
 
 .archivo-black {
-    font-family: var(--font-archivo-black);
+    font-family: "Archivo Black", sans-serif;
 }
 
 @layer base {

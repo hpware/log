@@ -6,7 +6,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { auth_schema } from "../../../../../../../packages/db/src/index";
+import type { auth_schema } from "../../../../../../../packages/db/src/index";
 import DataTable from "@/components/table";
 import { toast } from "sonner";
 import {
