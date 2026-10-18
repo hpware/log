@@ -1,5 +1,5 @@
 "use client";
-import PostFilters, { usePostFilters } from "./post-filters";
+import { usePostFilters } from "./post-filters";
 import { PublicPostsAndVideos } from "./publicPostsAndVideos";
 import { useSearchParams } from "next/navigation";
 import { filtersSchema } from "@/lib/post-validation";
@@ -16,7 +16,6 @@ export default function FilteredFeed({ userId }: { userId?: string }) {
   } catch {}
   return (
     <>
-      <PostFilters />
       <PublicPostsAndVideos
         mode={userId ? "profile" : "index"}
         userInfo={userId}

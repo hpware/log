@@ -3,7 +3,7 @@
 Implemented maintenance work:
 
 - Owner-checked post editing, tag editing, and draft previews.
-- Text, exact-tag, and post-type filters on home, profile, and search pages, preserved in URLs.
+- Original centered live-search interface, with feed filtering supported through URL parameters and the APIs.
 - Markdown feed previews with expandable text and safe links.
 - Independent administrator feature toggles and server-version privacy.
 - Collection creation, listing, title/slug editing, existing-post selection, deletion, and public collection pages.
